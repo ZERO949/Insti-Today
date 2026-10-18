@@ -1,5 +1,13 @@
 # Cambios
 
+## 0.1.3 · 2026-10-17
+
+- Actualizaciones: cuando hay una versión nueva aparece un aviso con «Descargar e
+  instalar». La app la descarga, reemplaza la versión anterior (tu sesión y tus
+  ajustes se conservan) y vuelve a abrirse. Con «Más tarde» queda el botón en el
+  widget y en Cuenta → Actualizaciones.
+- Esta versión se instala a mano una vez; las siguientes llegan con el aviso.
+
 ## 0.1.2 · 2026-10-15
 
 - Revisar Moodle es 2-4 veces más rápido: las tareas se piden curso por curso y
