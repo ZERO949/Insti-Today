@@ -1,5 +1,10 @@
 # Cambios
 
+## 0.1.5 · 2026-10-17
+
+- El instalador de Windows ahora es un asistente: puedes elegir la carpeta donde se
+  instala. Las actualizaciones se instalan en la misma carpeta.
+
 ## 0.1.4 · 2026-10-17
 
 - El instalador de Windows pesa menos de 1 MB: descarga la app al instalarse (necesita

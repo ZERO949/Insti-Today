@@ -49,13 +49,22 @@ comentarios se escriben en español.
   pesa ~1 MB y descarga el paquete `.7z` del release de su misma versión. No borrar
   releases viejos: sus instaladores dejarían de funcionar. Al actualizar, la app
   descarga el `.7z` y se lo pasa al instalador con `--package-file`.
+- Desde la 0.1.5 el instalador es un asistente (`oneClick: false`) con página para
+  elegir la carpeta; también pregunta «sólo para mí / para todos» (para todos =
+  Program Files y cada actualización pide permiso de administrador). Las
+  actualizaciones silenciosas reinstalan en la carpeta guardada en el registro.
 - El instalador web quita la versión instalada antes de descargar. Sin internet (o si
   falta el `.7z`) la app queda desinstalada; los datos en `%APPDATA%\insti-today` se
-  conservan. Para reinstalar sin red: `Insti-Today-Setup.exe /S --package-file=C:uta\paquete.7z`
+  conservan. Para reinstalar sin red: `Insti-Today-Setup.exe /S --package-file=C:
+uta\paquete.7z`
   (ruta sin espacios).
 - Para probar actualizaciones sin publicar: construir con un `--config` cuyo `publish`
   sea `{ provider: 'generic', url: 'http://localhost:PUERTO' }` y servir `dist/nsis-web`.
   No usar `nsisWeb.appPackageUrl` para eso: se toma como la dirección completa del `.7z`.
+- Probar sin red: `setup.exe --updated /S --force-run --package-file=C:\ruta\paquete.7z`
+  hace lo mismo que la actualización de la app; con `/S --package-file=… /D=C:\carpeta`
+  se instala en otra carpeta. El instalador borra el `.7z` después de usarlo: copiarlo
+  de nuevo antes de cada prueba o intentará descargarlo de GitHub.
 - Antes de subir algo, revisar que no van tokens, sesiones (`sesion*.json`) ni
   `local.properties`; el repositorio es público.
 

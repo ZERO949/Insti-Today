@@ -1,6 +1,6 @@
 {
   "name": "insti-today",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "description": "Tus pendientes de Moodle (Plataforma UII) en el escritorio de Windows, Mac y Linux. Basado en BB Today.",
   "type": "module",
@@ -90,8 +90,9 @@
       "artifactName": "Insti-Today-Setup.${ext}"
     },
     "nsis": {
-      "oneClick": true,
+      "oneClick": false,
       "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
       "runAfterFinish": true,
       "createDesktopShortcut": false,
       "createStartMenuShortcut": true,
