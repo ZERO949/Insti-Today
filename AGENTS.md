@@ -19,11 +19,33 @@ comentarios se escriben en español.
 - Entregar: `widget/entrega.js` abre `action=editsubmission` y suelta los archivos
   con `Input.dispatchDragEvent` (CDP) sobre `.filemanager`. La persona pulsa
   «Guardar cambios».
-- Actualizaciones: la app lee los releases del repositorio público
-  `ZERO949/Insti-Today`. Al haber versión
-  nueva pregunta con un aviso; si se acepta, descarga, reinstala encima y se reabre.
+- Actualizaciones (`widget/actualizaciones.js`, desde la 0.1.3): la app lee los
+  releases del repositorio público `ZERO949/Insti-Today`. Al haber versión nueva
+  pregunta con un aviso (`preguntarVersionNueva` en `main.js`); si se acepta,
+  descarga, reinstala encima y se reabre. La 0.1.2 y anteriores no buscan
+  actualizaciones: se instalan a mano una vez.
 - Se quitaron el sitio web, la publicación y el contador de BB Today.
 - Las funciones de IA siguen desactivadas como en BB Today 1.2.7 (`src/mantenimiento.js`).
+
+## Repositorio y versiones
+
+- Código y releases en https://github.com/ZERO949/Insti-Today (público, rama `main`).
+  `gh` tiene sesión con la cuenta ZERO949.
+- Los commits van sólo a nombre de `Alvaro Uriel Perez Martinez
+  <132710856+ZERO949@users.noreply.github.com>` (configurado en el repositorio).
+  Nunca añadir `Co-Authored-By`, «Generated with Claude Code» ni otra mención a
+  Claude en commits, PR o releases.
+- Publicar una versión:
+  1. Subir `version` en `package.json` y añadir la entrada en `CHANGELOG.md`.
+  2. Commit, `git tag vX.Y.Z`, `git push`, `git push --tags`. La etiqueta tiene que
+     existir antes de publicar: electron-builder crea el release desde dos tareas a
+     la vez y, sin etiqueta, GitHub rechaza una con «Published releases must have a
+     valid tag» (pasó con la 0.1.3).
+  3. `$env:GH_TOKEN = gh auth token; npm run publicar` (sólo Windows).
+  4. Comprobar que el release tiene `Insti-Today-Setup.exe`, su `.blockmap` y
+     `latest.yml` con la versión nueva; sin `latest.yml` la app no ve la versión.
+- Antes de subir algo, revisar que no van tokens, sesiones (`sesion*.json`) ni
+  `local.properties`; el repositorio es público.
 
 ## App de Android (`movil/`)
 
