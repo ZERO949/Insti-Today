@@ -121,7 +121,8 @@ Para publicar una versión nueva:
 3. Con la sesión de `gh` (cuenta ZERO949) en PowerShell:
    `$env:GH_TOKEN = gh auth token; npm run publicar`
 
-Eso sube `Insti-Today-Setup.exe`, su `.blockmap` y `latest.yml` al release; las
+Eso sube `Insti-Today-Setup.exe` (instalador web de ~1 MB), el paquete
+`insti-today-X.Y.Z-x64.nsis.7z` y `latest.yml` al release; las
 apps instaladas lo verán en menos de 4 horas o al abrirse.
 
 ## Privacidad

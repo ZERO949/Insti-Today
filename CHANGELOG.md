@@ -1,5 +1,10 @@
 # Cambios
 
+## 0.1.4 · 2026-10-17
+
+- El instalador de Windows pesa menos de 1 MB: descarga la app al instalarse (necesita
+  internet). La app instalada es la misma y se sigue actualizando con el aviso.
+
 ## 0.1.3 · 2026-10-17
 
 - Actualizaciones: cuando hay una versión nueva aparece un aviso con «Descargar e

@@ -42,8 +42,20 @@ comentarios se escriben en español.
      la vez y, sin etiqueta, GitHub rechaza una con «Published releases must have a
      valid tag» (pasó con la 0.1.3).
   3. `$env:GH_TOKEN = gh auth token; npm run publicar` (sólo Windows).
-  4. Comprobar que el release tiene `Insti-Today-Setup.exe`, su `.blockmap` y
-     `latest.yml` con la versión nueva; sin `latest.yml` la app no ve la versión.
+  4. Comprobar que el release tiene `Insti-Today-Setup.exe`, el paquete
+     `insti-today-X.Y.Z-x64.nsis.7z` y `latest.yml` con la versión nueva; sin
+     `latest.yml` la app no ve la versión.
+- Desde la 0.1.4 el instalador de Windows es web (`nsis-web`): `Insti-Today-Setup.exe`
+  pesa ~1 MB y descarga el paquete `.7z` del release de su misma versión. No borrar
+  releases viejos: sus instaladores dejarían de funcionar. Al actualizar, la app
+  descarga el `.7z` y se lo pasa al instalador con `--package-file`.
+- El instalador web quita la versión instalada antes de descargar. Sin internet (o si
+  falta el `.7z`) la app queda desinstalada; los datos en `%APPDATA%\insti-today` se
+  conservan. Para reinstalar sin red: `Insti-Today-Setup.exe /S --package-file=C:uta\paquete.7z`
+  (ruta sin espacios).
+- Para probar actualizaciones sin publicar: construir con un `--config` cuyo `publish`
+  sea `{ provider: 'generic', url: 'http://localhost:PUERTO' }` y servir `dist/nsis-web`.
+  No usar `nsisWeb.appPackageUrl` para eso: se toma como la dirección completa del `.7z`.
 - Antes de subir algo, revisar que no van tokens, sesiones (`sesion*.json`) ni
   `local.properties`; el repositorio es público.
 

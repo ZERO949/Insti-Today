@@ -13,8 +13,10 @@ jobs:
       matrix:
         include:
           - so: windows-latest
-            destino: --win nsis --x64
-            archivos: dist/*.exe
+            destino: --win nsis-web --x64
+            archivos: |
+              dist/nsis-web/*.exe
+              dist/nsis-web/*.7z
           - so: macos-latest
             destino: --mac dmg --arm64 --x64
             archivos: dist/*.dmg
