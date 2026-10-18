@@ -1,0 +1,14 @@
+{
+  "appId": "mx.institoday.app",
+  "appName": "Insti Today",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_insti",
+      "iconColor": "#1757c4"
+    }
+  }
+}

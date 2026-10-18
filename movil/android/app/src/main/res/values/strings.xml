@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Insti Today</string>
+    <string name="title_activity_main">Insti Today</string>
+    <string name="package_name">mx.institoday.app</string>
+    <string name="custom_url_scheme">mx.institoday.app</string>
+</resources>

@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Vista previa</title>
+<link rel="stylesheet" href="temas.css">
+<link rel="stylesheet" href="../node_modules/katex/dist/katex.min.css">
+<script src="../node_modules/katex/dist/katex.min.js"></script>
+<script src="../node_modules/katex/dist/contrib/auto-render.min.js"></script>
+<script src="markdown.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: transparent; overflow: hidden; }
+  html, body { height: 100%; }
+  body {
+    color: var(--texto);
+    font: 12.5px/1.45 var(--fuente);
+    letter-spacing: -.008em;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* La ventana ocupa todo el alto y no cambia de tamaño: la tarjeta se mueve
+     dentro (translateY) hasta la altura de la fila. */
+  .tarjeta {
+    position: absolute;
+    top: 0;
+    left: 14px;
+    right: 14px;
+    max-height: min(640px, calc(100vh - 28px));
+    overflow-y: auto;
+    /* La vista previa va casi opaca aunque el widget sea translúcido: es
+       para leer. */
+    background: color-mix(in srgb, var(--fondo-a) calc(max(var(--alfa-tema, 1), .9) * 97%), transparent);
+    border: 1px solid var(--borde);
+    border-radius: 18px;
+    box-shadow: var(--sombra);
+    scrollbar-width: none;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(var(--y, 0px)) translateX(6px);
+    transition: opacity .13s ease-out, transform .18s cubic-bezier(.2, .8, .2, 1);
+    will-change: transform, opacity;
+  }
+  .tarjeta.visible { opacity: 1; pointer-events: auto; transform: translateY(var(--y, 0px)); }
+  .tarjeta.quieta { transition: opacity .13s ease-out; }
+  .cerrar-vista { position: absolute; top: 12px; right: 12px; z-index: 2; width: 24px; height: 24px; border: 0; border-radius: 50%; background: var(--pieza); color: var(--suave); cursor: pointer; }
+  .cerrar-vista:hover { background: var(--pieza-hover); color: var(--texto); }
+  .cerrar-vista:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+  .tarjeta.fijada .curso { padding-right: 30px; }
+  /* Al cambiar de tarea, el contenido nuevo entra con un fundido corto. */
+  .contenido { transition: opacity .12s ease-out; }
+  .contenido.entrando { opacity: .25; transition: none; }
+  .franja { height: 0; }
+  .cuerpo { padding: 16px 16px 14px; }
+  .curso { font-size: 12px; font-weight: 600; }
+  h2 { margin: 3px 0 10px; font: 700 17px/1.25 var(--fuente-titulo); letter-spacing: -.02em; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+  .chip { font-size: 11.5px; font-weight: 500; border-radius: 999px; padding: 2px 10px; background: var(--pieza); color: var(--suave); }
+  .chip.mal { color: var(--mal); background: color-mix(in srgb, var(--mal) 14%, transparent); }
+  .chip.pronto { color: var(--pronto); background: color-mix(in srgb, var(--pronto) 14%, transparent); }
+  .chip.bien { color: var(--bien); background: color-mix(in srgb, var(--bien) 13%, transparent); }
+
+  .seccion { font-size: 12px; font-weight: 600; color: var(--texto); margin: 16px 0 6px; }
+  .instrucciones { white-space: pre-line; color: var(--suave); max-height: 190px; overflow-y: auto; scrollbar-width: thin; user-select: text; }
+  .vacio { color: var(--tenue); font-style: italic; }
+
+  .archivos { display: flex; flex-direction: column; gap: 8px; }
+  .archivo { display: block; border-radius: 12px; background: var(--pieza); overflow: hidden; cursor: pointer; border: 1px solid transparent; transition: background .12s, border-color .12s; }
+  .archivo:hover { background: var(--pieza-hover); border-color: var(--borde); }
+  .muestra { position: relative; border-bottom: 1px solid var(--linea); }
+  .muestra img, .muestra canvas { display: block; width: 100%; max-height: 118px; object-fit: cover; object-position: top; background: #fff; }
+  .muestra pre { margin: 0; padding: 8px 10px; font: 11px/1.5 var(--mono); background: var(--codigo); color: var(--suave); white-space: pre; overflow: hidden; max-height: 170px; }
+  .muestra .zip { padding: 7px 10px; font: 11px/1.6 var(--mono); color: var(--suave); background: var(--codigo); }
+  .muestra .zip span { color: var(--tenue); }
+  .muestra .texto { padding: 8px 10px; color: var(--suave); font-size: 11.5px; white-space: pre-line; max-height: 110px; overflow: hidden; background: var(--codigo); -webkit-mask-image: linear-gradient(#000 70%, transparent); }
+  .esqueleto { height: 72px; background: linear-gradient(90deg, var(--pieza) 25%, var(--pieza-hover) 50%, var(--pieza) 75%); background-size: 200% 100%; animation: brillo 1.2s linear infinite; }
+  @keyframes brillo { to { background-position: -200% 0; } }
+  .fila { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 7px 10px; }
+  .tipo { font-size: 9.5px; font-weight: 700; letter-spacing: .04em; padding: 2px 5px; border-radius: 4px; color: #fff; }
+  .nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .origen { font-size: 10.5px; color: var(--tenue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bajar { color: var(--tenue); display: flex; align-items: center; gap: 4px; font-size: 11px; white-space: nowrap; }
+  .archivo:hover .bajar { color: var(--texto); }
+  .bajar svg { width: 13px; height: 13px; }
+
+  .fotos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .foto { aspect-ratio: 16 / 10; border-radius: 10px; overflow: hidden; background: var(--pieza); cursor: pointer; border: 1px solid transparent; }
+  .foto:hover { border-color: var(--borde); }
+  .foto img { width: 100%; height: 100%; object-fit: contain; display: block; background: var(--codigo); }
+
+  .pie { border-top: 1px solid var(--linea); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+  .abrir { font: inherit; font-size: 12px; font-weight: 500; color: var(--texto); background: var(--pieza); border: 0; border-radius: 999px; padding: 5px 13px; cursor: pointer; }
+  .abrir:hover { background: var(--pieza-hover); }
+  .ruta { font-size: 10.5px; color: var(--tenue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: -4px 0 8px; }
+  .pie { gap: 8px; justify-content: flex-end; }
+  .resolver { font: inherit; font-size: 12px; font-weight: 600; color: #fff; background: var(--acento); border: 0; border-radius: 999px; padding: 5px 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .resolver:hover { filter: brightness(1.08); }
+  /* ChatGPT: blanco y con su logo. */
+  .resolver.chatgpt { background: #fff; color: #0d0d0d; box-shadow: 0 0 0 1px rgb(0 0 0 / .12) inset; }
+  .resolver.chatgpt:hover { filter: none; background: #f2f2f2; }
+  .resolver.chatgpt img { width: 14px; height: 14px; }
+  .resolver-grupo { position: relative; display: flex; }
+  .resolver-fila { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .con-agente { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--tenue); white-space: nowrap; }
+  .pie button { white-space: nowrap; }
+  .pie { flex-wrap: wrap; row-gap: 6px; gap: 6px; }
+  .resolver-grupo .resolver:first-of-type { border-radius: 999px 0 0 999px; }
+  .resolver.mas { border-radius: 0 999px 999px 0; padding: 5px 9px 5px 7px; margin-left: 1px; font-size: 10px; }
+  .rutas { position: absolute; right: 0; bottom: calc(100% + 6px); display: flex; flex-direction: column; min-width: 190px; padding: 5px; border-radius: 12px; background: var(--elevado, var(--fondo-a)); border: 1px solid var(--borde); box-shadow: var(--sombra); z-index: 5; }
+  .rutas button { font: inherit; font-size: 12px; text-align: left; color: var(--texto); background: none; border: 0; border-radius: 6px; padding: 6px 9px; cursor: pointer; }
+  .rutas button:hover { background: var(--acento); color: #fff; }
+  .resolver svg { width: 13px; height: 13px; }
+  .nota-claude { margin: 0 16px 12px; padding: 9px 12px; border-radius: 10px; font-size: 11.5px; color: var(--suave); background: var(--pieza); }
+  .nota-claude b { color: var(--texto); }
+  .respuesta { border-radius: 12px; background: color-mix(in srgb, var(--bien) 8%, var(--pieza)); border: 1px solid color-mix(in srgb, var(--bien) 25%, transparent); padding: 9px 11px; }
+  .respuesta .corta h1, .respuesta .corta h2, .respuesta .corta h3 { font-size: 12.5px; margin: 4px 0 2px; color: var(--texto); }
+  .respuesta .corta p, .respuesta .corta ul, .respuesta .corta ol { margin: 2px 0; }
+  .respuesta .corta ul, .respuesta .corta ol { padding-left: 18px; }
+  .respuesta .corta .katex-display { margin: 4px 0; }
+  .respuesta .corta { color: var(--suave); max-height: 104px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 60%, transparent); user-select: text; }
+  .imagenes-resp { display: flex; gap: 6px; margin-bottom: 6px; }
+  .imagenes-resp img { height: 84px; max-width: 100%; object-fit: cover; border-radius: 6px; background: #fff; }
+  .respuesta .botones-resp { display: flex; gap: 6px; margin-top: 8px; }
+  .respuesta button { font: inherit; font-size: 11.5px; font-weight: 500; color: var(--texto); background: var(--pieza-hover); border: 0; border-radius: 999px; padding: 3px 11px; cursor: pointer; }
+  .cargando-linea { height: 10px; border-radius: 5px; margin: 6px 0; }
+  .esqueleto.alto-pdf { height: 118px; }
+  .muestra canvas { height: 118px; object-fit: cover; }
+</style>
+</head>
+<body>
+<div class="tarjeta" id="tarjeta" role="dialog" aria-label="Detalle de la tarea" tabindex="-1"><button type="button" class="cerrar-vista" id="cerrar-vista" aria-label="Cerrar detalle" hidden>✕</button><div class="contenido" id="contenido"></div></div>
+
+<script type="module">
+import * as pdfjs from '../node_modules/pdfjs-dist/build/pdf.min.mjs';
+pdfjs.GlobalWorkerOptions.workerSrc = new URL('../node_modules/pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).href;
+
+const vista = window.agenda.vista;
+const $tarjeta = document.getElementById('tarjeta');
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const DIA = 86_400_000;
+const inicioDia = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+const fmtHora = new Intl.DateTimeFormat('es-MX', { hour: 'numeric', minute: '2-digit' });
+const fmtDia = new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric', month: 'short' });
+
+const TIPOS = {
+  pdf: ['PDF', '#d9473b'], doc: ['DOC', '#2f6fd6'], docx: ['DOCX', '#2f6fd6'], ppt: ['PPT', '#d0691e'], pptx: ['PPTX', '#d0691e'],
+  xls: ['XLS', '#1f8a4c'], xlsx: ['XLSX', '#1f8a4c'], zip: ['ZIP', '#6b6760'], rar: ['RAR', '#6b6760'],
+  png: ['IMG', '#8f5bd6'], jpg: ['IMG', '#8f5bd6'], jpeg: ['IMG', '#8f5bd6'], gif: ['IMG', '#8f5bd6'], webp: ['IMG', '#8f5bd6'],
+  mp4: ['VID', '#c2417a'], mp3: ['AUD', '#c2417a'],
+};
+function tipoDe(nombre) {
+  const ext = (String(nombre).split('.').pop() || '').toLowerCase();
+  return TIPOS[ext] || [ext.slice(0, 4).toUpperCase() || 'ARCH', '#5d6b82'];
+}
+const esFoto = (a) => /\.(png|jpe?g|gif|webp|bmp)$/i.test(a.nombre || '') || /^image\//.test(a.mime || '');
+const previsualizable = (a) => esFoto(a) || /\.(pdf|zip|docx|pptx|txt|c|cc|cpp|h|hpp|py|java|js|ts|cs|md|csv|json|sql|html|css)$/i.test(a.nombre || '');
+
+function tamano(b) {
+  if (!b) return '';
+  if (b < 1024) return `${b} B`;
+  if (b < 1024 * 1024) return `${Math.round(b / 1024)} KB`;
+  return `${(b / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function chipsEntrega(t) {
+  if (!t.entrega) return '<div class="chips"><span class="chip">Sin fecha de entrega</span></div>';
+  const cuando = Date.parse(t.entrega);
+  const ms = cuando - Date.now();
+  const dias = Math.round((inicioDia(Date.now()) - inicioDia(cuando)) / DIA);
+  let chips = '';
+  if (ms >= 0) {
+    const h = Math.floor(ms / 3_600_000);
+    const dias = Math.round((inicioDia(cuando) - inicioDia(Date.now())) / DIA);
+    const falta = h < 1 ? `${Math.max(1, Math.round(ms / 60_000))} min` : h < 24 ? `${h} h` : dias <= 1 ? `${h} h` : `${dias} días`;
+    const hoy = inicioDia(cuando) === inicioDia(Date.now());
+    chips += `<span class="chip ${h < 3 ? 'mal' : 'pronto'}">${hoy ? 'Hoy' : fmtDia.format(cuando)} · ${fmtHora.format(cuando)} · faltan ${falta}</span>`;
+  } else {
+    chips += `<span class="chip mal">Venció ${dias <= 0 ? `hoy a las ${fmtHora.format(cuando)}` : dias === 1 ? 'ayer' : `hace ${dias} días`}</span>`;
+  }
+  if (ms < 0 && t.tardia) chips += '<span class="chip bien">Acepta entrega tardía</span>';
+  return `<div class="chips">${chips}</div>`;
+}
+
+let actual = null;
+let notaClaude = '';
+let menuRutas = false;
+const CODIGO = '<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 4.5L2 8l3.5 3.5M10.5 4.5L14 8l-3.5 3.5"/></svg>';
+const CHISPA = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.6 4.4L14 7l-4.4 1.6L8 13l-1.6-4.4L2 7l4.4-1.6z"/></svg>';
+const $contenido = document.getElementById('contenido');
+let esperaPrimera = null;
+
+// ---- Pintado ----
+
+function pintar() {
+  const { tarea, curso, color, cargando, detalle, error } = actual;
+  let html = `<div class="franja" style="background:${color}"></div><div class="cuerpo">
+    <div class="curso" style="color:${color}">${esc(curso)}</div>
+    <h2>${esc(tarea.titulo)}</h2>
+    ${(tarea.ruta || []).length ? `<div class="ruta" title="${esc(tarea.ruta.join(' › '))}">${esc(tarea.ruta.join(' › '))}</div>` : ''}
+    ${chipsEntrega(tarea)}`;
+  if (actual.respuesta) {
+    html += `<div class="seccion">Respuesta de ${esc(actual.respuesta.ia === 'chatgpt' ? 'ChatGPT' : actual.respuesta.ia || 'Claude')}</div><div class="respuesta">${(actual.respuesta.imagenes || []).length ? `<div class="imagenes-resp">${actual.respuesta.imagenes.slice(-3).map((u) => `<img src="${esc(u)}" alt="">`).join('')}</div>` : ''}${actual.respuesta.texto ? `<div class="corta" data-respuesta-corta>${formatoRespuesta.markdown(actual.respuesta.texto.split(/\n\s*\n/).slice(0, 4).join('\n\n'))}</div>` : ''}
+      <div class="botones-resp"><button data-ver-respuesta>Ver completa</button>${actual.respuesta.texto ? '<button data-copiar-respuesta>Copiar</button>' : ''}${(actual.respuesta.imagenes || []).length ? `<button data-descargar-imagenes>Descargar ${actual.respuesta.imagenes.length > 1 ? 'imágenes' : 'imagen'}</button>` : ''}</div></div>`;
+  }
+
+  const instrucciones = detalle?.instrucciones ?? tarea.instrucciones;
+  if (cargando && !instrucciones) {
+    html += `<div class="seccion">Instrucciones</div><div class="esqueleto cargando-linea" style="width:92%"></div><div class="esqueleto cargando-linea" style="width:70%"></div>`;
+  } else if (instrucciones) {
+    html += `<div class="seccion">Instrucciones</div><div class="instrucciones">${esc(instrucciones)}</div>`;
+  }
+
+  const archivos = detalle?.archivos || [];
+  if (archivos.length) {
+    const fotos = archivos.map((a, i) => ({ a, i })).filter(({ a }) => esFoto(a));
+    const otros = archivos.map((a, i) => ({ a, i })).filter(({ a }) => !esFoto(a));
+    html += `<div class="seccion">Archivos · ${archivos.length}</div>`;
+    if (fotos.length) {
+      html += `<div class="fotos">${fotos.map(({ a, i }) => `<div class="foto" data-archivo="${i}" title="${esc(a.nombre)} · clic para abrir">${contenidoFoto(a)}</div>`).join('')}</div>`;
+      if (otros.length) html += '<div style="height:8px"></div>';
+    }
+    html += `<div class="archivos">${otros.map(({ a, i }) => tarjetaArchivo(a, i)).join('')}</div>`;
+  } else if (!cargando && !instrucciones) {
+    html += `<div class="seccion">Detalle</div><div class="vacio">${error ? 'No se pudo leer el detalle de Moodle.' : 'Sin instrucciones ni archivos en Moodle.'}</div>`;
+  }
+
+  html += `</div>${notaClaude ? `<div class="nota-claude">${notaClaude}</div>` : ''}<div class="pie"><button class="abrir" data-url="${esc(tarea.enlace)}" title="Abrir en Moodle">Abrir en Moodle ↗</button>${actual.resolverCon === 'Claude' ? `<button class="resolver" data-resolver>${CHISPA}Resolver con Claude</button>` : '<button class="resolver chatgpt" data-resolver><img src="icono/chatgpt.png" alt="">Resolver con ChatGPT</button>'}</div>`;
+  $contenido.innerHTML = html;
+  const corta = $contenido.querySelector('[data-respuesta-corta]');
+  if (actual.mantenimiento) {
+    $contenido.querySelector('[data-resolver]')?.remove();
+    const boton=document.createElement('button');boton.className='resolver';boton.dataset.entregaPropia='';boton.textContent='Mis archivos y entrega';$contenido.querySelector('.pie').append(boton);
+  }
+  if (corta) formatoRespuesta.formulas(corta);
+  for (const lienzo of $contenido.querySelectorAll('canvas[data-pdf]')) dibujarPdf(lienzo, Number(lienzo.dataset.pdf));
+}
+
+const contenidoFoto = (a) => (a.muestra?.src ? `<img src="${a.muestra.src}" alt="">` : '<div class="esqueleto" style="height:100%"></div>');
+
+function htmlMuestra(a, i) {
+  const m = a.muestra;
+  // Ya dibujada antes: sólo la imagen de su primera página.
+  if (m?.tipo === 'pdf' && m.src) return `<img src="${m.src}" alt="">`;
+  if (m?.tipo === 'pdf') return `<canvas data-pdf="${i}"></canvas>`;
+  if (m?.tipo === 'zip') return `<div class="zip">${m.archivos.map((n) => {
+    const partes = n.split('/');
+    const base = partes.pop();
+    return `<div>${partes.length ? `<span>${esc(partes.join('/'))}/</span>` : ''}${esc(base)}</div>`;
+  }).join('')}${m.resto ? `<div><span>y ${m.resto} más…</span></div>` : ''}</div>`;
+  if (m?.tipo === 'codigo') return `<pre>${esc(m.lineas.join('\n'))}${m.resto ? `\n<span style="opacity:.6">… ${m.resto} líneas más</span>` : ''}</pre>`;
+  if (m?.tipo === 'texto') return `<div class="texto">${m.nota ? `<b>${esc(m.nota)}</b>\n` : ''}${esc(m.texto)}</div>`;
+  if (!m && !a.sinMuestra && previsualizable(a)) return `<div class="esqueleto${/\.pdf$/i.test(a.nombre || '') ? ' alto-pdf' : ''}"></div>`;
+  return '';
+}
+
+const htmlOrigen = (a) => esc([tamano(a.bytes || a.muestra?.bytes), a.origen].filter(Boolean).join(' · '));
+
+const ICONO_BAJAR = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M3 13.5h10"/></svg>';
+const htmlBajar = (a) => `${a.estadoDescarga ? `<span>${esc(a.estadoDescarga)}</span>` : ''}${ICONO_BAJAR}`;
+
+function tarjetaArchivo(a, i) {
+  const [etiqueta, color] = tipoDe(a.nombre);
+  const muestra = htmlMuestra(a, i);
+  return `<div class="archivo" data-archivo="${i}" title="Clic para abrir ${esc(a.nombre)}">
+    ${muestra ? `<div class="muestra">${muestra}</div>` : ''}
+    <div class="fila">
+      <span class="tipo" style="background:${color}">${etiqueta}</span>
+      <div style="min-width:0"><div class="nombre">${esc(a.nombre)}</div><div class="origen">${htmlOrigen(a)}</div></div>
+      <span class="bajar">${htmlBajar(a)}</span>
+    </div></div>`;
+}
+
+// Cuando llega la muestra de un archivo sólo se toca su casilla: rehacer la
+// tarjeta entera volvía a dibujar los PDF y hacía parpadear todo.
+function actualizarArchivo(i) {
+  const a = actual.detalle.archivos[i];
+  const el = $contenido.querySelector(`[data-archivo="${i}"]`);
+  if (!el) return;
+  if (el.classList.contains('foto')) {
+    el.innerHTML = contenidoFoto(a);
+    return;
+  }
+  const html = htmlMuestra(a, i);
+  let caja = el.querySelector('.muestra');
+  if (!html) {
+    caja?.remove();
+  } else {
+    if (!caja) {
+      caja = document.createElement('div');
+      caja.className = 'muestra';
+      el.prepend(caja);
+    }
+    caja.innerHTML = html;
+    const lienzo = caja.querySelector('canvas[data-pdf]');
+    if (lienzo) dibujarPdf(lienzo, i);
+  }
+  el.querySelector('.origen').innerHTML = htmlOrigen(a);
+}
+
+// La primera página se dibuja una sola vez: la imagen vuelve al proceso
+// principal, que la guarda en lugar del PDF entero, y el documento se suelta.
+async function dibujarPdf(lienzo, i) {
+  const n = actual.n;
+  const archivo = actual.detalle.archivos[i];
+  let doc = null;
+  try {
+    const bytes = Uint8Array.from(atob(archivo.muestra.datos), (c) => c.charCodeAt(0));
+    doc = await pdfjs.getDocument({ data: bytes }).promise;
+    const pagina = await doc.getPage(1);
+    if (!actual || n !== actual.n || !lienzo.isConnected) return;
+    const base = pagina.getViewport({ scale: 1 });
+    const escala = (330 * devicePixelRatio) / base.width; // nítido en pantallas con escala
+    const viewport = pagina.getViewport({ scale: escala });
+    // Se dibuja fuera de pantalla y se copia de golpe: sin franjas a medio pintar.
+    const fuera = document.createElement('canvas');
+    fuera.width = viewport.width;
+    fuera.height = Math.min(viewport.height, 118 * (viewport.width / 330));
+    await pagina.render({ canvasContext: fuera.getContext('2d'), viewport }).promise;
+    if (!actual || n !== actual.n || !lienzo.isConnected) return;
+    lienzo.width = fuera.width;
+    lienzo.height = fuera.height;
+    lienzo.getContext('2d').drawImage(fuera, 0, 0);
+    const src = fuera.toDataURL('image/jpeg', 0.82);
+    archivo.muestra = { tipo: 'pdf', src, bytes: archivo.muestra.bytes };
+    window.agenda.vista.miniaturaPdf({ nombre: archivo.nombre, url: archivo.url }, src);
+  } catch {
+    lienzo.closest('.muestra')?.remove();
+  } finally {
+    doc?.destroy();
+  }
+}
+
+// ---- Posición y visibilidad ----
+
+// La tarjeta se coloca a la altura de la fila, sin salirse de la pantalla.
+function colocar({ animar }) {
+  if (!actual) return;
+  const alto = $tarjeta.offsetHeight;
+  const y = Math.round(Math.max(8, Math.min(actual.ancla - 6, innerHeight - alto - 8)));
+  $tarjeta.classList.toggle('quieta', !animar);
+  $tarjeta.style.setProperty('--y', `${y}px`);
+  vista.tarjeta({ x: $tarjeta.offsetLeft, y, width: $tarjeta.offsetWidth, height: alto });
+}
+
+function mostrarTarjeta() {
+  clearTimeout(esperaPrimera);
+  if (!actual || $tarjeta.classList.contains('visible')) return;
+  colocar({ animar: false });
+  // (setTimeout y no requestAnimationFrame: éste se detiene si Windows da la
+  // ventana por tapada, y la tarjeta no llegaba a mostrarse.)
+  setTimeout(() => $tarjeta.classList.add('visible'), 16);
+}
+
+new ResizeObserver(() => {
+  if ($tarjeta.classList.contains('visible')) colocar({ animar: true });
+}).observe($tarjeta);
+
+const oscuroSistema = matchMedia('(prefers-color-scheme: dark)');
+function aplicarTema(p) {
+  const tema = !p?.tema || p.tema === 'sistema' ? (oscuroSistema.matches ? 'medianoche' : 'claro') : p.tema;
+  document.documentElement.dataset.tema = tema;
+}
+
+vista.alDatos((datos) => {
+  aplicarTema(datos.prefs);
+  const fijarFoco = datos.fijada && !actual?.fijada;
+  const nueva = !actual || datos.n !== actual.n;
+  const visible = $tarjeta.classList.contains('visible');
+  if (nueva) {
+    notaClaude = '';
+    menuRutas = false;
+  }
+  actual = datos;
+  $tarjeta.classList.toggle('fijada', !!datos.fijada);
+  document.getElementById('cerrar-vista').hidden = !datos.fijada;
+  if (fijarFoco) document.getElementById('cerrar-vista').focus({ preventScroll: true });
+  if (nueva && visible) {
+    // Cambio de tarea con la tarjeta ya abierta: fundido corto y se desliza.
+    $contenido.classList.add('entrando');
+    pintar();
+    setTimeout(() => $contenido.classList.remove('entrando'), 16);
+    colocar({ animar: true });
+    return;
+  }
+  pintar();
+  if (visible) {
+    colocar({ animar: true });
+  } else if (!datos.cargando) {
+    mostrarTarjeta();
+  } else {
+    // Primera vez: si el detalle llega enseguida (estaba precargado) se
+    // muestra ya completo; si no, a los 140 ms con lo que haya.
+    clearTimeout(esperaPrimera);
+    esperaPrimera = setTimeout(mostrarTarjeta, 140);
+  }
+});
+
+vista.alMuestra(({ n, i, muestra }) => {
+  if (!actual || n !== actual.n || !actual.detalle) return;
+  if (muestra) actual.detalle.archivos[i].muestra = muestra;
+  else actual.detalle.archivos[i].sinMuestra = true;
+  actualizarArchivo(i);
+});
+
+vista.alCerrar(() => {
+  clearTimeout(esperaPrimera);
+  $tarjeta.classList.add('quieta');
+  $tarjeta.classList.remove('visible');
+  actual = null;
+  vista.raton(false);
+});
+
+// ---- Ratón ----
+document.getElementById('cerrar-vista').addEventListener('click', () => vista.cerrar());
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    vista.cerrar();
+  }
+});
+
+$tarjeta.addEventListener('mouseenter', () => {
+  vista.raton(true);
+  vista.mantener();
+});
+$tarjeta.addEventListener('mouseleave', () => {
+  vista.raton(false);
+  vista.soltar();
+});
+$tarjeta.addEventListener('click', async (e) => {
+  if (e.target.closest('[data-entrega-propia]') && actual) return window.agenda.app.abrir('pendientes',actual.tarea.id);
+  const el = e.target.closest('[data-archivo]');
+  if (el && actual?.detalle) {
+    // Se descarga con la sesión de la app (nunca pide volver a entrar) y
+    // se abre con su programa. Sólo cambia su etiqueta, nada más se repinta.
+    const i = Number(el.dataset.archivo);
+    const a = actual.detalle.archivos[i];
+    if (a.estadoDescarga === 'Abriendo…') return;
+    const marcar = (texto) => {
+      a.estadoDescarga = texto;
+      const bajar = $contenido.querySelector(`[data-archivo="${i}"] .bajar`);
+      if (bajar) bajar.innerHTML = htmlBajar(a);
+    };
+    marcar('Abriendo…');
+    const r = await window.agenda.abrirArchivo({ url: a.url, nombre: a.nombre, curso: actual.curso });
+    marcar(r?.error || 'Abierto');
+    setTimeout(() => marcar(null), 4000);
+    return;
+  }
+  if (e.target.closest('[data-mas-rutas]') && actual) {
+    if (actual.mantenimiento) return;
+    menuRutas = !menuRutas;
+    pintar();
+    return;
+  }
+  const ruta = e.target.closest('[data-ruta]')?.dataset.ruta;
+  if ((ruta || e.target.closest('[data-resolver]')) && actual) {
+    menuRutas = false;
+    const r = await window.agenda.claude.resolver({ tareaId: actual.tarea.id, forzar: ruta });
+    if (r?.primeraVez) {
+      notaClaude = '<b>Insti Today ya está conectado con Claude.</b> Cierra Claude por completo (también desde la bandeja) y ábrelo otra vez; después vuelve a pulsar <b>Resolver con Claude</b>. Sólo pasa esta vez.';
+    } else if (r?.error === 'sin-agente') {
+      notaClaude = `<b>${esc(r.agente)} no está instalado.</b> Instálalo (${esc(r.instalar)}) o cambia de IA en Insti Today → IA.`;
+    } else if (r?.error === 'sin-claude') {
+      notaClaude = 'Para resolver hace falta la app de escritorio de <b>Claude</b>. Descárgala en claude.ai/download, inicia sesión y vuelve a intentarlo.';
+    } else if (r?.error) {
+      notaClaude = esc(r.error);
+    } else if (r?.fondo) {
+      notaClaude = '';
+    }
+    if (notaClaude) pintar();
+    return;
+  }
+  const bajar = e.target.closest('[data-descargar-imagenes]');
+  if (bajar && actual) {
+    window.agenda.respuesta.descargarImagen(actual.tarea.id);
+    bajar.textContent = 'Descargada';
+    return;
+  }
+  if (e.target.closest('[data-ver-respuesta]') && actual) {
+    window.agenda.respuesta.ver(actual.tarea.id);
+    return;
+  }
+  const copiar = e.target.closest('[data-copiar-respuesta]');
+  if (copiar && actual) {
+    window.agenda.respuesta.copiar(actual.tarea.id);
+    copiar.textContent = 'Copiada';
+    setTimeout(() => (copiar.textContent = 'Copiar'), 1600);
+    return;
+  }
+  const enlace = e.target.closest('[data-url]');
+  if (enlace?.dataset.url) window.agenda.abrir(enlace.dataset.url);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+# Construye los instaladores de Insti Today (Windows, Mac y Linux) y los deja
+# como artefactos de la ejecución. No publica nada.
+# GitHub → Actions → Construir → Run workflow.
+name: Construir
+
+on:
+  workflow_dispatch:
+
+jobs:
+  construir:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - so: windows-latest
+            destino: --win nsis --x64
+            archivos: dist/*.exe
+          - so: macos-latest
+            destino: --mac dmg --arm64 --x64
+            archivos: dist/*.dmg
+          - so: ubuntu-22.04
+            destino: --linux AppImage deb --x64
+            archivos: |
+              dist/*.AppImage
+              dist/*.deb
+    runs-on: ${{ matrix.so }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Pruebas contra el Moodle falso
+        run: node tools/probar-moodle.mjs
+      - run: node tools/empaquetar-mcp.mjs
+      - run: npx electron-builder ${{ matrix.destino }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: insti-today-${{ matrix.so }}
+          path: ${{ matrix.archivos }}
+          if-no-files-found: error

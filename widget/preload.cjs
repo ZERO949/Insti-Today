@@ -1,0 +1,114 @@
+// Puente mínimo entre la página del widget y el proceso principal.
+
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
+
+contextBridge.exposeInMainWorld('agenda', {
+  // 'win32' o 'darwin': algunos textos cambian (Windows/Mac).
+  plataforma: process.platform,
+  obtener: () => ipcRenderer.invoke('agenda:obtener'),
+  actualizar: () => ipcRenderer.invoke('agenda:actualizar'),
+  entrar: () => ipcRenderer.invoke('agenda:entrar'),
+  abrir: (url) => ipcRenderer.invoke('agenda:abrir', url),
+  escuela: (url) => ipcRenderer.invoke('agenda:escuela', url),
+  teclado: (activo) => ipcRenderer.invoke('agenda:teclado', activo),
+  abrirArchivo: (archivo) => ipcRenderer.invoke('archivo:abrir', archivo),
+  ocultar: () => ipcRenderer.invoke('agenda:ocultar'),
+  alto: (px) => ipcRenderer.invoke('agenda:alto', px),
+  vista: {
+    cerrar: () => ipcRenderer.invoke('vista:cerrar'),
+    mostrar: (datos) => ipcRenderer.invoke('vista:mostrar', datos),
+    soltar: () => ipcRenderer.invoke('vista:soltar'),
+    mantener: () => ipcRenderer.invoke('vista:mantener'),
+    tarjeta: (rect) => ipcRenderer.invoke('vista:tarjeta', rect),
+    raton: (sobre) => ipcRenderer.invoke('vista:raton', sobre),
+    precargar: (lista) => ipcRenderer.invoke('vista:precargar', lista),
+    calentar: () => ipcRenderer.invoke('vista:calentar'),
+    miniaturaPdf: (archivo, src) => ipcRenderer.invoke('vista:miniaturaPdf', archivo, src),
+    alDatos: (fn) => ipcRenderer.on('vista:datos', (_e, d) => fn(d)),
+    alMuestra: (fn) => ipcRenderer.on('vista:muestra', (_e, d) => fn(d)),
+    alCerrar: (fn) => ipcRenderer.on('vista:cerrar', () => fn()),
+    alCerrada: (fn) => ipcRenderer.on('vista:cerrada', () => fn()),
+  },
+  config: {
+    obtener: () => ipcRenderer.invoke('config:obtener'),
+    guardar: (cambios) => ipcRenderer.invoke('config:guardar', cambios),
+    materias: (ocultas) => ipcRenderer.invoke('config:materias', ocultas),
+    inicio: (activo) => ipcRenderer.invoke('config:inicio', activo),
+    esquina: () => ipcRenderer.invoke('config:esquina'),
+    salirCuenta: () => ipcRenderer.invoke('config:salir-cuenta'),
+    entrar: () => ipcRenderer.invoke('config:entrar'),
+    alCambiar: (fn) => ipcRenderer.on('config:estado', (_e, d) => fn(d)),
+  },
+  actualizacion: {
+    instalar: () => ipcRenderer.invoke('actualizacion:instalar'),
+    buscar: () => ipcRenderer.invoke('actualizacion:buscar'),
+    descargar: () => ipcRenderer.invoke('actualizacion:descargar'),
+  },
+  tareas: {
+    descartar: (tarea) => ipcRenderer.invoke('tareas:descartar', tarea),
+    restaurar: (id) => ipcRenderer.invoke('tareas:restaurar', id),
+  },
+  claude: {
+    resolver: (tarea) => ipcRenderer.invoke('claude:resolver', tarea),
+    cancelar: () => ipcRenderer.invoke('claude:cancelar'),
+    conectar: () => ipcRenderer.invoke('claude:conectar'),
+    desconectar: () => ipcRenderer.invoke('claude:desconectar'),
+    archivos: () => ipcRenderer.invoke('claude:archivos'),
+    agentes: () => ipcRenderer.invoke('ia:agentes'),
+  },
+  tema: () => ipcRenderer.invoke('tema:actual'),
+  app: {
+    abrir: (seccion, tareaId) => ipcRenderer.invoke('app:abrir', seccion, tareaId),
+    detalle: (cursoId, tareaId) => ipcRenderer.invoke('app:detalle', cursoId, tareaId),
+    alIr: (fn) => ipcRenderer.on('app:ir', (_e, seccion, tareaId, guia) => fn(seccion, tareaId, guia)),
+  },
+  // Mensajes y anuncios de los cursos (la bolita del widget).
+  mensajes: {
+    vistos: (ids) => ipcRenderer.invoke('mensajes:vistos', ids),
+    abrir: (url) => ipcRenderer.invoke('mensajes:abrir', url),
+  },
+  // Entregables de una tarea y su entrega en Moodle.
+  entrega: {
+    obtener: (tareaId) => ipcRenderer.invoke('entrega:obtener', tareaId),
+    adjuntar: (tareaId, ruta, si) => ipcRenderer.invoke('entrega:adjuntar', tareaId, ruta, si),
+    adjuntarTodo: (tareaId) => ipcRenderer.invoke('entrega:adjuntarTodo', tareaId),
+    revisar: (pedido) => ipcRenderer.invoke('entrega:revisar', pedido),
+    explicar: (tareaId) => ipcRenderer.invoke('entrega:explicar', tareaId),
+    subir: (tareaId, rutas) => ipcRenderer.invoke('entrega:subir', tareaId, rutas),
+    quitarTuyo: (tareaId, ruta) => ipcRenderer.invoke('entrega:quitarTuyo', tareaId, ruta),
+    texto: (tareaId, texto) => ipcRenderer.invoke('entrega:texto', tareaId, texto),
+    abrirArchivo: (tareaId, ruta) => ipcRenderer.invoke('entrega:abrirArchivo', tareaId, ruta),
+    mostrarArchivo: (tareaId, ruta) => ipcRenderer.invoke('entrega:mostrarArchivo', tareaId, ruta),
+    entregar: (tareaId) => ipcRenderer.invoke('entrega:entregar', tareaId),
+    cancelar: (tareaId) => ipcRenderer.invoke('entrega:cancelar', tareaId),
+    // Ruta de un archivo soltado en la ventana (Electron ya no la da en File.path).
+    rutaDe: (archivo) => webUtils.getPathForFile(archivo),
+  },
+  arrastre: {
+    obtener: () => ipcRenderer.invoke('arrastre:obtener'),
+    iniciar: (i) => ipcRenderer.send('arrastre:iniciar', i),
+    cerrar: () => ipcRenderer.invoke('arrastre:cerrar'),
+  },
+  respuesta: {
+    obtener: (tareaId) => ipcRenderer.invoke('respuesta:obtener', tareaId),
+    copiar: (tareaId) => ipcRenderer.invoke('respuesta:copiar', tareaId),
+    ver: (tareaId) => ipcRenderer.invoke('respuesta:ver', tareaId),
+    borrar: (tareaId) => ipcRenderer.invoke('respuesta:borrar', tareaId),
+    imagen: (tareaId) => ipcRenderer.invoke('respuesta:imagen', tareaId),
+    carpeta: (tareaId) => ipcRenderer.invoke('respuesta:carpeta', tareaId),
+    abrirArchivo: (tareaId, i) => ipcRenderer.invoke('respuesta:abrirArchivo', tareaId, i),
+    mostrarArchivo: (tareaId, i) => ipcRenderer.invoke('respuesta:mostrarArchivo', tareaId, i),
+    copiarImagen: (tareaId, i) => ipcRenderer.invoke('respuesta:copiarImagen', tareaId, i),
+    mostrarImagen: (tareaId, i) => ipcRenderer.invoke('respuesta:mostrarImagen', tareaId, i),
+    descargarImagen: (tareaId, i) => ipcRenderer.invoke('respuesta:descargarImagen', tareaId, i),
+    alMostrar: (fn) => ipcRenderer.on('respuesta:mostrar', (_e, id) => fn(id)),
+  },
+  web: (ruta) => ipcRenderer.invoke('abrir:web', ruta),
+  // Ventana «Iniciar sesión» (acceso.html): usuario y contraseña de Moodle.
+  acceso: {
+    info: () => ipcRenderer.invoke('acceso:info'),
+    entrar: (usuario, contrasena) => ipcRenderer.invoke('acceso:entrar', usuario, contrasena),
+    cancelar: () => ipcRenderer.invoke('acceso:cancelar'),
+  },
+  alCambiar: (fn) => ipcRenderer.on('agenda:estado', (_e, estado) => fn(estado)),
+});

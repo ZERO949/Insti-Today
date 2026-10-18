@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; font-src 'self' file: data:; img-src 'self' file: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+<title>Iniciar sesión · Insti Today</title>
+<link rel="stylesheet" href="fuente.css">
+<style>
+  :root {
+    --fondo: #000000;
+    --tarjeta: #1c1c1e;
+    --campo: rgb(118 118 128 / .24);
+    --linea: rgb(255 255 255 / .08);
+    --texto: #f5f5f7;
+    --suave: #aeaeb2;
+    --tenue: #7c7c80;
+    --acento: #0a84ff;
+    --mal: #ff453a;
+    --bien: #30d158;
+    --fuente: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Inter Variable", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    --fuente-titulo: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro", "Inter Variable", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+    --curva: cubic-bezier(.25, .1, .25, 1);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --fondo: #f5f5f7;
+      --tarjeta: #ffffff;
+      --campo: rgb(118 118 128 / .1);
+      --linea: rgb(0 0 0 / .08);
+      --texto: #1d1d1f;
+      --suave: #515154;
+      --tenue: #86868b;
+      --acento: #0071e3;
+      --mal: #ff3b30;
+      --bien: #248a3d;
+      color-scheme: light;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font: 14px/1.45 var(--fuente);
+    letter-spacing: -.01em;
+    -webkit-font-smoothing: antialiased;
+    background: var(--fondo);
+    color: var(--texto);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+  }
+  main { width: 100%; max-width: 320px; }
+  .marca { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; margin-bottom: 22px; }
+  .marca img { width: 56px; height: 56px; border-radius: 13px; box-shadow: 0 6px 20px rgb(0 0 0 / .18); }
+  .marca h1 { font: 700 24px/1.15 var(--fuente-titulo); margin: 0; letter-spacing: -.025em; }
+  .marca p { margin: 4px 0 0; color: var(--suave); font-size: 13px; }
+  form { display: grid; gap: 14px; }
+  label { display: grid; gap: 6px; font-size: 12.5px; font-weight: 500; color: var(--suave); padding-left: 2px; }
+  input {
+    font: inherit;
+    font-size: 15px;
+    color: var(--texto);
+    background: var(--campo);
+    border: 0;
+    border-radius: 11px;
+    padding: 11px 13px;
+    outline: none;
+    transition: box-shadow .15s var(--curva);
+  }
+  input::placeholder { color: var(--tenue); }
+  input:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--acento) 45%, transparent); }
+  button {
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    border: 0;
+    border-radius: 999px;
+    padding: 11px 16px;
+    margin-top: 4px;
+    cursor: pointer;
+    background: var(--acento);
+    color: #fff;
+    transition: filter .15s var(--curva), opacity .15s var(--curva);
+  }
+  button:hover:not(:disabled) { filter: brightness(1.08); }
+  button:disabled { opacity: .5; cursor: default; }
+  .fila { display: flex; justify-content: center; gap: 16px; align-items: center; font-size: 12.5px; }
+  .fila a { color: var(--acento); text-decoration: none; cursor: pointer; }
+  .fila a:hover { text-decoration: underline; text-underline-offset: 2px; }
+  .mensaje { min-height: 18px; font-size: 12.5px; text-align: center; }
+  .mensaje.mal { color: var(--mal); }
+  .mensaje.bien { color: var(--bien); }
+  .nota { margin-top: 18px; font-size: 11.5px; color: var(--tenue); text-align: center; }
+  .escuela { font-size: 12px; color: var(--tenue); margin-top: -6px; text-align: center; word-break: break-all; }
+</style>
+</head>
+<body>
+<main>
+  <div class="marca">
+    <img src="icono/icono.png" alt="">
+    <div>
+      <h1>Insti Today</h1>
+      <p>Entra con tu cuenta de la plataforma</p>
+    </div>
+  </div>
+  <form id="formulario" autocomplete="on">
+    <div class="escuela" id="escuela"></div>
+    <label>Usuario
+      <input id="usuario" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+    </label>
+    <label>Contraseña
+      <input id="contrasena" name="password" type="password" autocomplete="current-password" required>
+    </label>
+    <div class="mensaje" id="mensaje" role="status" aria-live="polite"></div>
+    <button id="entrar" type="submit">Iniciar sesión</button>
+    <div class="fila">
+      <a id="olvide">¿Olvidaste tu contraseña?</a>
+      <a id="cancelar">Cancelar</a>
+    </div>
+  </form>
+  <p class="nota">Tu contraseña va directo a tu Moodle y no se guarda: la app sólo conserva el permiso de lectura que Moodle le da (el mismo que usa su app móvil).</p>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  let escuela = '';
+  (async () => {
+    const info = await window.agenda.acceso.info();
+    if (!info) return;
+    escuela = info.escuela;
+    $('escuela').textContent = info.host + new URL(info.escuela).pathname.replace(/\/$/, '');
+    if (info.cuenta) {
+      $('usuario').value = info.cuenta;
+      $('contrasena').focus();
+    } else {
+      $('usuario').focus();
+    }
+  })();
+  $('olvide').onclick = () => escuela && window.open(`${escuela}/login/forgot_password.php`);
+  $('cancelar').onclick = () => window.agenda.acceso.cancelar();
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.agenda.acceso.cancelar(); });
+  $('formulario').onsubmit = async (e) => {
+    e.preventDefault();
+    const mensaje = $('mensaje');
+    mensaje.className = 'mensaje';
+    mensaje.textContent = 'Conectando con tu Moodle…';
+    $('entrar').disabled = true;
+    const r = await window.agenda.acceso.entrar($('usuario').value, $('contrasena').value);
+    if (r?.ok) {
+      $('contrasena').value = '';
+      mensaje.className = 'mensaje bien';
+      mensaje.textContent = r.nombre ? `¡Listo, ${r.nombre}!` : '¡Listo!';
+      return;
+    }
+    $('entrar').disabled = false;
+    mensaje.className = 'mensaje mal';
+    mensaje.textContent = r?.mensaje || 'No se pudo iniciar sesión.';
+    $('contrasena').select();
+  };
+</script>
+</body>
+</html>

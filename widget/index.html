@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; font-src 'self' file: data:; img-src 'self' file: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+<title>Insti Today</title>
+<link rel="stylesheet" href="temas.css">
+<style>
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; background: transparent; overflow: hidden; }
+  body {
+    color: var(--texto);
+    font: 13px/1.38 var(--fuente);
+    letter-spacing: -.008em;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+  .marco {
+    display: flex; flex-direction: column;
+    max-height: 100vh;
+    --opaco: calc(var(--alfa, .92) * var(--alfa-tema, 1) * 100%);
+    background: color-mix(in srgb, var(--fondo-a) var(--opaco), transparent);
+    text-shadow: var(--sombra-texto);
+    border: 1px solid var(--borde);
+    border-radius: 18px;
+    box-shadow: inset 0 1px 0 var(--brillo);
+    overflow: hidden;
+  }
+
+  header { -webkit-app-region: drag; display: flex; align-items: flex-end; gap: 8px; padding: 13px 10px 8px 16px; }
+  .cabeza { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .titular { display: flex; align-items: center; gap: 8px; }
+  h1 { margin: 0; font: 700 17px/1 var(--fuente-titulo); letter-spacing: -.022em; }
+  .cuenta { font-size: 11px; font-weight: 600; line-height: 18px; height: 18px; min-width: 18px; padding: 0 6px; border-radius: 9px; text-align: center; background: var(--neutro); color: var(--suave); font-variant-numeric: tabular-nums; }
+  .cuenta.hay { background: color-mix(in srgb, var(--pronto) 16%, transparent); color: var(--pronto); }
+  .cuenta.urge { background: var(--mal); color: #fff; }
+  .hoy { color: var(--tenue); font-size: 11.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hoy::first-letter { text-transform: uppercase; }
+  .botones { display: flex; gap: 2px; margin-left: auto; margin-bottom: -3px; }
+  /* Actualizar siempre a la vista; esconder el widget sólo al pasar el ratón,
+     para no pulsarla sin querer. */
+  #ocultar { width: 0; opacity: 0; overflow: hidden; transition: opacity .2s var(--curva), width .2s var(--curva); }
+  header:hover #ocultar { width: 26px; opacity: 1; }
+  .boton { -webkit-app-region: no-drag; width: 26px; height: 26px; border: 0; border-radius: 50%; background: transparent; color: var(--tenue); cursor: pointer; display: grid; place-items: center; flex: none; transition: background .15s var(--curva), color .15s var(--curva); }
+  .boton:hover { background: var(--pieza); color: var(--texto); }
+  .boton svg { width: 14px; height: 14px; }
+  /* Mensajes: la bolita y su lista, que sólo se ve al pasar o hacer clic. */
+  #mensajes { position: relative; }
+  .bolita { position: absolute; top: -1px; right: -2px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 8px; background: var(--mal); color: #fff; font-size: 9.5px; font-weight: 700; line-height: 15px; text-align: center; box-shadow: 0 0 0 2px var(--fondo-a); }
+  .panel-mensajes { margin: 0 10px 8px; border-radius: 12px; background: var(--pieza); max-height: 230px; overflow-y: auto; }
+  .panel-mensajes[hidden] { display: none; }
+  .panel-mensajes::-webkit-scrollbar { width: 6px; }
+  .panel-mensajes::-webkit-scrollbar-thumb { background: var(--borde); border-radius: 3px; }
+  .panel-mensajes::-webkit-scrollbar-button { display: none; }
+  .mensaje { position: relative; display: block; padding: 9px 12px; cursor: pointer; }
+  .mensaje + .mensaje::before { content: ''; position: absolute; top: 0; left: 12px; right: 0; height: 1px; background: var(--linea); }
+  .mensaje:hover { background: var(--hover); }
+  .mensaje .cab { display: flex; gap: 6px; align-items: baseline; font-size: 12px; }
+  .mensaje .cab b { font-weight: 600; color: var(--texto); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mensaje .cab span { margin-left: auto; color: var(--tenue); flex: none; font-size: 11px; }
+  .mensaje .curso-m { font-size: 11px; color: var(--tenue); }
+  .mensaje .txt { font-size: 12px; color: var(--suave); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; }
+  .mensaje.nuevo .cab b::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--acento); margin-right: 6px; vertical-align: 1px; }
+  .panel-mensajes .vacio-m { padding: 14px; text-align: center; color: var(--tenue); font-size: 12px; }
+  .girando svg { animation: giro 1s linear infinite; }
+  @keyframes giro { to { transform: rotate(360deg); } }
+
+  .marco > :not(.lista) { flex-shrink: 0; }
+  .lista { min-height: 0; overflow-y: auto; padding: 0 6px 8px; scrollbar-width: none; }
+  .item { position: relative; display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 8px 10px; border-radius: 11px; cursor: pointer; transition: background .15s var(--curva); }
+  .item:hover, .item.activa { background: var(--hover); }
+  .item:focus-visible { outline: 2px solid color-mix(in srgb, var(--acento) 60%, transparent); outline-offset: -2px; }
+  .punto { width: 8px; height: 8px; border-radius: 50%; }
+  .titulo { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .meta { font-size: 11.5px; color: var(--tenue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+  .meta .clip { display: inline-block; vertical-align: -1px; margin-left: 4px; opacity: .7; }
+  .pastilla { font-size: 12px; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--tenue); }
+  .pastilla.mal { color: var(--mal); font-weight: 600; }
+  .pastilla.pronto { color: var(--pronto); font-weight: 600; }
+  .lado { display: grid; justify-items: end; align-items: center; }
+  .lado > * { grid-area: 1 / 1; transition: opacity .15s var(--curva); }
+  .quitar { -webkit-app-region: no-drag; width: 22px; height: 22px; border: 0; border-radius: 50%; padding: 0; display: grid; place-items: center; background: var(--pieza); color: var(--suave); cursor: pointer; opacity: 0; pointer-events: none; }
+  .quitar:hover { background: var(--mal); color: #fff; }
+  .quitar svg { width: 10px; height: 10px; pointer-events: none; }
+  .item:focus-within .pastilla { opacity: 0; pointer-events: none; }
+  .item:focus-within .quitar { opacity: 1; pointer-events: auto; }
+  .item:hover .pastilla { pointer-events: none; }
+  .item:hover .pastilla { opacity: 0; }
+  .item:hover .quitar { opacity: 1; pointer-events: auto; }
+  /* Franjas de abajo (deshacer, IA, versión nueva): una línea fina y botones de cápsula. */
+  .deshacer, .claude, .novedad { display: flex; align-items: center; gap: 9px; padding: 9px 12px 10px 16px; border-top: 1px solid var(--linea); font-size: 12px; color: var(--suave); }
+  .deshacer[hidden], .claude[hidden], .novedad[hidden] { display: none; }
+  .claude .texto { min-width: 0; flex: 1; line-height: 1.35; }
+  .claude .texto b { color: var(--texto); font-weight: 600; }
+  .claude .texto .sub { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--tenue); font-size: 11.5px; }
+  .claude .accion, .novedad button { -webkit-app-region: no-drag; flex: none; font: inherit; font-size: 12px; font-weight: 600; color: #fff; background: var(--acento); border: 0; border-radius: 999px; padding: 4px 12px; cursor: pointer; transition: filter .15s var(--curva); }
+  .claude .accion:hover, .novedad button:hover { filter: brightness(1.08); }
+  .novedad button { margin-left: auto; }
+  .claude .cerrar { -webkit-app-region: no-drag; flex: none; width: 22px; height: 22px; border: 0; border-radius: 50%; background: transparent; color: var(--tenue); cursor: pointer; display: grid; place-items: center; padding: 0; }
+  .claude .cerrar:hover { background: var(--pieza); color: var(--texto); }
+  .claude .tecla { display: inline-block; font-size: 11px; font-weight: 600; color: var(--texto); background: var(--pieza); border-radius: 5px; padding: 0 5px; margin: 0 1px; }
+  .claude .punto-vivo { width: 8px; height: 8px; border-radius: 50%; background: var(--acento); flex: none; animation: latido 1.2s ease-in-out infinite; }
+  .claude .hecho { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--bien); color: #fff; flex: none; }
+  @keyframes latido { 50% { opacity: .3; transform: scale(.8); } }
+  .meta .resuelta { color: var(--bien); margin-left: 4px; }
+  .deshacer span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .deshacer button { -webkit-app-region: no-drag; margin-left: auto; flex: none; font: inherit; font-size: 12px; font-weight: 600; color: var(--acento); background: transparent; border: 0; border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+  .deshacer button:hover { background: var(--pieza); }
+  .novedad b { color: var(--texto); font-weight: 600; }
+  .separador { font-size: 12px; font-weight: 600; color: var(--tenue); padding: 12px 10px 4px; }
+  .separador.dia { color: var(--texto); }
+  .separador.dia.vencidas { color: var(--mal); }
+  .vacio { display: flex; align-items: center; gap: 12px; padding: 6px 16px 16px; }
+  .vacio .ok { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--bien); color: #fff; flex: none; }
+  .vacio .ok svg { width: 15px; height: 15px; }
+  .vacio b { display: block; font-weight: 600; }
+  .vacio span { color: var(--tenue); font-size: 12px; }
+  .aviso { color: var(--mal); padding: 0 16px 10px; font-size: 12px; }
+  .lista.vieja { opacity: .5; }
+
+  .acceso { padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .acceso .marca { display: flex; align-items: center; gap: 12px; }
+  .acceso img { width: 38px; height: 38px; border-radius: 10px; flex: none; }
+  .acceso b { display: block; font: 600 15px/1.25 var(--fuente-titulo); letter-spacing: -.015em; }
+  .acceso p { margin: 0; color: var(--suave); font-size: 12.5px; line-height: 1.45; }
+  .primario { -webkit-app-region: no-drag; font: inherit; font-weight: 600; font-size: 13px; color: #fff; background: var(--acento); border: 0; border-radius: 999px; padding: 7px 16px; cursor: pointer; transition: filter .15s var(--curva); }
+  .primario:hover { filter: brightness(1.08); }
+  .primario:disabled { opacity: .5; cursor: default; }
+  .secundario { -webkit-app-region: no-drag; font: inherit; font-size: 12.5px; font-weight: 500; color: var(--texto); background: var(--pieza); border: 0; border-radius: 999px; padding: 6px 14px; cursor: pointer; transition: background .15s var(--curva); }
+  .secundario:hover { background: var(--pieza-hover); }
+  .escuela { font-size: 11.5px; color: var(--tenue); display: flex; gap: 6px; align-items: center; }
+  .escuela a { color: var(--acento); cursor: pointer; text-decoration: none; }
+  .escuela a:hover { text-decoration: underline; text-underline-offset: 2px; }
+  .escuela-form { display: flex; gap: 6px; }
+  .escuela-form input { -webkit-app-region: no-drag; flex: 1; min-width: 0; font: inherit; font-size: 12.5px; color: var(--texto); background: var(--pieza); border: 0; border-radius: 9px; padding: 6px 10px; outline: none; transition: box-shadow .15s var(--curva); }
+  .escuela-form input:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--acento) 40%, transparent); }
+  .error-escuela { color: var(--mal); font-size: 12px; }
+  .girador { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--pieza); border-top-color: var(--suave); animation: giro .9s linear infinite; flex: none; }
+  .aviso button { -webkit-app-region: no-drag; font: inherit; font-weight: 600; color: var(--texto); background: var(--pieza); border: 0; border-radius: 999px; padding: 2px 10px; margin-left: 6px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="marco" id="marco">
+  <header>
+    <div class="cabeza">
+      <span class="hoy" id="hoy"></span>
+      <div class="titular"><h1>Pendientes</h1><span class="cuenta" id="cuenta">0</span></div>
+    </div>
+    <div class="botones" id="botones">
+      <button class="boton" id="mensajes" title="Mensajes y anuncios" hidden>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2" y="3.5" width="12" height="9" rx="1.8"/><path d="M2.5 4.5 8 9l5.5-4.5"/></svg>
+        <span class="bolita" id="bolita" hidden></span>
+      </button>
+      <button class="boton" id="abrir-app" title="Tus tareas, archivos y ajustes">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M6.5 2.5v11"/></svg>
+      </button>
+      <button class="boton" id="refrescar" title="Actualizar ahora">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2.5v3h-3"/></svg>
+      </button>
+      <button class="boton" id="ocultar" title="Ocultar (sigue en la bandeja)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </div>
+  </header>
+  <div class="panel-mensajes" id="panel-mensajes" hidden></div>
+  <div class="aviso" id="aviso" hidden></div>
+  <div class="lista" id="lista"></div>
+  <div class="deshacer" id="deshacer" hidden></div>
+  <div class="claude" id="claude" hidden></div>
+  <div class="novedad" id="novedad" hidden></div>
+</div>
+
+<script>
+// Qué se muestra:
+// - Lo que vence hoy y no has entregado. Si ya pasó la hora de hoy, sólo si
+//   la tarea acepta entrega tardía.
+// - Lo vencido en los últimos 7 días sin entregar que acepta entrega tardía.
+const DIA = 86_400_000;
+const DIAS_ATRAS = 7;
+const COLORES = ['#7d9cf0', '#f08a5d', '#4cc9a0', '#b48cf2', '#e7b04f', '#f07aa8', '#56b8d6', '#9ccc65'];
+const CLIP = '<svg class="clip" width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10.5 4.5 5.6 9.4a1.5 1.5 0 0 0 2.1 2.1l5-5a3 3 0 0 0-4.2-4.2l-5 5a4.5 4.5 0 0 0 6.4 6.4l4.4-4.4"/></svg>';
+
+let estado = { datos: null, error: null, cargando: false };
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const inicioDia = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+const fmtHoy = new Intl.DateTimeFormat('es-MX', { weekday: 'short', day: 'numeric', month: 'short' });
+const fmtHora = new Intl.DateTimeFormat('es-MX', { hour: 'numeric', minute: '2-digit' });
+
+const prefs = () => estado.prefs || { diasAdelante: 0, diasAtras: 7, soloTardias: true, sinFecha: true, sinFechaDias: 14, vistaPrevia: true };
+
+// Qué se muestra, según Configuración:
+// - Lo no entregado que vence de hoy a `diasAdelante` días. Lo de hoy cuya
+//   hora ya pasó sólo sigue si acepta entrega tardía (o si se pidió ver
+//   también las que no).
+// - Lo vencido de hasta `diasAtras` días atrás, sin entregar; con
+//   `soloTardias`, sólo lo que aún acepta entrega.
+function pendientes() {
+  const p = prefs();
+  const ahora = Date.now();
+  const hoy = inicioDia(ahora);
+  const fin = hoy + (p.diasAdelante + 1) * DIA;
+  const desde = hoy - p.diasAtras * DIA;
+  const vale = (t) => t.tardia || !p.soloTardias;
+  const proximas = [];
+  const atrasadas = [];
+  const sinFecha = [];
+  const quitadas = new Set((estado.descartadas || []).map((t) => t.id));
+  // Las sin fecha publicadas hace más de N días se dan por viejas.
+  const limiteSinFecha = p.sinFechaDias > 0 ? ahora - p.sinFechaDias * DIA : -Infinity;
+  (estado.datos?.cursos || []).forEach((c, i) => {
+    const color = COLORES[i % COLORES.length];
+    for (const t of c.tareas) {
+      if (t.estado !== 'pendiente' || quitadas.has(t.id)) continue;
+      // Sin fecha: no salen en el calendario de Moodle y son las que más
+      // se olvidan. Las bloqueadas (aún no liberadas) no cuentan.
+      if (!t.entrega) {
+        const vieja = t.creada && Date.parse(t.creada) < limiteSinFecha;
+        if (p.sinFecha !== false && !t.bloqueada && !vieja) sinFecha.push({ ...t, curso: c.nombre, cursoId: c.id, color, cuando: null });
+        continue;
+      }
+      const cuando = Date.parse(t.entrega);
+      const item = { ...t, curso: c.nombre, cursoId: c.id, color, cuando };
+      if (cuando >= hoy && cuando < fin) {
+        if (cuando >= ahora || vale(t)) proximas.push(item);
+      } else if (cuando < hoy && cuando >= desde && vale(t)) {
+        atrasadas.push(item);
+      }
+    }
+  });
+  proximas.sort((a, b) => a.cuando - b.cuando);
+  atrasadas.sort((a, b) => b.cuando - a.cuando);
+  sinFecha.sort((a, b) => a.curso.localeCompare(b.curso, 'es') || a.titulo.localeCompare(b.titulo, 'es'));
+  return { deHoy: proximas, atrasadas, sinFecha };
+}
+
+const fmtDiaCorto = new Intl.DateTimeFormat('es-MX', { weekday: 'short', day: 'numeric', month: 'short' });
+function nombreDia(t) {
+  const dif = Math.round((inicioDia(t) - inicioDia(Date.now())) / DIA);
+  if (dif === 0) return 'Hoy';
+  if (dif === 1) return 'Mañana';
+  const s = fmtDiaCorto.format(t);
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function fila(t, pastilla, clase) {
+  const material = t.relacionados?.length || /\S/.test(t.instrucciones || '') ? CLIP : '';
+  return `<div class="item" tabindex="0" role="group" aria-label="Abrir detalle de ${esc(t.titulo)}" data-curso="${esc(t.cursoId)}" data-tarea="${esc(t.id)}" data-color="${t.color}" data-enlace="${esc(t.enlace)}">
+    <i class="punto" style="background:${t.color};color:${t.color}"></i>
+    <div style="min-width:0"><div class="titulo">${esc(t.titulo)}</div><div class="meta">${esc(t.curso)}${material}${estado.respuestas?.[t.id] ? `<span class="resuelta" title="${esc(estado.respuestas[t.id])} ya la resolvió">· respuesta lista</span>` : ''}</div></div>
+    <span class="lado"><span class="pastilla ${clase}">${pastilla}</span><button type="button" class="quitar" data-quitar title="Quitar de la lista" aria-label="Quitar ${esc(t.titulo)}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></span></div>`;
+}
+
+function pastillaHoy(t) {
+  const ms = t.cuando - Date.now();
+  if (ms < 0) return ['tarde', 'mal'];
+  if (inicioDia(t.cuando) !== inicioDia(Date.now())) return [fmtHora.format(t.cuando), ''];
+  const h = ms / 3_600_000;
+  if (h < 1) return [`${Math.max(1, Math.round(ms / 60_000))} min`, 'mal'];
+  if (h < 6) return [`${Math.floor(h)} h`, 'mal'];
+  return [fmtHora.format(t.cuando), 'pronto'];
+}
+
+function pastillaAtrasada(t) {
+  const d = Math.round((inicioDia(Date.now()) - inicioDia(t.cuando)) / DIA);
+  return [d === 1 ? 'ayer' : `hace ${d} d`, ''];
+}
+
+const oscuroSistema = matchMedia('(prefers-color-scheme: dark)');
+function aplicarTema() {
+  const p = prefs();
+  const tema = p.tema === 'sistema' || !p.tema ? (oscuroSistema.matches ? 'medianoche' : 'claro') : p.tema;
+  document.documentElement.dataset.tema = tema;
+  document.documentElement.style.setProperty('--alfa', String((p.opacidad ?? 92) / 100));
+}
+oscuroSistema.addEventListener('change', () => pintar());
+
+// Aviso de versión nueva: para descargar, descargándose, lista para instalar
+// o (en Mac y el .deb) con el enlace a la página de descarga.
+function pintarNovedad() {
+  const a = estado.actualizacion || {};
+  const caja = $('novedad');
+  if (a.estado === 'lista') {
+    caja.hidden = false;
+    caja.innerHTML = `<span><b>Insti Today ${esc(a.version)}</b> lista</span><button id="reiniciar">Reiniciar</button>`;
+    $('reiniciar').onclick = () => window.agenda.actualizacion.instalar();
+  } else if (a.estado === 'disponible') {
+    caja.hidden = false;
+    caja.innerHTML = `<span>Hay una versión nueva (<b>${esc(a.version)}</b>)</span><button id="bajar">Descargar e instalar</button>`;
+    $('bajar').onclick = () => window.agenda.actualizacion.descargar();
+  } else if (a.estado === 'descargando') {
+    caja.hidden = false;
+    caja.innerHTML = `<span>Descargando <b>${esc(a.version)}</b>… ${a.porcentaje || 0} %</span>`;
+  } else if (a.estado === 'aviso') {
+    caja.hidden = false;
+    caja.innerHTML = `<span>Hay una versión nueva${a.version ? ` (<b>${esc(a.version)}</b>)` : ''}</span><button id="bajar">Descargar</button>`;
+    $('bajar').onclick = () => window.agenda.web('/');
+  } else {
+    caja.hidden = true;
+  }
+}
+
+// Barra de «Resolver con Claude»: qué falta (pulsar Enter), en qué va y
+// cuándo está la respuesta.
+const X = '<svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>';
+function pintarClaude() {
+  if (estado.mantenimiento) { $('claude').hidden=true; return; }
+  const c = estado.claude;
+  const caja = $('claude');
+  if (!c) {
+    caja.hidden = true;
+    return;
+  }
+  caja.hidden = false;
+  if (c.ia === 'chatgpt') return pintarChatGPT(c, caja);
+  if (c.ia === 'agente') return pintarAgente(c, caja);
+  if (c.ia === 'fondo') return pintarFondo(c, caja);
+  if (c.fase === 'esperando') {
+    caja.innerHTML = `<span class="punto-vivo"></span><div class="texto"><b>Pulsa <span class="tecla">Enter</span> en Claude</b><span class="sub">para resolver «${esc(c.titulo)}»</span></div><button class="cerrar" id="claude-cerrar" title="Cancelar">${X}</button>`;
+  } else if (c.fase === 'leyendo') {
+    caja.innerHTML = `<span class="punto-vivo"></span><div class="texto"><b>Claude está resolviendo…</b><span class="sub">«${esc(c.titulo)}»</span></div><button class="cerrar" id="claude-cerrar" title="Ocultar">${X}</button>`;
+  } else {
+    // Claude dijo que era de programación: se ofrece el agente de código.
+    const extra = c.tipo === 'codigo'
+      ? '<button class="accion" id="claude-agente" title="Resolverla con el agente de código">Código</button>'
+      : c.conImagen ? '<button class="accion" id="claude-imagen" title="Que ChatGPT haga la hoja">Imagen</button>' : '';
+    caja.innerHTML = `<span class="hecho">${PALOMITA}</span><div class="texto"><b>Respuesta lista · copiada</b><span class="sub">«${esc(c.titulo)}»</span></div>${extra}<button class="accion" id="claude-ver">Ver</button><button class="cerrar" id="claude-cerrar" title="Ocultar">${X}</button>`;
+    $('claude-ver').onclick = () => window.agenda.respuesta.ver(c.tareaId);
+    if ($('claude-agente')) $('claude-agente').onclick = () => window.agenda.claude.resolver({ tareaId: c.tareaId, forzar: 'agente' });
+    if ($('claude-imagen')) $('claude-imagen').onclick = () => window.agenda.respuesta.imagen(c.tareaId);
+  }
+  $('claude-cerrar').onclick = () => window.agenda.claude.cancelar();
+}
+
+const PALOMITA = '<svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg>';
+
+// En segundo plano: la IA trabaja sola y la respuesta llega aquí. Mientras,
+// se ve cuánto lleva.
+let relojFondo = null;
+const transcurrido = (inicio) => {
+  const s = Math.max(0, Math.round((Date.now() - inicio) / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
+function pintarFondo(c, caja) {
+  clearInterval(relojFondo);
+  const cerrar = `<button class="cerrar" id="claude-cerrar" title="${['lista', 'error'].includes(c.fase) ? 'Ocultar' : 'Cancelar'}">${X}</button>`;
+  const vivo = '<span class="punto-vivo"></span>';
+  if (c.fase === 'preparando' || c.fase === 'trabajando' || c.fase === 'dibujando') {
+    const titulo = c.fase === 'preparando' ? 'Preparando la tarea…' : c.fase === 'dibujando' ? 'Dibujando la hoja…' : `${esc(c.nombre)} está resolviendo…`;
+    caja.innerHTML = `${vivo}<div class="texto"><b>${titulo} <span id="reloj-fondo" style="font-weight:400;color:var(--tenue)">${transcurrido(c.inicio)}</span></b><span class="sub">«${esc(c.titulo)}» · te aviso al terminar</span></div>${cerrar}`;
+    relojFondo = setInterval(() => {
+      const el = $('reloj-fondo');
+      if (el) el.textContent = transcurrido(c.inicio);
+      else clearInterval(relojFondo);
+    }, 1000);
+  } else if (c.fase === 'error') {
+    caja.innerHTML = `<span class="hecho" style="color:var(--mal);background:color-mix(in srgb, var(--mal) 18%, transparent)">!</span><div class="texto"><b>No se pudo resolver</b><span class="sub" title="${esc(c.detalle || '')}">${esc(c.detalle || c.titulo)}</span></div>${cerrar}`;
+  } else {
+    caja.innerHTML = `<span class="hecho">${PALOMITA}</span><div class="texto"><b>${c.sinArchivos ? 'Respuesta escrita; sin archivos' : 'Archivos generados'}</b><span class="sub">${c.sinArchivos ? 'La IA no generó archivos entregables. Revisa el texto.' : '«'+esc(c.titulo)+'» · revisa los archivos antes de adjuntar'}</span></div><button class="accion" id="claude-ver">Ver</button>${cerrar}`;
+    $('claude-ver').onclick = () => window.agenda.app.abrir('pendientes', c.tareaId);
+  }
+  $('claude-cerrar').onclick = () => window.agenda.claude.cancelar();
+}
+
+// Agente de código (Claude Code o Codex) en una terminal: la respuesta es el
+// RESPUESTA.md que deja en la carpeta de la tarea.
+function pintarAgente(c, caja) {
+  const cerrar = `<button class="cerrar" id="claude-cerrar" title="${c.fase === 'lista' ? 'Ocultar' : 'Dejar de esperar'}">${X}</button>`;
+  const carpeta = c.carpeta ? '<button class="accion" id="claude-archivos" title="La carpeta de la tarea, con el código">Carpeta</button>' : '';
+  if (c.fase === 'preparando') {
+    caja.innerHTML = `<span class="punto-vivo"></span><div class="texto"><b>Preparando la carpeta para ${esc(c.agente)}…</b><span class="sub">«${esc(c.titulo)}»</span></div>${cerrar}`;
+  } else if (c.fase === 'esperando') {
+    caja.innerHTML = c.enter
+      ? `<span class="punto-vivo"></span><div class="texto"><b>Pulsa <span class="tecla">Enter</span> en ${esc(c.agente)}</b><span class="sub">${c.modo === 'imagen' ? 'para que dibuje la hoja' : 'y aprueba lo que te pregunte'}</span></div>${c.modo === 'codigo' ? carpeta : ''}${cerrar}`
+      : `<span class="punto-vivo"></span><div class="texto"><b>${esc(c.agente)} está programando</b><span class="sub">En la terminal; aprueba lo que te pregunte</span></div>${carpeta}${cerrar}`;
+  } else {
+    const sub = c.modo === 'imagen' ? 'La hoja está lista para descargar' : c.modo === 'resolver' ? 'Respuesta copiada' : 'Resumen copiado · código en la carpeta';
+    caja.innerHTML = `<span class="hecho">${PALOMITA}</span><div class="texto"><b>${esc(c.agente)} terminó</b><span class="sub">${sub}</span></div>${c.modo === 'codigo' ? carpeta : ''}<button class="accion" id="claude-ver">Ver</button>${cerrar}`;
+    $('claude-ver').onclick = () => window.agenda.respuesta.ver(c.tareaId);
+  }
+  if ($('claude-archivos')) $('claude-archivos').onclick = () => window.agenda.claude.archivos();
+  $('claude-cerrar').onclick = () => window.agenda.claude.cancelar();
+}
+
+// Con ChatGPT la respuesta vuelve por el portapapeles: hay que copiarla.
+function pintarChatGPT(c, caja) {
+  const pegar = window.agenda.plataforma === 'darwin' ? '⌘V' : 'Ctrl+V';
+  const cerrar = `<button class="cerrar" id="claude-cerrar" title="${c.fase === 'lista' ? 'Ocultar' : 'Cancelar'}">${X}</button>`;
+  let icono = '<span class="punto-vivo"></span>';
+  let titulo;
+  let sub;
+  let accion = '';
+  if (c.fase === 'preparando') {
+    titulo = 'Preparando la tarea para ChatGPT…';
+    sub = `«${esc(c.titulo)}»`;
+  } else if (c.fase === 'esperando') {
+    titulo = c.adjuntar
+      ? `Arrastra ${c.adjuntar === 1 ? 'el archivo' : 'los archivos'} y pulsa <span class="tecla">Enter</span>`
+      : c.pegar
+      ? `Pega <span class="tecla">${pegar}</span> en ChatGPT`
+      : c.modo === 'imagen' ? 'ChatGPT está haciendo la imagen…' : 'ChatGPT está resolviendo…';
+    sub = c.adjuntar ? 'desde la ventanita; luego copia su respuesta' : c.pegar ? 'y pulsa Enter; luego copia su respuesta' : c.modo === 'imagen' ? 'Al salir: clic derecho → Copiar imagen' : 'Al terminar, copia su respuesta';
+    if (c.carpeta) accion = '<button class="accion" id="claude-archivos" title="Los archivos de la tarea, para arrastrarlos a ChatGPT">Archivos</button>';
+  } else {
+    icono = '<span class="hecho"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></span>';
+    titulo = c.recibido === 'imagen' ? 'Imagen guardada' : 'Respuesta guardada';
+    sub = 'Lo que copies de ChatGPT se añade';
+    accion = '<button class="accion" id="claude-ver">Ver</button>';
+  }
+  caja.innerHTML = `${icono}<div class="texto"><b>${titulo}</b><span class="sub">${sub}</span></div>${accion}${cerrar}`;
+  if ($('claude-ver')) $('claude-ver').onclick = () => window.agenda.respuesta.ver(c.tareaId);
+  if ($('claude-archivos')) $('claude-archivos').onclick = () => window.agenda.claude.archivos();
+  $('claude-cerrar').onclick = () => window.agenda.claude.cancelar();
+}
+
+function pintar() {
+  aplicarTema();
+  if (estado.mantenimiento) $('abrir-app').title='Tus archivos, entrega y ajustes';
+  pintarMensajes();
+  pintarClaude();
+  pintarNovedad();
+  $('hoy').textContent = fmtHoy.format(new Date());
+  $('refrescar').classList.toggle('girando', estado.cargando);
+  $('botones').classList.toggle('girando-ya', estado.cargando);
+
+  const aviso = $('aviso');
+  aviso.hidden = true;
+  $('lista').classList.remove('vieja');
+
+  // Sin sesión no se muestra nada más que cómo entrar: ni datos viejos ni un
+  // "cargando" que no va a terminar nunca.
+  if (estado.sesion === 'falta' || estado.sesion === 'caducada' || estado.entrando) {
+    $('cuenta').className = 'cuenta';
+    $('cuenta').textContent = '–';
+    pintarAcceso();
+    ajustarAlto();
+    return;
+  }
+
+  if (estado.error && estado.datos) {
+    aviso.hidden = false;
+    aviso.textContent = `Sin conexión con Moodle · datos de las ${fmtHora.format(new Date(estado.datos.generado))}`;
+    $('lista').classList.add('vieja');
+  }
+  if (estado.error && !estado.datos) {
+    $('lista').innerHTML = `<div class="acceso"><p>No se pudo conectar con Moodle. Se vuelve a intentar en unos minutos.</p><div><button class="secundario" id="reintentar">Reintentar ahora</button></div></div>`;
+    $('reintentar').onclick = () => window.agenda.actualizar();
+    ajustarAlto();
+    return;
+  }
+
+  const { deHoy, atrasadas, sinFecha } = pendientes();
+  const total = deHoy.length + atrasadas.length + sinFecha.length;
+  const cuenta = $('cuenta');
+  cuenta.textContent = total;
+  cuenta.className = `cuenta ${deHoy.some((t) => t.cuando - Date.now() < 6 * 3_600_000) ? 'urge' : total ? 'hay' : ''}`;
+
+  // Con más de un día, la lista se agrupa por día.
+  let html = '';
+  if (prefs().diasAdelante > 0) {
+    let dia = null;
+    for (const t of deHoy) {
+      const d = inicioDia(t.cuando);
+      if (d !== dia) {
+        html += `<div class="separador dia">${nombreDia(t.cuando)}</div>`;
+        dia = d;
+      }
+      html += fila(t, ...pastillaHoy(t));
+    }
+  } else {
+    html = deHoy.map((t) => fila(t, ...pastillaHoy(t))).join('');
+  }
+  if (atrasadas.length) {
+    html += `<div class="separador${prefs().diasAdelante > 0 ? ' dia vencidas' : ''}">Vencidas${prefs().soloTardias ? ' · aceptan tardía' : ''}</div>`;
+    html += atrasadas.map((t) => fila(t, ...pastillaAtrasada(t))).join('');
+  }
+  if (sinFecha.length) {
+    html += `<div class="separador${prefs().diasAdelante > 0 ? ' dia' : ''}">Sin fecha de entrega</div>`;
+    html += sinFecha.map((t) => fila(t, 'sin fecha', '')).join('');
+  }
+  if (!total) {
+    html = estado.datos
+      ? `<div class="vacio"><span class="ok"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></span><div><b>Todo al día</b><span>${['Nada vence hoy', 'Nada vence hoy ni mañana', 'Nada en los próximos 3 días', 'Nada esta semana', 'Nada en dos semanas'][[0, 1, 2, 6, 13].indexOf(prefs().diasAdelante)] || 'Nada pendiente'}</span></div></div>`
+      : '<div class="vacio"><span>Revisando tus cursos…</span></div>';
+  }
+  const activa = document.querySelector('.item.activa')?.dataset.tarea;
+  $('lista').innerHTML = html;
+  if (activa) document.querySelector(`.item[data-tarea="${activa}"]`)?.classList.add('activa');
+  precargarVisibles();
+
+  if (estado.datos) {
+    const g = new Date(estado.datos.generado);
+    $('refrescar').title = `Actualizado ${fmtHora.format(g)} · se actualiza cada hora`;
+  }
+  ajustarAlto();
+}
+
+let cambiandoEscuela = false;
+let errorEscuela = '';
+
+function pintarAcceso() {
+  const host = estado.escuela ? new URL(estado.escuela).hostname + new URL(estado.escuela).pathname.replace(/\/$/, '') : '';
+  const nombre = /^plataforma\.uii\.edu\.mx/.test(host) ? 'Plataforma UII' : host;
+  let titulo, texto, boton;
+  if (estado.entrando) {
+    titulo = 'Termina en la ventana de inicio de sesión';
+    texto = 'Cuando entres, esto se llena solo.';
+    boton = '<div style="display:flex;gap:8px;align-items:center"><span class="girador"></span><button class="secundario" id="entrar">Mostrar la ventana</button></div>';
+  } else if (estado.sesion === 'caducada') {
+    titulo = 'Tu sesión se cerró';
+    texto = 'Moodle cerró tu sesión. Entra de nuevo para seguir viendo tus pendientes.';
+    boton = '<div><button class="primario" id="entrar">Iniciar sesión de nuevo</button></div>';
+  } else {
+    titulo = 'Inicia sesión';
+    texto = 'Conecta tu cuenta de Moodle para ver lo que vence hoy.';
+    boton = '<div><button class="primario" id="entrar">Iniciar sesión</button></div>';
+  }
+  let escuela = '';
+  if (!estado.entrando && estado.sesion === 'falta') {
+    escuela = cambiandoEscuela
+      ? `<div class="escuela-form"><input id="url-escuela" placeholder="plataforma.tu-escuela.edu.mx/moodle" value="${esc(host)}"><button class="secundario" id="usar-escuela">Usar</button></div>${errorEscuela ? `<div class="error-escuela">${esc(errorEscuela)}</div>` : ''}`
+      : `<div class="escuela">${esc(nombre)} · <a id="cambiar-escuela">cambiar</a></div>`;
+  }
+  $('lista').innerHTML = `<div class="acceso">
+    <div class="marca"><img src="icono/icono.png" alt=""><div><b>${titulo}</b></div></div>
+    <p>${texto}</p>${estado.avisoAcceso && !estado.entrando ? `<div class="error-escuela">${esc(estado.avisoAcceso)}</div>` : ''}${boton}${escuela}</div>`;
+  $('entrar').onclick = () => window.agenda.entrar();
+  const cambiar = $('cambiar-escuela');
+  if (cambiar) cambiar.onclick = async () => {
+    cambiandoEscuela = true;
+    errorEscuela = '';
+    pintar();
+    await window.agenda.teclado(true);
+    $('url-escuela')?.focus();
+  };
+  const usar = $('usar-escuela');
+  if (usar) {
+    const enviar = async () => {
+      usar.disabled = true;
+      const r = await window.agenda.escuela($('url-escuela').value);
+      cambiandoEscuela = !r.ok;
+      errorEscuela = r.ok ? '' : r.mensaje;
+      if (r.ok) window.agenda.teclado(false);
+      pintar();
+      if (!r.ok) $('url-escuela')?.focus();
+    };
+    usar.onclick = enviar;
+    $('url-escuela').onkeydown = (e) => {
+      if (e.key === 'Enter') enviar();
+      if (e.key === 'Escape') { cambiandoEscuela = false; window.agenda.teclado(false); pintar(); }
+    };
+  }
+}
+
+// La ventana mide lo que mide la lista: sin huecos cuando hay poco.
+function ajustarAlto() {
+  // Medir todo lo visible, incluidos márgenes. La lista conserva su altura
+  // natural aunque deba desplazarse cuando la pantalla no tiene espacio.
+  const marco = $('marco');
+  const natural = [...marco.children].reduce((alto, elemento) => {
+    const css = getComputedStyle(elemento);
+    if (css.display === 'none') return alto;
+    return alto + (elemento.id === 'lista' ? elemento.scrollHeight : elemento.offsetHeight)
+      + parseFloat(css.marginTop) + parseFloat(css.marginBottom);
+  }, marco.offsetHeight - marco.clientHeight);
+  window.agenda.alto(Math.ceil(natural));
+}
+
+// El zoom puede cambiar el ancho disponible después de pintar. Observar
+// el contenido vuelve a medir sus saltos de línea y evita una altura vieja.
+let medidaPendiente = false;
+const medirContenido = new ResizeObserver(() => {
+  if (medidaPendiente) return;
+  medidaPendiente = true;
+  requestAnimationFrame(() => { medidaPendiente = false; ajustarAlto(); });
+});
+for (const elemento of $('marco').children) medirContenido.observe(elemento);
+
+// Vista previa: la primera vez aparece tras una pausa corta sobre la fila
+// (pasar el ratón de largo no la dispara); con la tarjeta ya abierta, pasar
+// a otra fila la cambia al momento. Cerrarla lo decide el proceso principal,
+// que sabe dónde está el puntero; aquí sólo se quita el resaltado.
+let esperaVista = null;
+let vistaAbierta = false;
+let vistaFijada = false;
+let quitandoTarea = false;
+function quitarResaltado() {
+  document.querySelectorAll('.item.activa').forEach((x) => x.classList.remove('activa'));
+}
+function abrirVista(item, { fijar = false } = {}) {
+  vistaAbierta = true;
+  if (fijar) {
+    clearTimeout(esperaVista);
+    quitarResaltado();
+    item.classList.add('activa');
+    vistaFijada = true;
+  }
+  window.agenda.vista.mostrar({
+    cursoId: item.dataset.curso,
+    tareaId: item.dataset.tarea,
+    color: item.dataset.color,
+    y: Math.round(item.getBoundingClientRect().top),
+    fijar,
+  });
+}
+$('lista').addEventListener('mouseover', (e) => {
+  if (vistaFijada || quitandoTarea) return;
+  const item = e.target.closest('.item');
+  if (!item || prefs().vistaPrevia === false) return;
+  window.agenda.vista.mantener();
+  if (item.classList.contains('activa')) return;
+  quitarResaltado();
+  item.classList.add('activa');
+  clearTimeout(esperaVista);
+  if (vistaAbierta) abrirVista(item);
+  else esperaVista = setTimeout(() => abrirVista(item), 180);
+});
+// Al acercar el ratón se prepara la ventana de la vista previa (se libera
+// sola tras unos minutos sin usarse).
+$('lista').addEventListener('mouseenter', () => {
+  if (prefs().vistaPrevia !== false) window.agenda.vista.calentar();
+});
+$('lista').addEventListener('mouseleave', () => {
+  clearTimeout(esperaVista);
+  if (vistaAbierta) window.agenda.vista.soltar();
+  else quitarResaltado();
+});
+window.agenda.vista.alCerrada(() => {
+  vistaAbierta = false;
+  vistaFijada = false;
+  clearTimeout(esperaVista);
+  quitarResaltado();
+});
+
+// Precarga en segundo plano el detalle de lo que se ve, para que la vista
+// previa salga al instante.
+let precargaPendiente = null;
+function precargarVisibles() {
+  clearTimeout(precargaPendiente);
+  if (prefs().vistaPrevia === false) return;
+  precargaPendiente = setTimeout(() => {
+    const lista = [...document.querySelectorAll('.lista .item')].map((x) => ({ cursoId: x.dataset.curso, tareaId: x.dataset.tarea }));
+    if (lista.length) window.agenda.vista.precargar(lista);
+  }, 1500);
+}
+
+// La ✕ quita la tarea de la lista y deja unos segundos para deshacerlo.
+let deshacerPendiente = null;
+function ofrecerDeshacer(tarea) {
+  clearTimeout(deshacerPendiente);
+  const caja = $('deshacer');
+  caja.hidden = false;
+  caja.innerHTML = `<span>Quitaste «${esc(tarea.titulo)}»</span><button id="deshacer-boton">Deshacer</button>`;
+  $('deshacer-boton').onclick = () => {
+    window.agenda.tareas.restaurar(tarea.id);
+    caja.hidden = true;
+    ajustarAlto();
+  };
+  deshacerPendiente = setTimeout(() => {
+    caja.hidden = true;
+    ajustarAlto();
+  }, 7000);
+  ajustarAlto();
+}
+
+$('lista').addEventListener('click', async (e) => {
+  const quitar = e.target.closest('[data-quitar]');
+  if (quitar) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (quitandoTarea) return;
+    quitandoTarea = true;
+    quitar.disabled = true;
+    clearTimeout(esperaVista);
+    const item = quitar.closest('.item');
+    const tarea = {
+      id: item.dataset.tarea,
+      titulo: item.querySelector('.titulo').textContent,
+      curso: item.querySelector('.meta').textContent,
+    };
+    try {
+      if (await window.agenda.tareas.descartar(tarea)) ofrecerDeshacer(tarea);
+    } finally {
+      quitandoTarea = false;
+      quitar.disabled = false;
+    }
+    return;
+  }
+  const item = e.target.closest('.item');
+  if (item) abrirVista(item, { fijar: true });
+});
+$('lista').addEventListener('keydown', (e) => {
+  if (e.target.matches('.item') && (e.key === 'Enter' || e.key === ' ')) {
+    e.preventDefault();
+    abrirVista(e.target, { fijar: true });
+  }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && vistaFijada) {
+    e.preventDefault();
+    window.agenda.vista.cerrar();
+  }
+});
+$('refrescar').onclick = () => window.agenda.actualizar();
+$('abrir-app').onclick = () => window.agenda.app.abrir('pendientes');
+
+// ---- Mensajes: bolita con el número de nuevos; la lista sólo aparece al
+// pasar el ratón o al hacer clic, y lo que se ve queda visto en Insti Today.
+let panelFijo = false;
+let cerrarPanel = null;
+const fmtMensaje = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short' });
+function cuandoMensaje(iso) {
+  const d = new Date(iso);
+  return inicioDia(d) === inicioDia(Date.now()) ? fmtHora.format(d) : fmtMensaje.format(d);
+}
+function pintarMensajes() {
+  const lista = estado.mensajes || [];
+  const nuevos = lista.filter((m) => m.nuevo).length;
+  $('mensajes').hidden = estado.sesion !== 'lista';
+  $('bolita').hidden = !nuevos;
+  $('bolita').textContent = nuevos > 9 ? '9+' : String(nuevos);
+  $('mensajes').title = nuevos ? `${nuevos} ${nuevos === 1 ? 'mensaje nuevo' : 'mensajes nuevos'}` : 'Mensajes y anuncios';
+  if ($('panel-mensajes').hidden) return;
+  const fallo = estado.mensajesError ? `<div class="vacio-m">${esc(estado.mensajesError)}</div>` : '';
+  $('panel-mensajes').innerHTML = fallo + (lista.length
+    ? lista.slice(0, 15).map((m) => `<div class="mensaje ${m.nuevo ? 'nuevo' : ''}" data-enlace="${esc(m.enlace)}"><div class="cab"><b>${esc(m.tipo === 'anuncio' ? `📣 ${m.de}` : m.de)}</b><span>${esc(cuandoMensaje(m.cuando))}</span></div><div class="curso-m">${esc(m.curso)}</div><div class="txt">${esc(m.texto)}</div></div>`).join('')
+    : fallo ? '' : '<div class="vacio-m">No hay mensajes ni anuncios.</div>');
+}
+function mostrarPanel() {
+  clearTimeout(cerrarPanel);
+  if (!$('panel-mensajes').hidden) return;
+  $('panel-mensajes').hidden = false;
+  pintarMensajes();
+  ajustarAlto();
+  // Lo que se enseña queda visto (sólo en Insti Today, no en Moodle).
+  const ids = (estado.mensajes || []).filter((m) => m.nuevo).map((m) => m.id);
+  if (ids.length) setTimeout(() => window.agenda.mensajes.vistos(ids), 1200);
+}
+function ocultarPanel() {
+  if (panelFijo) return;
+  clearTimeout(cerrarPanel);
+  cerrarPanel = setTimeout(() => {
+    $('panel-mensajes').hidden = true;
+    ajustarAlto();
+  }, 350);
+}
+$('mensajes').addEventListener('mouseenter', mostrarPanel);
+$('mensajes').addEventListener('mouseleave', ocultarPanel);
+$('panel-mensajes').addEventListener('mouseenter', () => clearTimeout(cerrarPanel));
+$('panel-mensajes').addEventListener('mouseleave', ocultarPanel);
+$('mensajes').onclick = () => {
+  panelFijo = !panelFijo || $('panel-mensajes').hidden;
+  if (panelFijo) mostrarPanel();
+  else {
+    $('panel-mensajes').hidden = true;
+    ajustarAlto();
+  }
+};
+$('panel-mensajes').addEventListener('click', (e) => {
+  const m = e.target.closest('[data-enlace]');
+  if (m) window.agenda.mensajes.abrir(m.dataset.enlace);
+});
+$('ocultar').onclick = () => window.agenda.ocultar();
+
+// Cada minuto: los contadores avanzan y, al cambiar el día, la lista también.
+setInterval(pintar, 60_000);
+
+window.agenda.alCambiar((nuevo) => { estado = nuevo; pintar(); });
+window.agenda.obtener().then((inicial) => { estado = inicial; pintar(); });
+</script>
+</body>
+</html>

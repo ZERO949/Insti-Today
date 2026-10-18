@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacidad · Insti Today</title>
+<style>
+  :root { --fondo: #f4f6fb; --texto: #1d2433; --suave: #4b5873; --acento: #063b91; --tarjeta: #fff; --borde: #dfe5f1; }
+  @media (prefers-color-scheme: dark) { :root { --fondo: #0b1a33; --texto: #eef2fa; --suave: #b3bfd6; --acento: #8cc0ff; --tarjeta: #10244a; --borde: #20365f; } }
+  body { margin: 0; background: var(--fondo); color: var(--texto); font: 16px/1.6 "Segoe UI", system-ui, -apple-system, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 40px 20px 64px; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 28px 0 6px; color: var(--acento); }
+  p, li { color: var(--suave); }
+  code { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 5px; padding: 1px 5px; font-size: 14px; }
+  .sub { margin-top: 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Privacidad</h1>
+  <p class="sub">Insti Today es una app independiente, sin afiliación con Moodle HQ ni con tu escuela.</p>
+
+  <h2>Tu contraseña</h2>
+  <p>Cuando inicias sesión, tu usuario y contraseña se envían directamente a tu propia plataforma Moodle (<code>/login/token.php</code>), igual que con la app móvil oficial de Moodle. La contraseña no se guarda en ningún lado.</p>
+
+  <h2>Qué se guarda y dónde</h2>
+  <ul>
+    <li>El <b>token</b> que te da Moodle (un permiso para leer tus cursos), tu nombre de usuario y la dirección de tu plataforma, en <code>%APPDATA%\insti-today</code> (Windows), <code>~/Library/Application Support/Insti Today</code> (Mac) o <code>~/.config/insti-today</code> (Linux).</li>
+    <li>La última lista de tareas y mensajes, para mostrarla al encender.</li>
+    <li>Las cookies del navegador interno de la app, para abrir páginas de Moodle sin volver a escribir tu contraseña.</li>
+    <li>Los archivos que abres se descargan a <code>Descargas/Insti Today</code>.</li>
+  </ul>
+
+  <h2>Qué hace con Moodle</h2>
+  <p>Sólo lee: tus cursos en progreso, tareas, exámenes, foros con fecha, calificaciones, mensajes, avisos y notificaciones. Nunca entrega, publica ni modifica nada por su cuenta. Al preparar una entrega, la app suelta tus archivos en el borrador de la tarea; el botón «Guardar cambios» o «Enviar tarea» lo pulsas tú.</p>
+
+  <h2>Nada sale de tu computadora</h2>
+  <p>La app no tiene servidor propio ni analíticas: sólo habla con tu Moodle. Las funciones de IA heredadas de BB Today están desactivadas.</p>
+
+  <h2>Cerrar sesión</h2>
+  <p>En Cuenta → Cerrar sesión se borran el token, las cookies del navegador interno y la lista guardada. Si quieres invalidar también el token en Moodle, entra a tu perfil de Moodle → Preferencias → Claves de seguridad y restablece la de «Moodle mobile web service».</p>
+</main>
+</body>
+</html>
