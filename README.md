@@ -116,7 +116,9 @@ cierra, el instalador reemplaza la versión anterior y se vuelve a abrir.
 Para publicar una versión nueva:
 
 1. Sube `version` en `package.json` (p. ej. 0.1.3 → 0.1.4).
-2. Con la sesión de `gh` (cuenta ZERO949) en PowerShell:
+2. Haz commit y sube la etiqueta antes de publicar (sin ella GitHub rechaza el release):
+   `git tag v0.1.4; git push; git push --tags`
+3. Con la sesión de `gh` (cuenta ZERO949) en PowerShell:
    `$env:GH_TOKEN = gh auth token; npm run publicar`
 
 Eso sube `Insti-Today-Setup.exe`, su `.blockmap` y `latest.yml` al release; las
