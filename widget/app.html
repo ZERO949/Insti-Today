@@ -35,6 +35,22 @@
   .nav-pie { margin-top: auto; padding: 12px 8px 0; }
   .nav-pie .estado { font-size: 11.5px; color: var(--tenue); margin-bottom: 8px; }
   .nav-pie .estado b { color: var(--suave); font-weight: 600; }
+  .nav-item, .marca div, .nav-pie .estado { white-space: nowrap; }
+  .plegar { margin-left: auto; flex: none; width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 7px; background: none; color: var(--tenue); cursor: pointer; transition: background .15s var(--curva), color .15s var(--curva); }
+  .plegar:hover { background: var(--hover); color: var(--texto); }
+  .plegar svg { width: 16px; height: 16px; }
+  /* Barra plegada: sólo iconos; los números pasan a ser una burbuja sobre el icono */
+  .animada nav { transition: width .22s var(--curva), padding .22s var(--curva); }
+  .barra-plegada nav { width: 64px; padding-left: 8px; padding-right: 8px; overflow: hidden; }
+  .barra-plegada .marca { flex-direction: column; gap: 10px; padding: 0 0 14px; }
+  .barra-plegada .marca div, .barra-plegada .etiqueta, .barra-plegada .nav-pie .estado { display: none; }
+  .barra-plegada .plegar { margin-left: 0; }
+  .barra-plegada .plegar svg { transform: scaleX(-1); }
+  .barra-plegada .nav-item { position: relative; justify-content: center; padding: 8px 0; }
+  .barra-plegada .nav-item .num { position: absolute; top: 1px; right: 4px; min-width: 15px; height: 15px; padding: 0 4px; margin: 0; border-radius: 8px; background: var(--pieza-hover); color: var(--texto); font-size: 9.5px; line-height: 15px; text-align: center; }
+  .barra-plegada .nav-item .num.urge { background: var(--mal); color: #fff; }
+  .barra-plegada .nav-pie { padding: 12px 0 0; display: flex; justify-content: center; }
+  .barra-plegada #actualizar { width: 32px; height: 32px; padding: 0; justify-content: center; }
 
   main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--fondo-b); }
   .seccion { display: none; flex: 1; min-height: 0; }
@@ -258,16 +274,16 @@
 </head>
 <body>
 <nav>
-  <div class="marca"><img src="icono/icono.png" alt=""><div><b>Insti Today</b><span id="version"></span></div></div>
-  <button class="nav-item" data-ir="pendientes"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"/><circle cx="2.5" cy="4" r=".8" fill="currentColor"/><circle cx="2.5" cy="8" r=".8" fill="currentColor"/><circle cx="2.5" cy="12" r=".8" fill="currentColor"/></svg>Pendientes<span class="num" id="num-pendientes"></span></button>
-  <button class="nav-item" data-ir="respuestas"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.6 4.4L14 7l-4.4 1.6L8 13l-1.6-4.4L2 7l4.4-1.6z"/></svg>Respuestas<span class="num" id="num-respuestas"></span></button>
+  <div class="marca"><img src="icono/icono.png" alt=""><div><b>Insti Today</b><span id="version"></span></div><button class="plegar" id="plegar" title="Plegar barra lateral"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2.2"/><path d="M6 2.5v11M10.5 6.5 9 8l1.5 1.5"/></svg></button></div>
+  <button class="nav-item" data-ir="pendientes" title="Pendientes"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"/><circle cx="2.5" cy="4" r=".8" fill="currentColor"/><circle cx="2.5" cy="8" r=".8" fill="currentColor"/><circle cx="2.5" cy="12" r=".8" fill="currentColor"/></svg><span class="etiqueta">Pendientes</span><span class="num" id="num-pendientes"></span></button>
+  <button class="nav-item" data-ir="respuestas" title="Respuestas"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.6 4.4L14 7l-4.4 1.6L8 13l-1.6-4.4L2 7l4.4-1.6z"/></svg><span class="etiqueta">Respuestas</span><span class="num" id="num-respuestas"></span></button>
   <div class="nav-sep"></div>
-  <button class="nav-item" data-ir="ia"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="10" height="9" rx="2"/><path d="M8 4V2M6 8h.01M10 8h.01M6 11h4"/></svg>IA</button>
-  <button class="nav-item" data-ir="ajustes"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4h6M12 4h1M3 8h1M7 8h6M3 12h7M13 12h0"/><circle cx="10.5" cy="4" r="1.5"/><circle cx="5.5" cy="8" r="1.5"/><circle cx="11.5" cy="12" r="1.5"/></svg>Ajustes</button>
-  <button class="nav-item" data-ir="cuenta"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="5.5" r="2.8"/><path d="M2.8 14c.8-2.6 2.8-4 5.2-4s4.4 1.4 5.2 4"/></svg>Cuenta</button>
+  <button class="nav-item" data-ir="ia" title="IA"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="10" height="9" rx="2"/><path d="M8 4V2M6 8h.01M10 8h.01M6 11h4"/></svg><span class="etiqueta">IA</span></button>
+  <button class="nav-item" data-ir="ajustes" title="Ajustes"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4h6M12 4h1M3 8h1M7 8h6M3 12h7M13 12h0"/><circle cx="10.5" cy="4" r="1.5"/><circle cx="5.5" cy="8" r="1.5"/><circle cx="11.5" cy="12" r="1.5"/></svg><span class="etiqueta">Ajustes</span></button>
+  <button class="nav-item" data-ir="cuenta" title="Cuenta"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="5.5" r="2.8"/><path d="M2.8 14c.8-2.6 2.8-4 5.2-4s4.4 1.4 5.2 4"/></svg><span class="etiqueta">Cuenta</span></button>
   <div class="nav-pie">
     <div class="estado" id="estado-revision"></div>
-    <button class="boton chico" id="actualizar"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2.5v3h-3"/></svg>Revisar Moodle</button>
+    <button class="boton chico" id="actualizar" title="Revisar Moodle"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2.5v3h-3"/></svg><span class="etiqueta">Revisar Moodle</span></button>
   </div>
 </nav>
 
@@ -528,6 +544,18 @@ function ir(s) {
 document.querySelector('nav').addEventListener('click', (e) => {
   const b = e.target.closest('[data-ir]');
   if (b) ir(b.dataset.ir);
+});
+// Barra lateral plegada: sólo iconos. Se recuerda en las preferencias.
+function plegarBarra(plegada) {
+  document.body.classList.toggle('barra-plegada', plegada);
+  $('plegar').title = plegada ? 'Mostrar barra lateral' : 'Plegar barra lateral';
+  // Sin animación al abrir la ventana; sólo al pulsar el botón.
+  requestAnimationFrame(() => document.body.classList.add('animada'));
+}
+$('plegar').addEventListener('click', () => {
+  const plegada = !document.body.classList.contains('barra-plegada');
+  plegarBarra(plegada);
+  guardar({ barraPlegada: plegada });
 });
 window.agenda.app.alIr((s, tareaId, guia) => {
   ir(s);
@@ -1346,6 +1374,7 @@ function pintar() {
   }
   // El mismo estilo que el widget.
   document.documentElement.dataset.tema = !datos.prefs.tema || datos.prefs.tema === 'sistema' ? temaSistema() : datos.prefs.tema;
+  plegarBarra(!!datos.prefs.barraPlegada);
   pintarBarra();
   pintarPendientes();
   pintarRespuestas();

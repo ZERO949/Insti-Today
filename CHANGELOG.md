@@ -1,5 +1,11 @@
 # Cambios
 
+## 0.1.6 · 2026-10-18
+
+- La barra lateral de la ventana se pliega con un clic y queda sólo con los iconos.
+  El número de pendientes pasa a ser una burbuja sobre el icono y la app recuerda si
+  la dejaste plegada.
+
 ## 0.1.5 · 2026-10-17
 
 - El instalador de Windows ahora es un asistente: puedes elegir la carpeta donde se

@@ -41,6 +41,7 @@ export const PREDETERMINADAS = {
   iaPalabrasCodigo: 'leetcode, hackerrank, codeforces, cat, código, programación, estructuras de datos, implementa, python, java, c++, javascript, poo',
   chatgptModelo: 'auto', // lo que va en chatgpt.com/?model=
   tutorialVisto: false, // la guía corta del primer arranque
+  barraPlegada: false, // la barra lateral de la ventana sólo con iconos
   avisoVersion: '', // en Mac: la última versión nueva de la que ya se avisó
 };
 
