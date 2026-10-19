@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.1.8 · 2026-10-18
+
+- Varias cuentas de Moodle en la misma computadora, cada una con su color. Junto al
+  buscador está tu icono: un toque muestra tus cuentas; mantenlo pulsado y desliza
+  hacia arriba o hacia abajo para cambiar al soltar. Cada cuenta conserva sus
+  tareas, tareas quitadas, materias ocultas, respuestas de IA y su propia sesión
+  del navegador de Moodle. Se añaden, se cambian de color y se quitan en Cuenta;
+  también se cambia desde el menú de la bandeja.
+
 ## 0.1.7 · 2026-10-18
 
 - «Abrir en Moodle» lleva directo a la tarea desde el primer clic. Antes, si el

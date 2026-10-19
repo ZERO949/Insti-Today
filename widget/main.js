@@ -130,6 +130,8 @@ let archivosArrastre = [];
 let destinoArrastre = 'ChatGPT';
 let estado = { datos: null, error: null, cargando: false, sesion: 'falta', escuela: null, prefs: preferencias.leer(), descartadas: preferencias.descartadas(), actualizacion: actualizaciones.estadoActualizacion() };
 let reintento = null;
+// Sube con cada cambio de cuenta: lo que llegue de Moodle para la anterior se descarta.
+let generacion = 0;
 
 function leerJson(archivo) {
   try {
@@ -215,8 +217,10 @@ function conVisto(lista) {
 }
 
 async function actualizarMensajes(cursos) {
+  const gen = generacion;
   try {
     const { lista, fallidos, total } = await conLimite(leerMensajes(cursos), 60_000);
+    if (gen !== generacion) return;
     // Si no se pudo leer ningún curso, se queda lo último guardado y la
     // bolita lo dice, en vez de «no hay mensajes».
     if (total && fallidos === total) {
@@ -257,14 +261,17 @@ async function actualizar() {
   }
   clearTimeout(reintento);
   publicar({ cargando: true });
+  const gen = generacion;
   try {
     const datos = await conLimite(agenda({ anterior: datosBase }), 120_000);
+    if (gen !== generacion) return;
     escribirJson(ARCHIVO_CACHE, datos);
     cuentaApp.comprobarAlActualizar();
     publicar({ datos, error: null, cargando: false, sesion: 'lista' });
     revisarAvisos();
     actualizarMensajes(datos.cursos);
   } catch (e) {
+    if (gen !== generacion) return;
     registrar('actualizar', e);
     if (e.estado === 401) {
       // Ni la renovación silenciosa pudo: hay que volver a entrar. No se
@@ -1792,6 +1799,8 @@ function datosConfiguracion() {
     },
     apps: { claude: claude.instalado(), claudeCode: !!agente.disponiblesYa()['claude-code'], codex: agente.hayAppCodex() },
     cuenta: cuentaApp.cuenta(),
+    cuentas: cuentaApp.cuenta() ? cuentaApp.listaCuentas() : [],
+    coloresCuenta: cuentaApp.COLORES_CUENTA,
     escuela: cuentaApp.escuela(),
     materias: estado.datos?.materias || [],
     ocultas: preferencias.ocultas(),
@@ -2005,6 +2014,7 @@ function menuBandeja() {
     { label: 'Actualizar ahora', click: actualizar },
     { label: 'Ajustes…', click: () => abrirApp('ajustes') },
     { type: 'separator' },
+    ...menuCuentas(),
     cuentaApp.cuenta()
       ? { label: `Cerrar sesión (${cuentaApp.cuenta()})`, click: salirDeCuenta }
       : { label: 'Iniciar sesión en Moodle', click: entrar },
@@ -2029,6 +2039,20 @@ function menuBandeja() {
   ]);
 }
 
+function menuCuentas() {
+  if (!cuentaApp.cuenta()) return [];
+  const lista = cuentaApp.listaCuentas();
+  const otra = { label: 'Añadir otra cuenta…', click: () => agregarCuenta() };
+  if (lista.length < 2) return [otra];
+  return [
+    {
+      label: 'Cambiar de cuenta',
+      submenu: lista.map((c) => ({ label: `${c.nombre} (${c.usuario})`, type: 'radio', checked: c.activa, click: () => cambiarDeCuenta(c.id) })),
+    },
+    otra,
+  ];
+}
+
 function mostrar() {
   if (!ventana) return;
   ventana.show();
@@ -2050,7 +2074,8 @@ async function entrar() {
   }
   bandeja?.setContextMenu(menuBandeja());
   if (usuario) {
-    publicar({ sesion: 'lista', datos: null, avisoAcceso: null });
+    // Pudo entrar con otra cuenta: lo de la memoria es de la anterior.
+    recargarCuenta({ avisoAcceso: null });
     await actualizar();
   } else {
     publicar({});
@@ -2058,18 +2083,110 @@ async function entrar() {
 }
 
 async function salirDeCuenta() {
-  await cuentaApp.cerrarSesion();
-  try {
-    fs.rmSync(ARCHIVO_CACHE, { force: true });
-    fs.rmSync(ARCHIVO_RESPUESTAS, { force: true });
-    fs.rmSync(ARCHIVO_CLAUDE, { force: true });
-    fs.rmSync(DIR_IMAGENES, { recursive: true, force: true });
-  } catch {}
-  vigia = null;
-  respuestas = {};
-  bandeja?.setContextMenu(menuBandeja());
-  publicar({ sesion: 'falta', datos: null, error: null, claude: null, respuestas: {} });
+  // Si hay otra cuenta guardada, se pasa a ella.
+  const siguiente = await cuentaApp.cerrarSesion();
+  if (!siguiente) {
+    try {
+      fs.rmSync(ARCHIVO_CACHE, { force: true });
+      fs.rmSync(ARCHIVO_RESPUESTAS, { force: true });
+      fs.rmSync(ARCHIVO_CLAUDE, { force: true });
+      fs.rmSync(DIR_IMAGENES, { recursive: true, force: true });
+    } catch {}
+  }
+  recargarCuenta();
+  if (siguiente) actualizar();
 }
+
+// ---- Varias cuentas (widget/cuentas.js) ----
+//
+// Cambiar de cuenta cambia los archivos de la carpeta de datos; aquí se
+// vuelve a leer lo que de ellos vive en memoria.
+function recargarCuenta(extra = {}) {
+  generacion++;
+  clearTimeout(reintento);
+  vigia = null;
+  vistos = new Set(leerJson(ARCHIVO_VISTOS) || []);
+  respuestas = leerJson(ARCHIVO_RESPUESTAS) || {};
+  entregas = leerJson(ARCHIVO_ENTREGAS) || {};
+  avisados = new Set(leerJson(ARCHIVO_AVISOS) || []);
+  marcas = { estado: mtime(ARCHIVO_CLAUDE), respuestas: mtime(ARCHIVO_RESPUESTAS) };
+  cerrarVistaPrevia();
+  bandeja?.setContextMenu(menuBandeja());
+  const hay = !!cuentaApp.cuenta();
+  publicar({
+    sesion: hay ? 'lista' : 'falta',
+    datos: hay ? leerJson(ARCHIVO_CACHE) : null,
+    mensajes: hay ? conVisto(leerJson(ARCHIVO_MENSAJES) || []) : [],
+    mensajesError: null,
+    error: null,
+    cargando: false,
+    claude: null,
+    respuestas: resumenRespuestas(),
+    descartadas: preferencias.descartadas(),
+    ...extra,
+  });
+}
+
+// Mientras la IA trabaja en una tarea, su respuesta es de la cuenta activa.
+const iaOcupada = () => ['preparando', 'esperando', 'trabajando', 'dibujando', 'leyendo'].includes(estado.claude?.fase);
+const MENSAJE_IA_OCUPADA = 'Espera a que la IA termine (o cancélala) antes de cambiar de cuenta.';
+
+function cambiarDeCuenta(id) {
+  if (iaOcupada()) return { ok: false, mensaje: MENSAJE_IA_OCUPADA };
+  if (cuentaApp.estaEntrando()) return { ok: false, mensaje: 'Termina de iniciar sesión primero.' };
+  try {
+    cuentaApp.cambiarCuenta(id);
+  } catch (e) {
+    registrar('cambiar de cuenta', e);
+    return { ok: false, mensaje: e.message };
+  }
+  recargarCuenta();
+  actualizar();
+  return { ok: true };
+}
+
+async function agregarCuenta() {
+  if (iaOcupada()) return { ok: false, mensaje: MENSAJE_IA_OCUPADA };
+  if (cuentaApp.estaEntrando() || !cuentaApp.cuenta()) {
+    entrar();
+    return { ok: true };
+  }
+  const anterior = cuentaApp.prepararCuentaNueva();
+  recargarCuenta();
+  let usuario = null;
+  try {
+    const promesa = cuentaApp.iniciarSesion();
+    publicar({});
+    usuario = await promesa;
+  } catch (e) {
+    registrar('añadir cuenta', e);
+  }
+  // Se cerró sin entrar: vuelve la cuenta de antes.
+  if (!usuario) cuentaApp.cancelarCuentaNueva(anterior);
+  recargarCuenta();
+  if (cuentaApp.cuenta()) actualizar();
+  return { ok: !!usuario };
+}
+
+ipcMain.handle('cuentas:cambiar', (_e, id) => ({ ...cambiarDeCuenta(String(id || '')), datos: datosConfiguracion() }));
+ipcMain.handle('cuentas:agregar', async () => ({ ...(await agregarCuenta()), datos: datosConfiguracion() }));
+ipcMain.handle('cuentas:quitar', async (_e, id) => {
+  const activa = cuentaApp.listaCuentas().find((c) => c.activa);
+  if (activa?.id === id) {
+    if (iaOcupada()) return { ok: false, mensaje: MENSAJE_IA_OCUPADA, datos: datosConfiguracion() };
+    await salirDeCuenta();
+  } else {
+    await cuentaApp.quitarCuenta(String(id || ''));
+    bandeja?.setContextMenu(menuBandeja());
+    avisar();
+  }
+  return { ok: true, datos: datosConfiguracion() };
+});
+ipcMain.handle('cuentas:color', (_e, id, color) => {
+  cuentaApp.colorCuenta(String(id || ''), color);
+  avisar();
+  return datosConfiguracion();
+});
 
 ipcMain.handle('agenda:obtener', () => estado);
 ipcMain.handle('agenda:actualizar', () => actualizar());

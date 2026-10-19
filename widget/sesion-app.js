@@ -8,6 +8,9 @@
 //   abren las páginas de Moodle (una tarea, la entrega). Se inicia sesión en
 //   él con los mismos datos en ese momento, y si después caduca se usa el
 //   inicio automático de la app móvil de Moodle (tool_mobile).
+//
+// Puede haber varias cuentas (widget/cuentas.js): cada una con su token y su
+// propio navegador; esto siempre trabaja con la activa.
 
 import { app, BrowserWindow, ipcMain, nativeTheme, session, shell } from 'electron';
 import fs from 'node:fs';
@@ -15,10 +18,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { descargar, nombreSeguro, olvidarUsuario } from '../src/cliente.js';
 import { DIR_DATOS, borrarSesion, comprobarMoodle, guardarSesion, leerSesion, normalizarUrl, pedirToken } from '../src/sesion.js';
+import * as cuentas from './cuentas.js';
 
 export const ESCUELA_POR_DEFECTO = 'https://plataforma.uii.edu.mx/moodle';
 const DIR = path.dirname(fileURLToPath(import.meta.url));
-const PARTICION = 'persist:moodle';
 const ARCHIVO_AJUSTES = path.join(DIR_DATOS, 'ajustes.json');
 const CARPETA_DESCARGAS = 'Insti Today';
 
@@ -81,10 +84,13 @@ export async function cambiarEscuela(url) {
 
 // ---- El navegador de la app ----
 
-let ses = null;
+// Cada cuenta tiene su partición; se prepara la primera vez que se usa.
+const preparadas = new Set();
 export function sesion() {
-  if (ses) return ses;
-  ses = session.fromPartition(PARTICION);
+  const particion = cuentas.particion();
+  const ses = session.fromPartition(particion);
+  if (preparadas.has(particion)) return ses;
+  preparadas.add(particion);
   ses.setUserAgent(ses.getUserAgent().replace(/\s(Electron|insti-today|Insti Today|bb-today)\/\S+/gi, ''));
   ses.on('will-download', (_e, item) => {
     const carpeta = path.join(app.getPath('downloads'), CARPETA_DESCARGAS);
@@ -119,7 +125,7 @@ function ventanaMoodle(opciones = {}) {
     autoHideMenuBar: true,
     backgroundColor: '#ffffff',
     ...opciones,
-    webPreferences: { partition: PARTICION, contextIsolation: true, sandbox: true },
+    webPreferences: { partition: cuentas.particion(), contextIsolation: true, sandbox: true },
   });
 }
 
@@ -242,8 +248,13 @@ ipcMain.handle('acceso:entrar', async (e, usuario, contrasena) => {
     });
     const info = await r.json();
     if (info?.exception) throw new Error(info.message || 'Moodle rechazó el token.');
+    // Primero el registro de cuentas: si era otra cuenta, guarda aparte la que
+    // estaba activa antes de escribir la sesión nueva encima.
+    const { borrarParticion } = cuentas.registrar({ usuario: info.username, nombre: info.fullname, url: base });
+    if (borrarParticion) session.fromPartition(borrarParticion).clearStorageData().catch(() => {});
     guardarSesion({ url: base, token, privatetoken, userid: info.userid, usuario: info.username, nombre: info.fullname, guardada: new Date().toISOString() });
     olvidarUsuario();
+    cerrarNavegadorAjeno();
     guardarAjustes({ cuenta: info.username });
     // El navegador de la app, en segundo plano.
     entrarEnNavegador(usuario, contrasena).catch(() => {});
@@ -321,11 +332,66 @@ export async function renovarSilencioso() {
   return false;
 }
 
+// Cierra la sesión de la cuenta activa y la quita de la lista. Si hay otra
+// cuenta, pasa a ella; devuelve la que quedó activa (o null).
 export async function cerrarSesion() {
   await sesion().clearStorageData();
   olvidarUsuario();
-  guardarAjustes({ cuenta: null });
-  borrarSesion();
+  const activa = cuentas.activa();
+  let siguiente = null;
+  if (activa) siguiente = cuentas.quitarCuenta(activa.id).siguiente;
+  if (!siguiente) {
+    guardarAjustes({ cuenta: null });
+    borrarSesion();
+  }
+  aplicarEscuela();
+  cerrarNavegadorAjeno();
+  return siguiente;
+}
+
+// ---- Varias cuentas ----
+
+export function listaCuentas() {
+  return cuentas.lista().map(({ id, usuario, nombre, url, color, activa }) => ({ id, usuario, nombre, host: new URL(url).host, color, activa }));
+}
+
+export const COLORES_CUENTA = cuentas.COLORES;
+
+export function cambiarCuenta(id) {
+  const c = cuentas.cambiar(id);
+  olvidarUsuario();
+  aplicarEscuela();
+  cerrarNavegadorAjeno();
+  return c;
+}
+
+// Para añadir otra cuenta: la activa queda guardada aparte. Devuelve su id
+// para volver a ella si no se termina de entrar.
+export function prepararCuentaNueva() {
+  const anterior = cuentas.activa()?.id || null;
+  cuentas.prepararNueva();
+  olvidarUsuario();
+  cerrarNavegadorAjeno();
+  return anterior;
+}
+
+export function cancelarCuentaNueva(anterior) {
+  cuentas.cancelarNueva(anterior);
+  olvidarUsuario();
+  aplicarEscuela();
+  cerrarNavegadorAjeno();
+}
+
+// Quita una cuenta que no es la activa (la activa sale con cerrarSesion).
+export async function quitarCuenta(id) {
+  if (cuentas.activa()?.id === id) return cerrarSesion();
+  const { particion } = cuentas.quitarCuenta(id);
+  if (particion) await session.fromPartition(particion).clearStorageData().catch(() => {});
+  return cuentas.activa();
+}
+
+export function colorCuenta(id, color) {
+  cuentas.cambiarColor(id, color);
 }
 
 export async function comprobarAlActualizar() {}
@@ -333,6 +399,12 @@ export async function comprobarAlActualizar() {}
 // ---- Abrir cosas de Moodle ----
 
 let navegador = null;
+let particionNavegador = null;
+
+// La ventana de Moodle abierta es de la cuenta anterior: se cierra.
+function cerrarNavegadorAjeno() {
+  if (navegador && !navegador.isDestroyed() && particionNavegador !== cuentas.particion()) navegador.destroy();
+}
 
 // Las páginas de Moodle se abren en el navegador de la app, donde ya hay
 // sesión. Si caducó, se intenta el inicio automático antes de abrir.
@@ -348,12 +420,14 @@ export async function abrirEnMoodle(url) {
     shell.openExternal(destino.href);
     return null;
   }
+  cerrarNavegadorAjeno();
   if (!navegador || navegador.isDestroyed()) {
     navegador = ventanaMoodle({ title: 'Moodle · Insti Today' });
+    particionNavegador = cuentas.particion();
     navegador.webContents.setWindowOpenHandler(({ url: nueva }) => {
       try {
         if (new URL(nueva).origin === base.origin) {
-          return { action: 'allow', overrideBrowserWindowOptions: { icon, autoHideMenuBar: true, webPreferences: { partition: PARTICION } } };
+          return { action: 'allow', overrideBrowserWindowOptions: { icon: icono, autoHideMenuBar: true, webPreferences: { partition: particionNavegador } } };
         }
       } catch {}
       shell.openExternal(nueva);

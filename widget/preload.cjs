@@ -37,6 +37,10 @@ contextBridge.exposeInMainWorld('agenda', {
     esquina: () => ipcRenderer.invoke('config:esquina'),
     salirCuenta: () => ipcRenderer.invoke('config:salir-cuenta'),
     entrar: () => ipcRenderer.invoke('config:entrar'),
+    cambiarCuenta: (id) => ipcRenderer.invoke('cuentas:cambiar', id),
+    agregarCuenta: () => ipcRenderer.invoke('cuentas:agregar'),
+    quitarCuenta: (id) => ipcRenderer.invoke('cuentas:quitar', id),
+    colorCuenta: (id, color) => ipcRenderer.invoke('cuentas:color', id, color),
     alCambiar: (fn) => ipcRenderer.on('config:estado', (_e, d) => fn(d)),
   },
   actualizacion: {

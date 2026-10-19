@@ -270,6 +270,40 @@
   .menu-rutas .lista-rutas { position: absolute; top: calc(100% + 6px); left: 0; min-width: 220px; display: flex; flex-direction: column; padding: 5px; border-radius: 12px; background: var(--elevado, var(--fondo-a)); border: 1px solid var(--borde); box-shadow: var(--sombra); z-index: 5; }
   .menu-rutas .lista-rutas button { border: 0; background: none; color: var(--texto); text-align: left; padding: 6px 10px; border-radius: 7px; cursor: pointer; }
   .menu-rutas .lista-rutas button:hover { background: var(--acento); color: #fff; }
+
+  /* Tu cuenta junto al buscador: un toque abre la lista; mantener pulsado y
+     deslizar arriba o abajo cambia de cuenta al soltar. */
+  .fila-buscar { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; }
+  .fila-buscar input[type=search] { flex: 1 1 auto; min-width: 0; }
+  .yo { flex: none; width: 32px; height: 32px; border: 0; padding: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: #fff; font: 600 12.5px/1 var(--fuente); letter-spacing: 0; background: var(--color-cuenta, #8e8e93); box-shadow: 0 0 0 2px var(--fondo-a), 0 0 0 3.5px color-mix(in srgb, var(--color-cuenta, #8e8e93) 55%, transparent); touch-action: none; user-select: none; transition: transform .18s var(--curva), background .18s var(--curva), box-shadow .18s var(--curva); }
+  .yo:hover { box-shadow: 0 0 0 2px var(--fondo-a), 0 0 0 3.5px var(--color-cuenta, #8e8e93); }
+  .yo:active, .yo.pulsado { transform: scale(.92); }
+  .yo.salto { animation: salto .22s var(--curva); }
+  @keyframes salto { 40% { transform: scale(1.12); } }
+  .yo svg { width: 16px; height: 16px; }
+  .deslizando, .deslizando * { cursor: grabbing !important; user-select: none !important; }
+  .selector-cuentas { position: absolute; top: calc(100% + 8px); right: 0; width: 260px; z-index: 20; display: flex; flex-direction: column; padding: 6px; border-radius: 14px; background: var(--elevado, var(--fondo-a)); border: 1px solid var(--borde); box-shadow: var(--sombra); transform-origin: top right; animation: aparecer .14s var(--curva); }
+  @keyframes aparecer { from { opacity: 0; transform: scale(.96) translateY(-4px); } }
+  .selector-cuentas .cuenta-op { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; background: none; color: var(--texto); text-align: left; padding: 7px 8px; border-radius: 9px; cursor: pointer; transition: background .1s var(--curva); }
+  .selector-cuentas .cuenta-op:hover, .selector-cuentas .cuenta-op.sel { background: var(--hover); }
+  .deslizar .cuenta-op.sel { background: color-mix(in srgb, var(--color-op) 20%, transparent); }
+  .cuenta-op .bolita { width: 28px; height: 28px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #fff; font-size: 11.5px; font-weight: 600; background: var(--color-op); transition: transform .15s var(--curva); }
+  .deslizar .cuenta-op.sel .bolita { transform: scale(1.12); }
+  .cuenta-op .bolita svg { width: 14px; height: 14px; }
+  .cuenta-op .quien { min-width: 0; flex: 1; }
+  .cuenta-op .quien b { display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cuenta-op .quien span { display: block; color: var(--tenue); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cuenta-op .marca-activa { color: var(--acento); font-size: 13px; }
+  .selector-cuentas hr { border: 0; height: 1px; background: var(--linea); margin: 5px 6px; }
+  .selector-cuentas .pista { color: var(--tenue); font-size: 11px; padding: 4px 8px 2px; }
+  .selector-cuentas .error-cuenta { color: var(--mal); font-size: 12px; padding: 4px 8px; }
+  .lista-col .filas { transition: opacity .18s var(--curva); }
+  .lista-col.cambiando .filas { opacity: .35; }
+  .colores-cuenta { display: flex; gap: 6px; margin-top: 7px; }
+  .colores-cuenta button { width: 16px; height: 16px; border: 0; padding: 0; border-radius: 50%; cursor: pointer; background: var(--c); transition: transform .12s var(--curva); }
+  .colores-cuenta button:hover { transform: scale(1.15); }
+  .colores-cuenta button.activo { box-shadow: 0 0 0 2px var(--fondo-a), 0 0 0 3.5px var(--c); }
+  .acciones-cuenta { display: flex; gap: 6px; flex: none; }
 </style>
 </head>
 <body>
@@ -293,7 +327,10 @@
     <div class="columnas">
       <div class="lista-col">
         <div class="filtros">
-          <input type="search" id="buscar" placeholder="Buscar tarea o materia…">
+          <div class="fila-buscar">
+            <input type="search" id="buscar" placeholder="Buscar tarea o materia…">
+            <button class="yo" id="yo" aria-haspopup="menu"></button>
+          </div>
           <select id="filtro-materia"><option value="">Todas las materias</option></select>
           <div class="chips" id="chips-cuando">
             <button class="chip activo" data-cuando="activas">Por entregar</button>
@@ -468,9 +505,9 @@
 
   <!-- CUENTA -->
   <section class="seccion" id="s-cuenta"><div class="desplazable"><div class="pagina">
-    <h1>Cuenta</h1><div class="sub">Tu sesión de Moodle, actualizaciones y privacidad.</div>
+    <h1>Cuenta</h1><div class="sub">Tus cuentas de Moodle, actualizaciones y privacidad.</div>
     <h2 class="titulo-grupo">Moodle</h2>
-    <div class="grupo"><div class="opcion" id="cuenta"></div></div>
+    <div class="grupo" id="cuenta"></div>
     <h2 class="titulo-grupo">Actualizaciones</h2>
     <div class="grupo">
       <div class="opcion">
@@ -1315,10 +1352,16 @@ function pintarIA() {
 
 function pintarCuenta() {
   const host = new URL(datos.escuela).hostname;
+  const cuentas = datos.cuentas || [];
+  const colores = datos.coloresCuenta || [];
   $('cuenta').innerHTML = datos.cuenta
-    ? `<div class="cuenta"><span class="avatar">${esc(datos.cuenta[0].toUpperCase())}</span><div class="texto"><b>${esc(datos.cuenta)}</b><span>${esc(host)}</span></div></div><button class="boton peligro" id="salir">Cerrar sesión</button>`
-    : `<div class="texto"><b>No has iniciado sesión</b><span>${esc(host)}</span></div><button class="boton primario" id="entrar">Iniciar sesión</button>`;
-  if ($('salir')) $('salir').onclick = async () => { datos = await api.salirCuenta(); pintar(); };
+    ? cuentas.map((c) => `<div class="opcion">
+        <div class="cuenta"><span class="avatar" style="background:${esc(c.color)}">${esc(iniciales(c))}</span>
+          <div class="texto"><b>${esc(c.nombre)}</b><span>${esc(c.usuario)} · ${esc(c.host)}${c.activa ? ' · <b style="display:inline;color:var(--acento)">En uso</b>' : ''}</span>
+            <div class="colores-cuenta">${colores.map((k) => `<button style="--c:${k}" class="${k === c.color ? 'activo' : ''}" data-color-cuenta="${esc(c.id)}" data-color="${k}" title="Usar este color"></button>`).join('')}</div></div></div>
+        <div class="acciones-cuenta">${c.activa ? '' : `<button class="boton" data-usar-cuenta="${esc(c.id)}">Usar</button>`}<button class="boton peligro" data-quitar-cuenta="${esc(c.id)}">${c.activa ? 'Cerrar sesión' : 'Quitar'}</button></div>
+      </div>`).join('') + `<div class="opcion"><div class="texto"><b>Añadir otra cuenta</b><span>Para cambiar rápido, mantén pulsado tu icono junto al buscador y desliza hacia arriba o hacia abajo.</span></div><button class="boton" data-agregar-cuenta>Añadir cuenta</button></div>`
+    : `<div class="opcion"><div class="texto"><b>No has iniciado sesión</b><span>${esc(host)}</span></div><button class="boton primario" id="entrar">Iniciar sesión</button></div>`;
   if ($('entrar')) $('entrar').onclick = () => api.entrar();
   const a = datos.actualizacion || {};
   $('version-larga').textContent = `Insti Today ${datos.version}`;
@@ -1375,6 +1418,7 @@ function pintar() {
   // El mismo estilo que el widget.
   document.documentElement.dataset.tema = !datos.prefs.tema || datos.prefs.tema === 'sistema' ? temaSistema() : datos.prefs.tema;
   plegarBarra(!!datos.prefs.barraPlegada);
+  pintarYo();
   pintarBarra();
   pintarPendientes();
   pintarRespuestas();
@@ -1424,6 +1468,198 @@ $('quitadas').addEventListener('click', async (e) => {
 $('ver-guia').addEventListener('click', abrirGuia);
 $('ver-privacidad').addEventListener('click', () => window.agenda.web('/privacidad'));
 $('actualizar').addEventListener('click', () => window.agenda.actualizar());
+
+// ---------- Varias cuentas ----------
+// «AU» de «Alvaro Uriel Perez»; si no hay nombre, la primera letra del usuario.
+function iniciales(c) {
+  const palabras = String(c?.nombre || '').trim().split(/\s+/).filter(Boolean);
+  const letras = palabras.length >= 2 ? palabras[0][0] + palabras[1][0] : (palabras[0] || c?.usuario || '?')[0];
+  return letras.toUpperCase();
+}
+const ICONO_PERSONA = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="5.5" r="2.8"/><path d="M2.8 14c.8-2.6 2.8-4 5.2-4s4.4 1.4 5.2 4"/></svg>';
+const ICONO_MAS = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>';
+const cuentasDe = () => (datos?.cuenta ? datos.cuentas || [] : []);
+let cuentaPintada;
+let selector = null; // { modo: 'menu' | 'deslizar', indice, error }
+
+// El icono muestra la cuenta activa, o la que se está eligiendo al deslizar.
+function pintarYo() {
+  const lista = cuentasDe();
+  const activa = lista.find((c) => c.activa);
+  const mostrada = selector?.modo === 'deslizar' ? lista[selector.indice] : activa;
+  const yo = $('yo');
+  yo.style.setProperty('--color-cuenta', mostrada?.color || '#8e8e93');
+  yo.innerHTML = mostrada ? esc(iniciales(mostrada)) : ICONO_PERSONA;
+  yo.title = activa
+    ? `${activa.nombre} (${activa.usuario})${lista.length > 1 ? ' · mantén pulsado y desliza para cambiar de cuenta' : ''}`
+    : 'Iniciar sesión';
+  // Al cambiar de cuenta, lo elegido era de la otra.
+  const id = activa?.id || null;
+  if (cuentaPintada !== undefined && cuentaPintada !== id) {
+    tareaSel = null;
+    respuestaSel = null;
+    detalleActual = null;
+    $('detalle-pendiente').innerHTML = '<div class="vacio">Elige una tarea para ver sus instrucciones, sus archivos y resolverla.</div>';
+    $('detalle-respuesta').innerHTML = '<div class="vacio">Elige una respuesta.</div>';
+    $('filtro-materia').value = '';
+  }
+  cuentaPintada = id;
+}
+
+function pintarSelector() {
+  $('selector-cuentas')?.remove();
+  if (!selector) return;
+  const lista = cuentasDe();
+  const menu = selector.modo === 'menu';
+  const caja = document.createElement('div');
+  caja.id = 'selector-cuentas';
+  caja.className = `selector-cuentas ${menu ? '' : 'deslizar'}`;
+  caja.setAttribute('role', 'menu');
+  caja.innerHTML = lista.map((c, i) => `<button class="cuenta-op ${i === selector.indice ? 'sel' : ''}" role="menuitemradio" aria-checked="${c.activa}" data-cuenta-op="${esc(c.id)}" style="--color-op:${esc(c.color)}">
+      <span class="bolita">${esc(iniciales(c))}</span><span class="quien"><b>${esc(c.nombre)}</b><span>${esc(c.usuario)} · ${esc(c.host)}</span></span>${c.activa ? '<span class="marca-activa">✓</span>' : ''}</button>`).join('')
+    + (menu ? `${selector.error ? `<div class="error-cuenta">${esc(selector.error)}</div>` : ''}<hr>
+      <button class="cuenta-op" role="menuitem" data-agregar-cuenta style="--color-op:var(--pieza-hover)"><span class="bolita" style="color:var(--texto)">${ICONO_MAS}</span><span class="quien"><b>Añadir otra cuenta</b></span></button>
+      <button class="cuenta-op" role="menuitem" data-ir-cuentas style="--color-op:var(--pieza-hover)"><span class="bolita" style="color:var(--texto)">${ICONO_PERSONA}</span><span class="quien"><b>Administrar cuentas</b></span></button>
+      ${lista.length > 1 ? '<div class="pista">Mantén pulsado el icono y desliza para cambiar sin abrir esto.</div>' : ''}` : '');
+  $('yo').after(caja);
+}
+
+function abrirSelector(modo, indice) {
+  selector = { modo, indice };
+  pintarYo();
+  pintarSelector();
+}
+function cerrarSelector() {
+  if (!selector) return;
+  selector = null;
+  pintarYo();
+  pintarSelector();
+}
+
+async function usarCuenta(id) {
+  const lista = cuentasDe();
+  if (!id || lista.find((c) => c.id === id)?.activa) return cerrarSelector();
+  $('s-pendientes').querySelector('.lista-col').classList.add('cambiando');
+  const r = await api.cambiarCuenta(id);
+  setTimeout(() => $('s-pendientes').querySelector('.lista-col').classList.remove('cambiando'), 220);
+  datos = r.datos;
+  if (!r.ok) {
+    selector = { modo: 'menu', indice: lista.findIndex((c) => c.activa), error: r.mensaje };
+    pintar();
+    pintarSelector();
+    return;
+  }
+  selector = null;
+  pintar();
+  $('yo').classList.remove('salto');
+  void $('yo').offsetWidth;
+  $('yo').classList.add('salto');
+}
+
+async function agregarCuenta() {
+  cerrarSelector();
+  const r = await api.agregarCuenta();
+  datos = r.datos;
+  pintar();
+  if (!r.ok && r.mensaje) {
+    selector = { modo: 'menu', indice: -1, error: r.mensaje };
+    pintarSelector();
+  }
+}
+
+// Mantener pulsado (o mover) y deslizar: cada PASO px arriba o abajo es la
+// cuenta anterior o la siguiente, en círculo. Al soltar se cambia.
+const PASO = 30;
+const ESPERA_MANTENER = 260;
+let gesto = null;
+const yo = $('yo');
+
+function empezarDeslizar() {
+  const lista = cuentasDe();
+  if (!gesto || gesto.deslizando || lista.length < 2) return;
+  gesto.deslizando = true;
+  gesto.base = Math.max(0, lista.findIndex((c) => c.activa));
+  document.body.classList.add('deslizando');
+  yo.classList.add('pulsado');
+  abrirSelector('deslizar', gesto.base);
+}
+
+function terminarGesto() {
+  if (!gesto) return;
+  clearTimeout(gesto.reloj);
+  try { yo.releasePointerCapture(gesto.puntero); } catch {}
+  document.body.classList.remove('deslizando');
+  yo.classList.remove('pulsado');
+  gesto = null;
+}
+
+yo.addEventListener('pointerdown', (e) => {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  gesto = { y: e.clientY, puntero: e.pointerId, deslizando: false, estabaAbierto: selector?.modo === 'menu' };
+  yo.setPointerCapture(e.pointerId);
+  gesto.reloj = setTimeout(empezarDeslizar, ESPERA_MANTENER);
+});
+yo.addEventListener('pointermove', (e) => {
+  if (!gesto || e.pointerId !== gesto.puntero) return;
+  const dy = e.clientY - gesto.y;
+  if (!gesto.deslizando && Math.abs(dy) > 6) empezarDeslizar();
+  if (!gesto.deslizando) return;
+  const n = cuentasDe().length;
+  const indice = (((gesto.base + Math.round(dy / PASO)) % n) + n) % n;
+  if (indice === selector.indice) return;
+  selector.indice = indice;
+  pintarYo();
+  pintarSelector();
+  yo.classList.remove('salto');
+  void yo.offsetWidth;
+  yo.classList.add('salto');
+});
+yo.addEventListener('pointerup', (e) => {
+  if (!gesto || e.pointerId !== gesto.puntero) return;
+  const { deslizando, estabaAbierto } = gesto;
+  terminarGesto();
+  if (deslizando) return usarCuenta(cuentasDe()[selector?.indice]?.id);
+  // Un toque: abre o cierra la lista. Sin sesión, inicia sesión.
+  if (!datos?.cuenta) return api.entrar();
+  if (estabaAbierto) return cerrarSelector();
+  abrirSelector('menu', cuentasDe().findIndex((c) => c.activa));
+});
+yo.addEventListener('pointercancel', () => {
+  terminarGesto();
+  if (selector?.modo === 'deslizar') cerrarSelector();
+});
+yo.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  e.preventDefault();
+  if (!datos?.cuenta) return api.entrar();
+  selector ? cerrarSelector() : abrirSelector('menu', cuentasDe().findIndex((c) => c.activa));
+});
+document.addEventListener('pointerdown', (e) => {
+  if (selector?.modo === 'menu' && !e.target.closest('#selector-cuentas, #yo')) cerrarSelector();
+});
+document.addEventListener('keydown', (e) => e.key === 'Escape' && cerrarSelector());
+document.addEventListener('click', async (e) => {
+  const op = e.target.closest('[data-cuenta-op]');
+  if (op && selector?.modo === 'menu') return usarCuenta(op.dataset.cuentaOp);
+  if (e.target.closest('[data-agregar-cuenta]')) return agregarCuenta();
+  if (e.target.closest('[data-ir-cuentas]')) { cerrarSelector(); return ir('cuenta'); }
+  const usar = e.target.closest('[data-usar-cuenta]');
+  if (usar) return usarCuenta(usar.dataset.usarCuenta);
+  const quitar = e.target.closest('[data-quitar-cuenta]');
+  if (quitar) {
+    const r = await api.quitarCuenta(quitar.dataset.quitarCuenta);
+    datos = r.datos;
+    pintar();
+    if (!r.ok && r.mensaje) alert(r.mensaje);
+    return;
+  }
+  const color = e.target.closest('[data-color-cuenta]');
+  if (color) {
+    datos = await api.colorCuenta(color.dataset.colorCuenta, color.dataset.color);
+    pintar();
+  }
+});
 
 // El reloj de las fechas («faltan 2 h») sin redibujarlo todo.
 setInterval(() => datos && (pintarBarra(), pintarPendientes()), 60_000);
