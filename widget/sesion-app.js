@@ -202,7 +202,8 @@ async function urlAutologin(destino) {
     const u = new URL(d.autologinurl);
     u.searchParams.set('userid', s.userid);
     u.searchParams.set('key', d.key);
-    u.searchParams.set('urlrecipient', destino);
+    // autologin.php lee «urltogo»; sin él lleva a la página principal.
+    u.searchParams.set('urltogo', destino);
     return u.href;
   } catch {
     return null;

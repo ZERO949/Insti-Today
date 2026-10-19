@@ -1,5 +1,11 @@
 # Cambios
 
+## 0.1.7 · 2026-10-18
+
+- «Abrir en Moodle» lleva directo a la tarea desde el primer clic. Antes, si el
+  navegador de la app no tenía sesión, abría la página principal de Moodle y había
+  que cerrarla y volver a pulsar. También en la app de Android.
+
 ## 0.1.6 · 2026-10-18
 
 - La barra lateral de la ventana se pliega con un clic y queda sólo con los iconos.

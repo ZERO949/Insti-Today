@@ -1,6 +1,6 @@
 {
   "name": "insti-today",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "private": true,
   "description": "Tus pendientes de Moodle (Plataforma UII) en el escritorio de Windows, Mac y Linux. Basado en BB Today.",
   "type": "module",

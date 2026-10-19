@@ -311,7 +311,7 @@ export function iniciar(puerto = 8765) {
     }
     if (ruta === `${RAIZ}/admin/tool/mobile/autologin.php`) {
       if (u.searchParams.get('key') !== 'llave-de-un-uso') return html('Llave inválida', 403);
-      return ir(u.searchParams.get('urlrecipient') || `${RAIZ}/my/`, { 'Set-Cookie': `${COOKIE}; Path=${RAIZ}; HttpOnly` });
+      return ir(u.searchParams.get('urltogo') || `${RAIZ}/my/`, { 'Set-Cookie': `${COOKIE}; Path=${RAIZ}; HttpOnly` });
     }
     if (ruta === `${RAIZ}/_subido`) {
       llamadas.push({ nombre: '_subido', args: JSON.parse(cuerpo || '[]') });

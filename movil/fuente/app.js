@@ -154,7 +154,7 @@ async function abrirEnMoodle(destino) {
         const u = new URL(d.autologinurl);
         u.searchParams.set('userid', s.userid);
         u.searchParams.set('key', d.key);
-        u.searchParams.set('urlrecipient', destino);
+        u.searchParams.set('urltogo', destino);
         url = u.href;
         ultimaLlave = Date.now();
       }
