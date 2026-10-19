@@ -1,5 +1,12 @@
 # Cambios
 
+## 0.1.9 · 2026-10-19
+
+- Cambiar de cuenta es más sencillo: mantén pulsado tu icono y desliza hacia abajo
+  (siguiente cuenta) o hacia arriba (anterior); al soltar cambia una sola cuenta, por
+  lejos que deslices. Mantener pulsado ya no abre la lista y, si regresas el dedo al
+  punto de partida, no cambia. Un toque sigue abriendo la lista de cuentas.
+
 ## 0.1.8 · 2026-10-18
 
 - Varias cuentas de Moodle en la misma computadora, cada una con su color. Junto al
