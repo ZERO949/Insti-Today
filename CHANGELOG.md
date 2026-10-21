@@ -1,5 +1,11 @@
 # Cambios
 
+## 0.2.3 · 2026-10-21
+
+- Desde la 0.2.1 la app no ponía tus archivos en Moodle, ni al abrir la entrega ni al
+  tocarlos en la ventanita: creía que Moodle seguía subiendo algo y esperaba. Ya los
+  pone otra vez.
+
 ## 0.2.2 · 2026-10-21
 
 - En algunas tareas la app no ponía tus archivos en Moodle (ni al abrir la entrega ni

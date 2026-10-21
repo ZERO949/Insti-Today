@@ -329,7 +329,7 @@ export function iniciar(puerto = 8765) {
         // Como en Moodle real, la página trae otros selectores (uno oculto y el de otro campo).
         return html(pagina(x.name, `<h2>${x.name}</h2><form method="post"><div class="filemanager" style="display:none"></div>
           <div id="fitem_id_files_filemanager"><label>Archivos enviados</label>
-          <div class="filemanager"><div class="filemanager-container"><div class="fp-content"></div><div class="dndupload-message">Puede arrastrar y soltar archivos aquí para añadirlos</div></div></div></div>
+          <div class="filemanager"><div class="filemanager-container"><div class="fp-content"></div><div class="dndupload-message">Puede arrastrar y soltar archivos aquí para añadirlos</div><div class="dndupload-uploadinprogress" style="display:none"></div></div></div></div>
           <div id="fitem_id_otro"><label>Otro campo</label><div class="filemanager"><div class="fp-content"></div></div></div>
           <p><button type="button">Guardar cambios</button></p></form>
           <script>
@@ -338,7 +338,10 @@ export function iniciar(puerto = 8765) {
             c.addEventListener('drop', (e) => {
               e.preventDefault();
               const nombres = [...e.dataTransfer.files].map((f) => f.name);
+              const girando = document.querySelector('.dndupload-uploadinprogress');
+              girando.style.display = 'block';
               setTimeout(() => {
+                girando.style.display = 'none';
                 for (const n of nombres) { const d = document.createElement('div'); d.className = 'fp-file'; d.innerHTML = '<span class="fp-filename"></span>'; d.firstChild.textContent = n; document.querySelector('.fp-content').append(d); }
                 fetch('${RAIZ}/_subido', { method: 'POST', body: JSON.stringify(nombres) });
               }, 700);

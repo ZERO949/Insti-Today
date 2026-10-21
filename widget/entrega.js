@@ -44,7 +44,9 @@ const LEER_ARCHIVOS = `(() => {
   if (fm.length !== 1) return { campos: fm.length, nombres: [] };
   const nombres = [...fm[0].querySelectorAll('.fp-filename, .fp-filename-field .fp-filename')]
     .map((e) => e.textContent.trim()).filter(Boolean);
-  return { campos: 1, nombres: [...new Set(nombres)], cargando: !!fm[0].querySelector('.dndupload-uploadinprogress, .dndupload-progressbars progress') };
+  // Moodle deja el indicador de subida siempre en la página, oculto: cuenta sólo si se ve.
+  const cargando = [...fm[0].querySelectorAll('.dndupload-uploadinprogress, .dndupload-progressbars progress')].some((e) => e.getClientRects().length);
+  return { campos: 1, nombres: [...new Set(nombres)], cargando };
 })()`;
 
 const RECTANGULO = `(() => {
