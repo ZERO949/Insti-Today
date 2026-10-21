@@ -8,6 +8,7 @@
 
 import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, nativeImage, nativeTheme, Notification, powerMonitor, screen, shell, Tray } from 'electron';
 import { spawn } from 'node:child_process';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -1198,7 +1199,7 @@ function abrirVentanaArchivos(rutas, destino = 'ChatGPT') {
   destinoArrastre = destino;
   const area = screen.getPrimaryDisplay().workArea;
   const ancho = 300;
-  const alto = Math.min(64 + (rutas.length + (rutas.length > 1 ? 1 : 0)) * 48, 420);
+  const alto = Math.min((destino === 'Moodle' ? 100 : 64) + (rutas.length + (rutas.length > 1 ? 1 : 0)) * 48, 420);
   ventanaArchivos = new BrowserWindow({
     width: ancho,
     height: alto,
@@ -1233,6 +1234,13 @@ ipcMain.on('arrastre:iniciar', (e, i) => {
   e.sender.startDrag({ file: files[0], files, icon: nativeImage.createFromPath(ICONO_PNG).resize({ width: 40, height: 40 }) });
 });
 ipcMain.handle('arrastre:cerrar', () => cerrarVentanaArchivos());
+// Crece hacia arriba: la esquina de abajo se queda donde estaba.
+ipcMain.on('arrastre:ajustar', (_e, alto) => {
+  if (!ventanaArchivos || ventanaArchivos.isDestroyed() || !Number.isFinite(alto)) return;
+  const b = ventanaArchivos.getBounds();
+  const nuevo = Math.min(Math.max(Math.ceil(alto), 60), 420);
+  ventanaArchivos.setBounds({ ...b, y: b.y + b.height - nuevo, height: nuevo });
+});
 
 // ---- Entregables y entrega ----
 //
@@ -1250,6 +1258,10 @@ const ARCHIVO_ENTREGAS = path.join(DIR_DATOS, 'entregas.json');
 let entregas = leerJson(ARCHIVO_ENTREGAS) || {};
 const guardarEntregas = () => escribirJson(ARCHIVO_ENTREGAS, entregas);
 const ES_IMAGEN = /\.(png|jpe?g|webp|gif)$/i;
+// Huella de cada archivo entregado → con qué cuenta. No está en los ARCHIVOS de
+// cuentas.js, así que lo comparten todas: avisa antes de entregar lo mismo con otra.
+const ARCHIVO_ENTREGADOS = path.join(DIR_DATOS, 'entregados.json');
+const huella = (ruta) => crypto.createHash('sha256').update(fs.readFileSync(ruta)).digest('hex');
 
 function carpetaDeTarea(tareaId) {
   const e = buscarEnAgenda(tareaId);
@@ -1379,18 +1391,45 @@ function estadoEntrega(tareaId, fase, texto) {
   publicar({ entregaCambio: Date.now() });
 }
 
-async function entregar(tareaId) {
+async function entregar(tareaId, origen) {
   const e = buscarEnAgenda(tareaId);
   if (!e) return { error: 'No encontré esa tarea.' };
   if (!/^https?:/.test(e.tarea.enlace || '') || e.curso.id === 'bbtoday-prueba') return { error: 'Esta tarea no tiene página de entrega en Moodle.' };
   // En Moodle sólo las tareas (assign) con entrega en línea reciben archivos.
   const paginaEntrega = e.tarea.enlaceEntrega || e.tarea.enlace;
+  const adjuntados = listaEntregables(tareaId).filter((x) => x.adjuntado);
+
+  // ¿Alguno de estos archivos ya se entregó con otra cuenta? Se pregunta antes de abrir Moodle.
+  const activa = cuentaApp.listaCuentas().find((c) => c.activa);
+  const entregados = leerJson(ARCHIVO_ENTREGADOS) || {};
+  let huellas = [];
+  try {
+    huellas = adjuntados.map((x) => huella(x.ruta));
+  } catch (error) {
+    registrar('huella de entrega', error);
+  }
+  const repetidos = activa ? huellas.map((h, i) => ({ ...entregados[h], archivo: adjuntados[i].nombre })).filter((x) => x.cuenta && x.cuenta !== activa.id) : [];
+  if (repetidos.length) {
+    const opciones = {
+      type: 'warning', title: '¿Seguro?', noLink: true,
+      message: repetidos.length === 1 ? 'Este archivo ya lo entregaste con otra cuenta' : 'Estos archivos ya los entregaste con otra cuenta',
+      detail: `${repetidos.map((x) => `«${x.archivo}» → ${x.usuario}, en «${x.tarea}» (${new Date(x.cuando).toLocaleDateString('es-MX')})`).join('\n')}\n\nAhora vas a entregar con ${activa.nombre} (${activa.usuario}).`,
+      buttons: ['Cancelar', 'Entregar de todos modos'], defaultId: 0, cancelId: 0,
+    };
+    const respuesta = await dialog.showMessageBox(...(origen && origen !== ventana ? [origen, opciones] : [opciones]));
+    if (respuesta.response !== 1) return { error: 'Entrega cancelada: no se abrió Moodle.' };
+  }
+  if (activa && huellas.length) {
+    const cuando = new Date().toISOString();
+    for (const h of huellas) entregados[h] = { cuenta: activa.id, usuario: `${activa.nombre} (${activa.usuario})`, tarea: e.tarea.titulo, cuando };
+    escribirJson(ARCHIVO_ENTREGADOS, entregados);
+  }
+
   colocando.get(tareaId)?.();
   colocando.delete(tareaId);
 
   // Lo que se entrega sale de copias preparadas: lo generado, sin metadatos
   // (Ajustes, encendido por defecto); lo tuyo, tal cual. Los originales no se tocan.
-  const adjuntados = listaEntregables(tareaId).filter((x) => x.adjuntado);
   let archivos;
   try {
     archivos = adjuntados.map((x) => (x.origen !== 'Tuyo' && estado.prefs.limpiarMetadatos !== false ? limpiar(x.ruta) : x.ruta));
@@ -1505,7 +1544,7 @@ ipcMain.handle('entrega:texto', (_e, tareaId, texto) => {
 });
 ipcMain.handle('entrega:abrirArchivo', (_e, tareaId, ruta) => esEntregable(tareaId, ruta) && shell.openPath(ruta));
 ipcMain.handle('entrega:mostrarArchivo', (_e, tareaId, ruta) => esEntregable(tareaId, ruta) && shell.showItemInFolder(ruta));
-ipcMain.handle('entrega:entregar', (_e, tareaId) => entregar(tareaId));
+ipcMain.handle('entrega:entregar', (e, tareaId) => entregar(tareaId, BrowserWindow.fromWebContents(e.sender)));
 ipcMain.handle('entrega:cancelar', (_e, tareaId) => {
   colocando.get(tareaId)?.();
   colocando.delete(tareaId);
@@ -2551,14 +2590,14 @@ app.whenReady().then(() => {
         const r = respuestas[t.id] || {};
         fs.writeFileSync(process.env.BB_PRUEBA_SALIDA, JSON.stringify({ arranque: r0, via: estado.claude?.ia, bloqueos, sinImagen: !!respuestas[t.id]?.sinImagen, fase: estado.claude?.fase, detalle: estado.claude?.detalle, segundos: Math.round((Date.now() - inicio) / 1000), ia: r.ia, tipo: r.tipo, texto: (r.texto || '').slice(0, 400), imagenes: (r.imagenes || []).length, archivos: (r.archivos || []).map((a) => a.nombre), carpeta: r.carpeta }, null, 2));
       }
-      // BB_CAPTURA_ARRASTRE=1: la ventanita de archivos para ChatGPT, con tres de ejemplo.
+      // BB_CAPTURA_ARRASTRE=1: la ventanita de archivos para ChatGPT, con tres de ejemplo (=Moodle: la de la entrega).
       if (process.env.BB_CAPTURA_ARRASTRE) {
         const tmp = fs.mkdtempSync(path.join(app.getPath('temp'), 'bb-arrastre-'));
         const rutas = ['Regla de la Cadena.pdf', 'Ejercicios 2.4 - Regla de la Cadena.pdf', 'Plantilla.docx'].map((n) => {
           fs.writeFileSync(path.join(tmp, n), 'x');
           return path.join(tmp, n);
         });
-        abrirVentanaArchivos(rutas);
+        abrirVentanaArchivos(rutas, process.env.BB_CAPTURA_ARRASTRE === 'Moodle' ? 'Moodle' : undefined);
         await new Promise((ok) => setTimeout(ok, 1500));
         fs.writeFileSync(process.env.BB_CAPTURA.replace(/\.png$/, '-arrastre.png'), (await ventanaArchivos.webContents.capturePage()).toPNG());
       }

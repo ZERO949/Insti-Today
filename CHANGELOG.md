@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.2.0 · 2026-10-21
+
+- Al entregar, si un archivo ya lo entregaste con otra de tus cuentas, la app pregunta
+  «¿Seguro?» antes de abrir Moodle y te dice con qué cuenta, en qué tarea y cuándo. La
+  comparación es por contenido (aunque le cambies el nombre) y se queda en tu
+  computadora: Moodle no se entera.
+- La ventanita de archivos para la entrega en Moodle toma el alto que necesita; ya no
+  se corta la lista.
+
 ## 0.1.10 · 2026-10-20
 
 - Cuenta queda más simple: sólo tus cuentas de Moodle y las actualizaciones. Se quitaron

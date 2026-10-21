@@ -58,6 +58,8 @@ window.agenda.arrastre.obtener().then((archivos) => {
     ? `<div class="archivo todos" draggable="true" data-i="todos"><span class="tipo" style="background:var(--acento)">${archivos.length}</span><span class="nombre"><b>Todos a la vez</b></span><span class="asa">${ASA}</span></div>`
     : '';
   $('lista').innerHTML = todos + archivos.map(fila).join('');
+  // La ventana toma el alto de lo que muestra (el aviso de Moodle ocupa varias líneas).
+  window.agenda.arrastre.ajustar(document.querySelector('header').offsetHeight + $('lista').scrollHeight + 2);
 });
 
 $('lista').addEventListener('dragstart', (e) => {

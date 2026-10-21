@@ -92,6 +92,7 @@ contextBridge.exposeInMainWorld('agenda', {
     obtener: () => ipcRenderer.invoke('arrastre:obtener'),
     iniciar: (i) => ipcRenderer.send('arrastre:iniciar', i),
     cerrar: () => ipcRenderer.invoke('arrastre:cerrar'),
+    ajustar: (alto) => ipcRenderer.send('arrastre:ajustar', alto),
   },
   respuesta: {
     obtener: (tareaId) => ipcRenderer.invoke('respuesta:obtener', tareaId),
