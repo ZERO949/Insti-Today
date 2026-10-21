@@ -326,8 +326,11 @@ export function iniciar(puerto = 8765) {
       const x = asignaciones(base).find((y) => String(y.cmid) === cmid);
       if (!x) return html(pagina('No existe', '<p>No existe</p>'), 404);
       if (u.searchParams.get('action') === 'editsubmission') {
-        return html(pagina(x.name, `<h2>${x.name}</h2><form method="post"><label>Archivos enviados</label>
-          <div class="filemanager"><div class="filemanager-container"><div class="fp-content"></div><div class="dndupload-message">Puede arrastrar y soltar archivos aquí para añadirlos</div></div></div>
+        // Como en Moodle real, la página trae otros selectores (uno oculto y el de otro campo).
+        return html(pagina(x.name, `<h2>${x.name}</h2><form method="post"><div class="filemanager" style="display:none"></div>
+          <div id="fitem_id_files_filemanager"><label>Archivos enviados</label>
+          <div class="filemanager"><div class="filemanager-container"><div class="fp-content"></div><div class="dndupload-message">Puede arrastrar y soltar archivos aquí para añadirlos</div></div></div></div>
+          <div id="fitem_id_otro"><label>Otro campo</label><div class="filemanager"><div class="fp-content"></div></div></div>
           <p><button type="button">Guardar cambios</button></p></form>
           <script>
             const c = document.querySelector('.filemanager-container');

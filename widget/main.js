@@ -1243,7 +1243,12 @@ ipcMain.on('arrastre:colocar', (_e, i) => {
   const files = i == null ? archivosArrastre : [archivosArrastre[i]].filter(Boolean);
   if (!en || en.ventana.isDestroyed() || !files.length) return;
   colocando.get(en.destino.tareaId)?.();
-  colocando.set(en.destino.tareaId, colocarArchivos(en.ventana, files, en.destino, en.notificar));
+  // Si no se pudo, la ventanita lo dice: si no, parece que el clic no hizo nada.
+  const notificar = (aviso) => {
+    en.notificar(aviso);
+    if (!['preparando', 'colocados', 'cancelada'].includes(aviso.fase)) ventanaArchivos?.webContents.send('arrastre:aviso', aviso.texto);
+  };
+  colocando.set(en.destino.tareaId, colocarArchivos(en.ventana, files, en.destino, notificar));
   en.ventana.focus();
 });
 // Crece hacia arriba: la esquina de abajo se queda donde estaba.

@@ -1,5 +1,13 @@
 # Cambios
 
+## 0.2.2 · 2026-10-21
+
+- En algunas tareas la app no ponía tus archivos en Moodle (ni al abrir la entrega ni
+  al tocarlos en la ventanita) porque la página trae más de un selector de archivos.
+  Ahora elige el de la entrega.
+- Si al tocar un archivo no se puede poner en Moodle, la ventanita dice por qué en vez
+  de quedarse igual.
+
 ## 0.2.1 · 2026-10-21
 
 - En la ventanita de la entrega basta con tocar un archivo (o «Todos a la vez») para

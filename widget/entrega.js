@@ -32,9 +32,15 @@ export function esPaginaDeEdicion(direccion, destino) {
   }
 }
 
+// El selector de archivos de la entrega. La página puede traer otros (ocultos o
+// de otro campo): cuentan los visibles y, si aún hay varios, el de archivos de la tarea.
+const ELEGIR = `const visibles = [...document.querySelectorAll('.filemanager')].filter((e) => e.getClientRects().length);
+  const propios = visibles.filter((e) => e.closest('#fitem_id_files_filemanager'));
+  const fm = propios.length === 1 ? propios : visibles;`;
+
 // Lo que se ve dentro del selector de archivos de Moodle.
 const LEER_ARCHIVOS = `(() => {
-  const fm = document.querySelectorAll('.filemanager');
+  ${ELEGIR}
   if (fm.length !== 1) return { campos: fm.length, nombres: [] };
   const nombres = [...fm[0].querySelectorAll('.fp-filename, .fp-filename-field .fp-filename')]
     .map((e) => e.textContent.trim()).filter(Boolean);
@@ -42,8 +48,9 @@ const LEER_ARCHIVOS = `(() => {
 })()`;
 
 const RECTANGULO = `(() => {
-  const fm = document.querySelector('.filemanager');
-  const zona = fm && (fm.querySelector('.filemanager-container') || fm.querySelector('.fp-content') || fm);
+  ${ELEGIR}
+  const uno = fm.length === 1 ? fm[0] : null;
+  const zona = uno && (uno.querySelector('.filemanager-container') || uno.querySelector('.fp-content') || uno);
   if (!zona) return null;
   zona.scrollIntoView({ block: 'center' });
   const r = zona.getBoundingClientRect();

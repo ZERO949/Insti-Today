@@ -52,6 +52,8 @@ if (paraMoodle) {
 const oscuro = matchMedia('(prefers-color-scheme: dark)');
 window.agenda.tema().then((t) => (document.documentElement.dataset.tema = t));
 
+// La ventana toma el alto de lo que muestra (el aviso de Moodle ocupa varias líneas).
+const ajustar = () => window.agenda.arrastre.ajustar(document.querySelector('header').offsetHeight + $('lista').scrollHeight + 2);
 window.agenda.arrastre.obtener().then((archivos) => {
   const fila = (a, i) =>
     `<div class="archivo" draggable="true" data-i="${i}" title="${esc(a.nombre)}"><span class="tipo" style="background:${COLORES[a.ext.toLowerCase()] || '#5d6b82'}">${esc(a.ext.toUpperCase().slice(0, 4))}</span><span class="nombre">${esc(a.nombre)}</span><span class="asa">${ASA}</span></div>`;
@@ -59,8 +61,7 @@ window.agenda.arrastre.obtener().then((archivos) => {
     ? `<div class="archivo todos" draggable="true" data-i="todos"><span class="tipo" style="background:var(--acento)">${archivos.length}</span><span class="nombre"><b>Todos a la vez</b></span><span class="asa">${ASA}</span></div>`
     : '';
   $('lista').innerHTML = todos + archivos.map(fila).join('');
-  // La ventana toma el alto de lo que muestra (el aviso de Moodle ocupa varias líneas).
-  window.agenda.arrastre.ajustar(document.querySelector('header').offsetHeight + $('lista').scrollHeight + 2);
+  ajustar();
 });
 
 $('lista').addEventListener('dragstart', (e) => {
@@ -73,7 +74,11 @@ if (paraMoodle) $('lista').addEventListener('click', (e) => {
   const el = e.target.closest('[data-i]');
   if (el) window.agenda.arrastre.colocar(el.dataset.i === 'todos' ? null : Number(el.dataset.i));
 });
-$('cerrar').onclick =() => window.agenda.arrastre.cerrar();
+window.agenda.arrastre.alAviso((texto) => {
+  $('pista').textContent = texto;
+  ajustar();
+});
+$('cerrar').onclick = () => window.agenda.arrastre.cerrar();
 </script>
 </body>
 </html>

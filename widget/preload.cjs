@@ -94,6 +94,7 @@ contextBridge.exposeInMainWorld('agenda', {
     cerrar: () => ipcRenderer.invoke('arrastre:cerrar'),
     ajustar: (alto) => ipcRenderer.send('arrastre:ajustar', alto),
     colocar: (i) => ipcRenderer.send('arrastre:colocar', i),
+    alAviso: (fn) => ipcRenderer.on('arrastre:aviso', (_e, texto) => fn(texto)),
   },
   respuesta: {
     obtener: (tareaId) => ipcRenderer.invoke('respuesta:obtener', tareaId),
