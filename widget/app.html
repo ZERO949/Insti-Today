@@ -195,11 +195,6 @@
   .cuenta-ia b { font-weight: 600; }
   .cuenta-ia span { color: var(--suave); }
   .botones-campo { display: flex; justify-content: flex-end; margin-top: 8px; }
-  .privacidad p { margin: 0 0 6px; color: var(--suave); }
-  .privacidad ul { margin: 0 0 10px; padding-left: 18px; color: var(--suave); font-size: 12.5px; }
-  .privacidad li { margin: 5px 0; }
-  .privacidad b { color: var(--texto); font-weight: 600; }
-  .privacidad code { font: 11.5px var(--mono); background: var(--pieza); padding: 1px 5px; border-radius: 5px; }
   .pie { color: var(--tenue); font-size: 12px; text-align: center; margin-top: 28px; }
   /* Espacio de entrega de una tarea */
   .paso { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--linea); }
@@ -511,7 +506,7 @@
 
   <!-- CUENTA -->
   <section class="seccion" id="s-cuenta"><div class="desplazable"><div class="pagina">
-    <h1>Cuenta</h1><div class="sub">Tus cuentas de Moodle, actualizaciones y privacidad.</div>
+    <h1>Cuenta</h1><div class="sub">Tus cuentas de Moodle y actualizaciones.</div>
     <h2 class="titulo-grupo">Moodle</h2>
     <div class="grupo" id="cuenta"></div>
     <h2 class="titulo-grupo">Actualizaciones</h2>
@@ -519,30 +514,6 @@
       <div class="opcion">
         <div class="texto"><b id="version-larga"></b><span id="estado-actualizacion"></span></div>
         <button class="boton" id="boton-actualizacion"></button>
-      </div>
-    </div>
-    <h2 class="titulo-grupo">Ayuda</h2>
-    <div class="grupo">
-      <div class="opcion">
-        <div class="texto"><b>Guía de inicio</b><span>Iniciar sesión, conectar tus IA y cómo se usa.</span></div>
-        <button class="boton" id="ver-guia">Ver la guía</button>
-      </div>
-    </div>
-    <h2 class="titulo-grupo">Privacidad</h2>
-    <div class="grupo">
-      <div class="opcion columna privacidad">
-        <p><b>Tu sesión y tus archivos se guardan localmente.</b> Insti Today no tiene servidor propio. Al usar IA, compartes los materiales elegidos con el proveedor y tu cuenta; al adjuntar en Moodle pueden empezar a subirse allí.</p>
-        <ul>
-          <li><b>Tu contraseña no se guarda.</b> Al iniciar sesión va directo a tu Moodle, como con su app móvil; la app sólo guarda el token de lectura que Moodle le da, en esta computadora.</li>
-          <li><b>Lee; entregar es cosa tuya.</b> Insti Today no escribe mensajes ni cambia nada en Moodle por su cuenta. «Entregar» abre la página oficial de la tarea con tus archivos a la mano; el botón final lo pulsas tú allí.</li>
-          <li><b>Lo que guarda</b> está en <code id="t-carpeta">%APPDATA%\insti-today</code>: la sesión, tus preferencias, la última lista de tareas y las respuestas de IA. Los archivos que abres se bajan a <code id="t-descargas">Descargas\Insti Today</code>.</li>
-          <li><b>Nada de analítica ni publicidad.</b> La app se conecta con Moodle, el inicio de sesión de tu escuela y GitHub para actualizaciones; cuando usas IA, también con OpenAI o Anthropic a través de sus herramientas.</li>
-          <li><b>IA, sólo si tú lo pides.</b> Claude lee la tarea que elegiste con tu cuenta (bajo las condiciones de Anthropic) y sólo puede leer las tareas de tu lista. ChatGPT y Codex reciben la tarea con tu cuenta (bajo las condiciones de OpenAI); con chatgpt.com, Insti Today mira lo que copias mientras espera la respuesta. Las tareas que van a un agente se copian a Documentos/Insti Today.</li>
-          <li><b>Portapapeles:</b> mientras esperas a chatgpt.com, el texto o imagen que copies puede guardarse como respuesta. Cancela desde el widget para detener la espera.</li>
-          <li><b>Copias para entregar:</b> si activas quitar metadatos, se prepara una copia y se conserva el original. No se garantiza quitar toda marca en todos los formatos.</li>
-          <li><b>Para borrar los datos:</b> «Cerrar sesión» elimina la sesión, la agenda y las respuestas de la app. Tus carpetas en Documentos/Insti Today y Descargas/Insti Today se conservan; puedes borrarlas manualmente junto con la carpeta de datos si quieres eliminar todo.</li>
-        </ul>
-        <div><button class="boton" id="ver-privacidad">Aviso de privacidad completo</button></div>
       </div>
     </div>
   </div></div></section>
@@ -1264,14 +1235,10 @@ function pintarAjustes() {
   if (window.agenda.plataforma === 'linux') {
     $('t-avisos').textContent = 'Notificaciones';
     $('t-inicio').textContent = 'Abrir al iniciar sesión';
-    $('t-carpeta').textContent = '~/.config/insti-today';
-    $('t-descargas').textContent = 'Descargas/Insti Today';
   }
   if (window.agenda.plataforma === 'darwin') {
     $('t-avisos').textContent = 'Notificaciones';
     $('t-inicio').textContent = 'Abrir al iniciar sesión';
-    $('t-carpeta').textContent = '~/Library/Application Support/Insti Today';
-    $('t-descargas').textContent = 'Descargas/Insti Today';
   }
   for (const id of ['diasAdelante', 'diasAtras', 'avisoHoras', 'intervaloMin', 'sinFechaDias']) $(id).value = String(p[id] ?? 14);
   for (const id of ['soloTardias', 'sinFecha', 'vistaPrevia', 'avisos']) $(id).checked = p[id] !== false;
@@ -1471,8 +1438,6 @@ $('quitadas').addEventListener('click', async (e) => {
   datos = await window.agenda.tareas.restaurar(b.dataset.restaurar || null);
   pintar();
 });
-$('ver-guia').addEventListener('click', abrirGuia);
-$('ver-privacidad').addEventListener('click', () => window.agenda.web('/privacidad'));
 $('actualizar').addEventListener('click', () => window.agenda.actualizar());
 
 // ---------- Varias cuentas ----------

@@ -1,5 +1,11 @@
 # Cambios
 
+## 0.1.10 · 2026-10-20
+
+- Cuenta queda más simple: sólo tus cuentas de Moodle y las actualizaciones. Se quitaron
+  las secciones Ayuda y Privacidad; la guía sigue abriéndose al empezar y el aviso de
+  privacidad completo sigue en la web.
+
 ## 0.1.9 · 2026-10-19
 
 - Cambiar de cuenta es más sencillo: mantén pulsado tu icono y desliza hacia abajo

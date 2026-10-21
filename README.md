@@ -128,4 +128,4 @@ apps instaladas lo verán en menos de 4 horas o al abrirse.
 ## Privacidad
 
 La app sólo habla con tu Moodle: no tiene servidor propio ni analíticas. El aviso
-completo está en la app (Cuenta → Privacidad) y en [`widget/privacidad.html`](widget/privacidad.html).
+completo está en [`widget/privacidad.html`](widget/privacidad.html).
