@@ -129,6 +129,7 @@ let bandeja = null;
 let ventanaArchivos = null;
 let archivosArrastre = [];
 let destinoArrastre = 'ChatGPT';
+let entregaArrastre = null; // { ventana, destino, notificar } de la entrega en Moodle abierta
 let estado = { datos: null, error: null, cargando: false, sesion: 'falta', escuela: null, prefs: preferencias.leer(), descartadas: preferencias.descartadas(), actualizacion: actualizaciones.estadoActualizacion() };
 let reintento = null;
 // Sube con cada cambio de cuenta: lo que llegue de Moodle para la anterior se descarta.
@@ -1195,6 +1196,7 @@ async function resolverConChatGPT({ tareaId }) {
 // ChatGPT (el widget vive debajo de las ventanas y no serviría).
 function abrirVentanaArchivos(rutas, destino = 'ChatGPT') {
   cerrarVentanaArchivos();
+  entregaArrastre = null;
   archivosArrastre = rutas;
   destinoArrastre = destino;
   const area = screen.getPrimaryDisplay().workArea;
@@ -1234,6 +1236,16 @@ ipcMain.on('arrastre:iniciar', (e, i) => {
   e.sender.startDrag({ file: files[0], files, icon: nativeImage.createFromPath(ICONO_PNG).resize({ width: 40, height: 40 }) });
 });
 ipcMain.handle('arrastre:cerrar', () => cerrarVentanaArchivos());
+// Tocar un archivo de la ventanita lo suelta en Moodle como al abrir la entrega:
+// en un touchpad, mantener pulsado para arrastrar se corta a veces.
+ipcMain.on('arrastre:colocar', (_e, i) => {
+  const en = entregaArrastre;
+  const files = i == null ? archivosArrastre : [archivosArrastre[i]].filter(Boolean);
+  if (!en || en.ventana.isDestroyed() || !files.length) return;
+  colocando.get(en.destino.tareaId)?.();
+  colocando.set(en.destino.tareaId, colocarArchivos(en.ventana, files, en.destino, en.notificar));
+  en.ventana.focus();
+});
 // Crece hacia arriba: la esquina de abajo se queda donde estaba.
 ipcMain.on('arrastre:ajustar', (_e, alto) => {
   if (!ventanaArchivos || ventanaArchivos.isDestroyed() || !Number.isFinite(alto)) return;
@@ -1449,11 +1461,13 @@ async function entregar(tareaId, origen) {
   (entregas[tareaId] ||= {}).abierta = new Date().toISOString();
   if (archivos.length && e.tarea.modulo === 'assign' && e.tarea.enlaceEntrega) {
     abrirVentanaArchivos(archivos, 'Moodle');
-    const cancelar = colocarArchivos(ventanaBB, archivos, { enlace: e.tarea.enlace, enlaceEntrega: e.tarea.enlaceEntrega, cursoId: e.curso.id, tareaId }, ({ fase, texto: aviso }) => {
+    const destino = { enlace: e.tarea.enlace, enlaceEntrega: e.tarea.enlaceEntrega, cursoId: e.curso.id, tareaId };
+    const notificar = ({ fase, texto: aviso }) => {
       if (fase !== 'preparando') colocando.delete(tareaId);
       estadoEntrega(tareaId, fase, aviso);
-    });
-    colocando.set(tareaId, cancelar);
+    };
+    colocando.set(tareaId, colocarArchivos(ventanaBB, archivos, destino, notificar));
+    entregaArrastre = { ventana: ventanaBB, destino, notificar };
   } else if (archivos.length) {
     abrirVentanaArchivos(archivos, 'Moodle');
     estadoEntrega(tareaId, 'manual', 'Esta actividad no tiene entrega de archivos en línea. Ábrela en Moodle y sigue sus instrucciones.');

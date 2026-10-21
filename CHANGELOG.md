@@ -1,5 +1,13 @@
 # Cambios
 
+## 0.2.1 · 2026-10-21
+
+- En la ventanita de la entrega basta con tocar un archivo (o «Todos a la vez») para
+  ponerlo en Moodle; ya no hace falta mantener pulsado y arrastrar, que en el touchpad
+  de una laptop se cortaba a veces. Arrastrar sigue funcionando.
+- Si Moodle aún está subiendo un archivo, la app espera a que termine antes de soltar
+  otro, para no subirlo dos veces.
+
 ## 0.2.0 · 2026-10-21
 
 - Al entregar, si un archivo ya lo entregaste con otra de tus cuentas, la app pregunta

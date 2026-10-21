@@ -43,9 +43,10 @@ const COLORES = { pdf: '#e5534b', docx: '#2f6fd8', doc: '#2f6fd8', pptx: '#d2692
 const ASA = '<svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><circle cx="6" cy="4" r="1.2"/><circle cx="10" cy="4" r="1.2"/><circle cx="6" cy="8" r="1.2"/><circle cx="10" cy="8" r="1.2"/><circle cx="6" cy="12" r="1.2"/><circle cx="10" cy="12" r="1.2"/></svg>';
 
 // Para ChatGPT o para la entrega en Moodle.
-if (new URLSearchParams(location.search).get('destino') === 'Moodle') {
+const paraMoodle = new URLSearchParams(location.search).get('destino') === 'Moodle';
+if (paraMoodle) {
   $('titulo').textContent = 'Tu entrega para Moodle';
-  $('pista').textContent = 'Si no se pusieron solos, arrástralos al recuadro de archivos de Moodle. Luego pulsa «Guardar cambios».';
+  $('pista').textContent = 'Si no se pusieron solos, toca un archivo (o arrástralo) para ponerlo en Moodle. Luego pulsa «Guardar cambios».';
   document.title = 'Tu entrega';
 }
 const oscuro = matchMedia('(prefers-color-scheme: dark)');
@@ -68,7 +69,11 @@ $('lista').addEventListener('dragstart', (e) => {
   e.preventDefault();
   window.agenda.arrastre.iniciar(el.dataset.i === 'todos' ? null : Number(el.dataset.i));
 });
-$('cerrar').onclick = () => window.agenda.arrastre.cerrar();
+if (paraMoodle) $('lista').addEventListener('click', (e) => {
+  const el = e.target.closest('[data-i]');
+  if (el) window.agenda.arrastre.colocar(el.dataset.i === 'todos' ? null : Number(el.dataset.i));
+});
+$('cerrar').onclick =() => window.agenda.arrastre.cerrar();
 </script>
 </body>
 </html>

@@ -129,6 +129,8 @@ export function colocarArchivos(ventana, rutas, destino, notificar, { espera = 1
           if (Date.now() - enEdicionDesde > 15_000) {
             return terminar('manual', 'Esta tarea no tiene selector de archivos (quizá sólo pide texto en línea). Copia tu texto en Moodle y guarda.');
           }
+        } else if (antes.cargando) {
+          // Moodle aún sube algo (quizá lo que arrastraste): se espera para no soltarlo dos veces.
         } else {
           const nombres = rutas.map((r) => path.basename(r));
           const faltan = nombres.filter((n) => !antes.nombres.includes(n));
