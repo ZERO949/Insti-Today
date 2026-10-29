@@ -31,6 +31,7 @@
   .nav-item.activo { background: var(--pieza); font-weight: 600; }
   .nav-item .num { margin-left: auto; font-size: 12px; font-weight: 500; min-width: 20px; text-align: right; color: var(--tenue); font-variant-numeric: tabular-nums; }
   .nav-item .num.urge { color: var(--mal); font-weight: 600; }
+  .barra-plegada .nav-item .num .hoy-txt { display: none; }
   .nav-sep { height: 14px; }
   .nav-pie { margin-top: auto; padding: 12px 8px 0; }
   .nav-pie .estado { font-size: 11.5px; color: var(--tenue); margin-bottom: 8px; }
@@ -47,8 +48,8 @@
   .barra-plegada .plegar { margin-left: 0; }
   .barra-plegada .plegar svg { transform: scaleX(-1); }
   .barra-plegada .nav-item { position: relative; justify-content: center; padding: 8px 0; }
-  .barra-plegada .nav-item .num { position: absolute; top: 1px; right: 4px; min-width: 15px; height: 15px; padding: 0 4px; margin: 0; border-radius: 8px; background: var(--pieza-hover); color: var(--texto); font-size: 9.5px; line-height: 15px; text-align: center; }
   .barra-plegada .nav-item .num.urge { background: var(--mal); color: #fff; }
+  .barra-plegada .nav-item .num { position: absolute; top: 1px; right: 4px; min-width: 15px; height: 15px; padding: 0 4px; margin: 0; border-radius: 8px; background: var(--pieza-hover); color: var(--texto); font-size: 9.5px; line-height: 15px; text-align: center; }
   .barra-plegada .nav-pie { padding: 12px 0 0; display: flex; justify-content: center; }
   .barra-plegada #actualizar { width: 32px; height: 32px; padding: 0; justify-content: center; }
 
@@ -79,6 +80,7 @@
   .filas { flex: 1; overflow-y: auto; padding: 0 8px 16px; }
   .grupo-titulo { font-size: 12px; font-weight: 600; color: var(--tenue); padding: 14px 10px 4px; }
   .grupo-titulo.mal { color: var(--mal); }
+  .grupo-titulo.pronto { color: var(--pronto); }
   .fila { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 10px; cursor: pointer; transition: background .12s var(--curva); }
   .fila:hover { background: var(--hover); }
   .fila.sel { background: color-mix(in srgb, var(--acento) 14%, transparent); }
@@ -92,6 +94,38 @@
   .pastilla.mal { color: var(--mal); font-weight: 600; }
   .pastilla.pronto { color: var(--pronto); font-weight: 600; }
   .vacio { color: var(--tenue); padding: 40px 20px; text-align: center; }
+  /* Lo siguiente: la primera de hoy, un poco más grande (como en el widget). */
+  .fila.siguiente { align-items: flex-start; margin: 2px 0 4px; padding: 12px; background: var(--pieza); }
+  .fila.siguiente:hover { background: var(--pieza-hover); }
+  .fila.siguiente.sel { background: color-mix(in srgb, var(--acento) 14%, transparent); }
+  .fila.siguiente .punto { margin-top: 6px; }
+  .fila.siguiente .rotulo { font-size: 11px; font-weight: 600; color: var(--tenue); margin-bottom: 2px; }
+  .fila.siguiente .titulo { font: 600 15px/1.3 var(--fuente-titulo); letter-spacing: -.012em; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .fila.siguiente .pastilla { margin-top: 1px; }
+  /* Entregada: palomita, se tacha y se va. */
+  .fila.entregada { max-height: 90px; overflow: hidden; animation: irse .32s var(--curva) .45s forwards; }
+  .fila.entregada .punto { background: var(--bien) !important; transform: scale(1.35); transition: transform .2s var(--curva); }
+  .fila.entregada .titulo { text-decoration: line-through; color: var(--tenue); }
+  .fila.entregada .pastilla { opacity: 0; }
+  @keyframes irse { to { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin: 0; } }
+  /* La semana de un vistazo: un punto por día, más grande cuanto más hay. */
+  .semana { display: flex; align-items: center; gap: 4px; padding: 0 18px 10px; }
+  .semana[hidden] { display: none; }
+  .dia-s { width: 24px; display: grid; justify-items: center; gap: 4px; font-size: 11px; font-weight: 500; color: var(--tenue); }
+  .dia-s.hoy-s { color: var(--texto); font-weight: 700; }
+  .dia-s i { width: var(--t, 4px); height: var(--t, 4px); margin: calc((9px - var(--t, 4px)) / 2) 0; border-radius: 50%; background: var(--tenue); opacity: .7; }
+  .dia-s.hoy-s i { background: var(--texto); opacity: 1; }
+  .dia-s i.libre { background: transparent; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tenue) 55%, transparent); opacity: 1; }
+  .dia-s i.listo { background: var(--bien); opacity: 1; }
+  .racha { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--suave); white-space: nowrap; }
+  /* Progreso de hoy junto al número de la barra lateral. */
+  .anillo { width: 14px; height: 14px; transform: rotate(-90deg); flex: none; margin-left: auto; }
+  .anillo + .num { margin-left: 6px; }
+  .anillo circle { fill: none; stroke-width: 2.6; }
+  .anillo .pista { stroke: var(--neutro); }
+  .anillo .avance { stroke: var(--bien); stroke-linecap: round; transition: stroke-dashoffset .6s var(--curva); }
+  .anillo[hidden], .barra-plegada .anillo { display: none; }
+  @media (prefers-reduced-motion: reduce) { .fila.entregada { animation: none; display: none; } }
 
   .detalle-col { flex: 1; min-width: 0; overflow-y: auto; }
   .detalle { padding: 30px 32px 48px; max-width: 820px; }
@@ -310,7 +344,7 @@
 <body>
 <nav>
   <div class="marca"><img src="icono/icono.png" alt=""><div><b>Insti Today</b><span id="version"></span></div><button class="plegar" id="plegar" title="Plegar barra lateral"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2.2"/><path d="M6 2.5v11M10.5 6.5 9 8l1.5 1.5"/></svg></button></div>
-  <button class="nav-item" data-ir="pendientes" title="Pendientes"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"/><circle cx="2.5" cy="4" r=".8" fill="currentColor"/><circle cx="2.5" cy="8" r=".8" fill="currentColor"/><circle cx="2.5" cy="12" r=".8" fill="currentColor"/></svg><span class="etiqueta">Pendientes</span><span class="num" id="num-pendientes"></span></button>
+  <button class="nav-item" data-ir="pendientes" title="Pendientes"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"/><circle cx="2.5" cy="4" r=".8" fill="currentColor"/><circle cx="2.5" cy="8" r=".8" fill="currentColor"/><circle cx="2.5" cy="12" r=".8" fill="currentColor"/></svg><span class="etiqueta">Pendientes</span><svg class="anillo" id="anillo" viewBox="0 0 16 16" hidden><circle class="pista" cx="8" cy="8" r="6.2"/><circle class="avance" id="avance" cx="8" cy="8" r="6.2" stroke-dasharray="38.96" stroke-dashoffset="38.96"/></svg><span class="num" id="num-pendientes"></span></button>
   <button class="nav-item" data-ir="respuestas" title="Respuestas"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.6 4.4L14 7l-4.4 1.6L8 13l-1.6-4.4L2 7l4.4-1.6z"/></svg><span class="etiqueta">Respuestas</span><span class="num" id="num-respuestas"></span></button>
   <div class="nav-sep"></div>
   <button class="nav-item" data-ir="ia" title="IA"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="10" height="9" rx="2"/><path d="M8 4V2M6 8h.01M10 8h.01M6 11h4"/></svg><span class="etiqueta">IA</span></button>
@@ -340,6 +374,7 @@
             <button class="chip" data-cuando="todas">Todas</button>
           </div>
         </div>
+        <div class="semana" id="semana" hidden></div>
         <div class="filas" id="filas-pendientes"></div>
       </div>
       <div class="detalle-col" id="detalle-pendiente"><div class="vacio">Elige una tarea para ver sus instrucciones, sus archivos y resolverla.</div></div>
@@ -445,6 +480,32 @@
         <div class="materias" id="materias"></div>
       </div>
     </div>
+    <h2 class="titulo-grupo">Experimental</h2>
+    <div class="grupo">
+      <div class="opcion">
+        <div class="texto"><b>Funciones experimentales</b><span>Una lista más tranquila: el número es lo de hoy, rojo sólo a menos de 1 hora y los próximos días plegados. Suma «Lo siguiente», la semana de un vistazo, «Hoy no» y el resumen del día. Pueden cambiar o desaparecer.</span></div>
+        <label class="interruptor"><input type="checkbox" id="experimental"><i></i></label>
+      </div>
+    </div>
+    <h2 class="titulo-grupo" id="titulo-detalles">Detalles</h2>
+    <div class="grupo" id="grupo-detalles">
+      <div class="opcion">
+        <div class="texto"><b>Semana de un vistazo</b><span>Un punto por día según lo que hay, y los días seguidos al día</span></div>
+        <label class="interruptor"><input type="checkbox" id="verSemana"><i></i></label>
+      </div>
+      <div class="opcion">
+        <div class="texto"><b>Lo siguiente</b><span>La próxima tarea de hoy más grande, y un anillo con lo que ya entregaste</span></div>
+        <label class="interruptor"><input type="checkbox" id="verSiguiente"><i></i></label>
+      </div>
+      <div class="opcion">
+        <div class="texto"><b>Saludo del día</b><span>Una línea en el widget la primera vez que lo ves en el día</span></div>
+        <label class="interruptor"><input type="checkbox" id="verSaludo"><i></i></label>
+      </div>
+      <div class="opcion">
+        <div class="texto"><b>Lista simple</b><span>Apaga los tres y deja sólo las tareas</span></div>
+        <button class="boton" id="lista-simple"></button>
+      </div>
+    </div>
     <h2 class="titulo-grupo">Tareas quitadas</h2>
     <div class="grupo">
       <div class="opcion columna">
@@ -487,6 +548,10 @@
         <select id="avisoHoras">
           <option value="1">1 hora de anticipación</option><option value="2">2 horas de anticipación</option><option value="3">3 horas de anticipación</option><option value="6">6 horas de anticipación</option><option value="12">12 horas de anticipación</option>
         </select>
+      </div>
+      <div class="opcion" id="fila-resumen">
+        <div class="texto"><b>Resumen del día</b><span id="resumen-ej"></span></div>
+        <select id="resumenHora"><option value="0">No</option><option value="7">7:00 a.m.</option><option value="13">1:00 p.m.</option><option value="19">7:00 p.m.</option></select>
       </div>
       <div class="opcion">
         <div class="texto"><b>Revisar Moodle cada</b><span id="actualizado"></span></div>
@@ -532,6 +597,20 @@ const fmtHora = new Intl.DateTimeFormat('es-MX', { hour: 'numeric', minute: '2-d
 const fmtDia = new Intl.DateTimeFormat('es-MX', { weekday: 'short', day: 'numeric', month: 'short' });
 const fmtLargo = new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' });
 const inicioDia = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+// Los extras que se pueden apagar para una lista simple (Ajustes → Detalles).
+const DETALLES = ['verSemana', 'verSiguiente', 'verSaludo'];
+// Ajustes → Experimental. Apagado, la lista se ve y se comporta como en la 0.2.3.
+const exp = () => datos?.prefs?.experimental === true;
+// Los extras de Detalles sólo cuentan con lo experimental encendido.
+const conDetalle = (id) => exp() && datos.prefs[id] !== false;
+// Igual que el widget: lo que vence de madrugada cuenta como del día anterior.
+const diaDe = (t) => inicioDia(t - 6 * 3_600_000);
+// 12:00 a.m. y 11:59 p.m. se leen mejor como «medianoche».
+function hora(t) {
+  const d = new Date(t);
+  const m = d.getHours() * 60 + d.getMinutes();
+  return m === 0 || m === 1439 ? 'medianoche' : fmtHora.format(t);
+}
 const mayus = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const CHISPA = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.6 4.4L14 7l-4.4 1.6L8 13l-1.6-4.4L2 7l4.4-1.6z"/></svg>';
 
@@ -700,8 +779,87 @@ function todasLasTareas() {
   return lista;
 }
 
+// «Hoy no»: pospuesta hasta la fecha que se guardó (sale de «Por entregar» y del número).
+const pospuesta = (id) => (datos.pospuestas || []).some((x) => x.id === id && x.hasta > Date.now());
+// Hasta el principio del día siguiente (las 6 a.m., cuando empieza el día para Insti Today).
+const hastaManana = () => diaDe(Date.now()) + DIA + 6 * 3_600_000;
+
+// Las tareas con fecha que no se quitaron, entregadas o no, con su día.
+function conFecha({ sinPospuestas = true } = {}) {
+  const quitadas = new Set((datos.descartadas || []).map((t) => t.id));
+  return (datos.agenda?.cursos || []).flatMap((c) => c.tareas)
+    .filter((t) => t.entrega && !quitadas.has(t.id) && !(sinPospuestas && pospuesta(t.id)))
+    .map((t) => ({ ...t, cuando: Date.parse(t.entrega), dia: diaDe(Date.parse(t.entrega)) }));
+}
+
+// Los próximos 7 días: cuántas quedan por entregar y cuántas ya se entregaron.
+function semana() {
+  const hoy = diaDe(Date.now());
+  const dias = Array.from({ length: 7 }, (_, i) => ({ dia: hoy + i * DIA, quedan: 0, hechas: 0 }));
+  for (const t of conFecha()) {
+    const d = dias[Math.round((t.dia - hoy) / DIA)];
+    if (!d) continue;
+    if (t.estado === 'entregada') d.hechas++;
+    else if (t.estado === 'pendiente' && (t.cuando >= Date.now() || t.tardia)) d.quedan++;
+  }
+  return dias;
+}
+
+// Días seguidos sin nada pendiente, desde ayer hacia atrás (y hoy si ya está
+// todo). Los días sin tareas no suman ni la rompen. Nunca se dice que se rompió.
+function racha() {
+  const hoy = diaDe(Date.now());
+  const porDia = new Map();
+  for (const t of conFecha({ sinPospuestas: false })) {
+    const d = porDia.get(t.dia) || { quedan: 0, hechas: 0 };
+    if (t.estado === 'entregada') d.hechas++;
+    else if (t.estado === 'pendiente') d.quedan++;
+    porDia.set(t.dia, d);
+  }
+  let n = 0;
+  for (let d = hoy - DIA; d > hoy - 60 * DIA; d -= DIA) {
+    const x = porDia.get(d);
+    if (x?.quedan) break;
+    if (x?.hechas) n++;
+  }
+  const deHoy = porDia.get(hoy);
+  if (deHoy?.hechas && !deHoy.quedan) n++;
+  return n;
+}
+
+const fmtLetra = new Intl.DateTimeFormat('es-MX', { weekday: 'narrow' });
+const fmtDiaLargo = new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric' });
+function pintarSemana() {
+  const caja = $('semana');
+  caja.hidden = !conDetalle('verSemana') || !datos.agenda;
+  if (caja.hidden) return;
+  const n = racha();
+  caja.innerHTML = semana().map((d, i) => {
+    const total = d.quedan + d.hechas;
+    const clase = !total ? 'libre' : !d.quedan ? 'listo' : '';
+    const tam = d.quedan >= 4 ? 9 : d.quedan >= 2 ? 7 : 5;
+    const dice = !total ? 'nada' : !d.quedan ? 'todo entregado' : `${d.quedan} por entregar`;
+    return `<span class="dia-s${i ? '' : ' hoy-s'}" title="${esc(mayus(fmtDiaLargo.format(d.dia)))}: ${dice}">${esc(fmtLetra.format(d.dia).toUpperCase())}<i class="${clase}" style="--t:${clase ? 5 : tam}px"></i></span>`;
+  }).join('') + (n >= 2 ? `<span class="racha" title="Días seguidos sin nada pendiente">${n} días al día</span>` : '');
+}
+
 function pastilla(t) {
   if (!t.cuando) return ['sin fecha', ''];
+  if (!exp()) return pastillaClasica(t);
+  const ahora = Date.now();
+  if (t.cuando < ahora) {
+    const d = Math.round((diaDe(ahora) - diaDe(t.cuando)) / DIA);
+    return [d === 0 ? 'hoy, tarde' : d === 1 ? 'ayer' : `hace ${d} d`, ''];
+  }
+  // Experimental: rojo sólo a menos de 1 h; ámbar a menos de 6 h; lo demás, gris.
+  const h = (t.cuando - ahora) / 3_600_000;
+  if (h < 1) return [`en ${Math.max(1, Math.round(h * 60))} min`, 'mal'];
+  if (h < 6) return [`en ${Math.floor(h)} h`, 'pronto'];
+  return [hora(t.cuando), ''];
+}
+
+// Como en la 0.2.3 (lo experimental apagado).
+function pastillaClasica(t) {
   const ahora = Date.now();
   if (t.cuando < ahora) {
     const d = Math.round((inicioDia(ahora) - inicioDia(t.cuando)) / DIA);
@@ -713,8 +871,27 @@ function pastilla(t) {
   return [fmtHora.format(t.cuando), ''];
 }
 
+// Experimental: orden de los grupos: hoy, lo que aún se puede entregar, los días que vienen y sin fecha.
+// Lo de hoy que ya pasó pero acepta tardía sigue en «Hoy», como en el widget.
+function rango(t, ahora) {
+  if (!t.cuando) return 4;
+  const hoy = diaDe(t.cuando) === diaDe(ahora);
+  if (t.cuando < ahora && !(hoy && t.tardia)) return t.tardia ? 1 : 3;
+  return hoy ? 0 : 2;
+}
+
 function grupoDe(t) {
   if (!t.cuando) return 'Sin fecha de entrega';
+  if (!exp()) return grupoClasico(t);
+  const dif = Math.round((diaDe(t.cuando) - diaDe(Date.now())) / DIA);
+  if (t.cuando < Date.now() && !(dif === 0 && t.tardia)) return t.tardia ? 'Aún puedes entregar' : 'Ya no aceptan entrega';
+  if (dif === 0) return 'Hoy';
+  if (dif === 1) return 'Mañana';
+  if (dif < 7) return mayus(fmtDia.format(t.cuando));
+  return 'Más adelante';
+}
+
+function grupoClasico(t) {
   const dif = Math.round((inicioDia(t.cuando) - inicioDia(Date.now())) / DIA);
   if (t.cuando < Date.now()) return t.tardia ? 'Vencidas · aceptan tardía' : 'Vencidas · ya no aceptan';
   if (dif === 0) return 'Hoy';
@@ -728,29 +905,44 @@ function pintarPendientes() {
   const materia = $('filtro-materia').value;
   let lista = todasLasTareas().filter((t) => (!materia || t.curso === materia) && (!texto || `${t.titulo} ${t.curso}`.toLowerCase().includes(texto)));
   const ahora = Date.now();
-  if (filtroCuando === 'activas') lista = lista.filter((t) => t.cuando && (t.cuando >= ahora || (t.tardia && ahora - t.cuando < 14 * DIA)));
+  if (filtroCuando === 'activas') lista = lista.filter((t) => t.cuando && !(exp() && pospuesta(t.id)) && (t.cuando >= ahora || (t.tardia && ahora - t.cuando < 14 * DIA)));
   if (filtroCuando === 'vencidas') lista = lista.filter((t) => t.cuando && t.cuando < ahora);
   if (filtroCuando === 'sinfecha') lista = lista.filter((t) => !t.cuando);
-  lista.sort((a, b) => {
+  if (!exp()) lista.sort((a, b) => {
+    // Como en la 0.2.3: vencidas primero, luego por fecha y sin fecha al final.
     if (!a.cuando || !b.cuando) return (a.cuando ? 0 : 1) - (b.cuando ? 0 : 1) || a.curso.localeCompare(b.curso, 'es');
     const va = a.cuando < ahora;
     const vb = b.cuando < ahora;
     if (va !== vb) return va ? -1 : 1;
     return va ? b.cuando - a.cuando : a.cuando - b.cuando;
   });
+  else lista.sort((a, b) => {
+    const ra = rango(a, ahora);
+    const rb = rango(b, ahora);
+    if (ra !== rb) return ra - rb;
+    if (ra === 4) return a.curso.localeCompare(b.curso, 'es');
+    return ra === 1 || ra === 3 ? b.cuando - a.cuando : a.cuando - b.cuando;
+  });
+  // Lo siguiente: en «Por entregar» sin buscar ni filtrar, la más próxima de hoy va arriba.
+  const deHoy = lista.filter((t) => rango(t, ahora) === 0);
+  const siguiente = filtroCuando === 'activas' && !texto && !materia && conDetalle('verSiguiente')
+    ? deHoy.find((t) => t.cuando >= ahora) || deHoy[0] : null;
+  if (siguiente) lista = [siguiente, ...lista.filter((t) => t !== siguiente)];
   let html = '';
   let grupo = null;
   for (const t of lista) {
-    const g = grupoDe(t);
-    if (g !== grupo) {
+    const g = t === siguiente ? null : grupoDe(t);
+    if (g && g !== grupo) {
       grupo = g;
-      html += `<div class="grupo-titulo ${g.startsWith('Vencidas') ? 'mal' : ''}">${esc(g)}</div>`;
+      html += `<div class="grupo-titulo ${g === 'Aún puedes entregar' ? 'pronto' : g.startsWith('Vencidas') ? 'mal' : ''}">${esc(g === 'Hoy' && siguiente ? 'También hoy' : g)}</div>`;
     }
     const [p, clase] = pastilla(t);
     const respuesta = datos.respuestas?.find((r) => r.id === t.id);
     const resuelta = respuesta ? respuesta.explicacionPendiente ? ' · falta explicación de IA' : ' · <span class="lista-ok">respuesta y explicación listas</span>' : '';
-    html += `<div class="fila ${tareaSel?.id === t.id ? 'sel' : ''}" data-tarea="${esc(t.id)}"><i class="punto" style="background:${t.color}"></i><div class="info"><div class="titulo">${esc(t.titulo)}</div><div class="meta">${esc(t.curso)}${resuelta}</div></div><span class="pastilla ${clase}">${esc(p)}</span></div>`;
+    const rotulo = t === siguiente ? '<div class="rotulo">Lo siguiente</div>' : '';
+    html += `<div class="fila ${t === siguiente ? 'siguiente' : ''} ${tareaSel?.id === t.id ? 'sel' : ''}" data-tarea="${esc(t.id)}"><i class="punto" style="background:${t.color}"></i><div class="info">${rotulo}<div class="titulo">${esc(t.titulo)}</div><div class="meta">${esc(t.curso)}${resuelta}</div></div><span class="pastilla ${clase}">${esc(p)}</span></div>`;
   }
+  pintarSemana();
   $('filas-pendientes').innerHTML = html || `<div class="vacio">${datos.agenda ? 'Nada por aquí.' : 'Inicia sesión para ver tus tareas.'}</div>`;
 }
 
@@ -838,6 +1030,7 @@ function pintarDetalleTarea(d) {
     <div class="acciones">
       <button class="boton ${ruta.resolverCon === 'ChatGPT' ? 'chatgpt' : 'primario'}" data-resolver ${trabajando ? 'disabled' : ''}>${ruta.resolverCon === 'ChatGPT' ? '<img src="icono/chatgpt.png" alt="">' : CHISPA}${trabajando ? `${esc(ruta.resolverCon)} está trabajando…` : `Resolver y explicar con ${esc(ruta.resolverCon)}`}</button>
       <button class="boton" data-blackboard>Abrir en Moodle ↗</button>
+      ${!exp() || (t.cuando && diaDe(t.cuando) > diaDe(Date.now())) ? '' : pospuesta(t.id) ? '<button class="boton" data-volver title="Que vuelva a salir hoy">Devolver a hoy</button>' : '<button class="boton" data-posponer title="Se esconde hasta mañana">Hoy no</button>'}
       <button class="boton" data-quitar>Quitar de la lista</button>
     </div>
     ${notaTarea ? `<div class="nota">${notaTarea}</div>` : ''}
@@ -973,6 +1166,16 @@ $('detalle-pendiente').addEventListener('click', async (e) => {
     return;
   }
   if (e.target.closest('[data-blackboard]')) return window.agenda.abrir(t.enlace);
+  if (e.target.closest('[data-posponer]')) {
+    await window.agenda.tareas.posponer({ id: t.id, titulo: t.titulo, curso: t.curso }, hastaManana());
+    notaTarea = 'Mañana vuelve a tu lista de «Por entregar».';
+    return pintarDetalleTarea(detalleActual);
+  }
+  if (e.target.closest('[data-volver]')) {
+    await window.agenda.tareas.volver(t.id);
+    notaTarea = '';
+    return pintarDetalleTarea(detalleActual);
+  }
   if (e.target.closest('[data-quitar]')) {
     if (!(await window.agenda.tareas.descartar({ id: t.id, titulo: t.titulo, curso: t.curso }))) return;
     tareaSel = null;
@@ -1241,7 +1444,13 @@ function pintarAjustes() {
     $('t-inicio').textContent = 'Abrir al iniciar sesión';
   }
   for (const id of ['diasAdelante', 'diasAtras', 'avisoHoras', 'intervaloMin', 'sinFechaDias']) $(id).value = String(p[id] ?? 14);
-  for (const id of ['soloTardias', 'sinFecha', 'vistaPrevia', 'avisos']) $(id).checked = p[id] !== false;
+  $('resumenHora').value = String(p.resumenHora ?? 0);
+  $('resumen-ej').textContent = p.resumenHora ? 'Llega así: «Hoy: 3 cosas; la primera a las 2:00 p.m.»' : 'Un solo aviso con lo que vence hoy';
+  for (const id of ['soloTardias', 'sinFecha', 'vistaPrevia', 'avisos', ...DETALLES]) $(id).checked = p[id] !== false;
+  $('experimental').checked = p.experimental === true;
+  for (const id of ['titulo-detalles', 'grupo-detalles', 'fila-resumen']) $(id).hidden = !exp();
+  const simple = DETALLES.every((id) => p[id] === false);
+  $('lista-simple').textContent = simple ? 'Volver a los detalles' : 'Dejarla simple';
   $('limpiarMetadatos').checked = p.limpiarMetadatos !== false;
   $('avisoMetadatos').checked = p.avisoMetadatos !== false;
   $('fila-aviso-metadatos').style.display = p.limpiarMetadatos === false ? 'none' : '';
@@ -1362,11 +1571,27 @@ function pintarBarra() {
   $('version').textContent = datos.version;
   const tareas = todasLasTareas();
   const ahora = Date.now();
-  const porEntregar = tareas.filter((t) => t.cuando && t.cuando >= ahora).length;
-  const urgentes = tareas.filter((t) => t.cuando && t.cuando >= ahora && t.cuando - ahora < DIA).length;
-  $('num-pendientes').textContent = porEntregar || '';
-  $('num-pendientes').className = `num ${urgentes ? 'urge' : ''}`;
-  $('num-pendientes').style.display = porEntregar ? '' : 'none';
+  if (!exp()) {
+    // Como en la 0.2.3: lo que falta por entregar, en rojo si algo vence en menos de un día.
+    const porEntregar = tareas.filter((t) => t.cuando && t.cuando >= ahora).length;
+    const urgentes = tareas.filter((t) => t.cuando && t.cuando >= ahora && t.cuando - ahora < DIA).length;
+    $('num-pendientes').textContent = porEntregar || '';
+    $('num-pendientes').title = '';
+    $('num-pendientes').className = `num ${urgentes ? 'urge' : ''}`;
+    $('num-pendientes').style.display = porEntregar ? '' : 'none';
+    $('anillo').toggleAttribute('hidden', true);
+  } else {
+    // El mismo número que el widget: lo de hoy, en gris.
+    $('num-pendientes').className = 'num';
+    const deHoy = tareas.filter((t) => t.cuando && !pospuesta(t.id) && diaDe(t.cuando) === diaDe(ahora) && (t.cuando >= ahora || t.tardia)).length;
+    // Anillo: lo entregado de hoy contra lo de hoy; aparece con la primera entrega.
+    const hechas = conFecha().filter((t) => t.estado === 'entregada' && t.dia === diaDe(ahora)).length;
+    $('anillo').toggleAttribute('hidden', !hechas || !conDetalle('verSiguiente'));
+    $('avance').style.strokeDashoffset = String(38.96 * (1 - (hechas / ((deHoy + hechas) || 1))));
+    $('num-pendientes').innerHTML = deHoy ? `${deHoy}<span class="hoy-txt"> hoy</span>` : '';
+    $('num-pendientes').title = `${deHoy} para hoy · ${hechas} ${hechas === 1 ? 'entregada' : 'entregadas'}`;
+    $('num-pendientes').style.display = deHoy ? '' : 'none';
+  }
   const n = (datos.respuestas || []).length;
   $('num-respuestas').textContent = n || '';
   $('num-respuestas').style.display = n ? '' : 'none';
@@ -1390,6 +1615,7 @@ function pintar() {
   }
   // El mismo estilo que el widget.
   document.documentElement.dataset.tema = !datos.prefs.tema || datos.prefs.tema === 'sistema' ? temaSistema() : datos.prefs.tema;
+  document.documentElement.toggleAttribute('data-experimental', exp());
   plegarBarra(!!datos.prefs.barraPlegada);
   pintarYo();
   pintarBarra();
@@ -1406,8 +1632,13 @@ async function guardar(cambios) {
   pintar();
 }
 
-for (const id of ['diasAdelante', 'diasAtras', 'avisoHoras', 'intervaloMin', 'sinFechaDias']) $(id).addEventListener('change', () => guardar({ [id]: Number($(id).value) }));
-for (const id of ['soloTardias', 'sinFecha', 'vistaPrevia', 'avisos', 'iaImagenes', 'iaImagenAuto', 'tareaPrueba', 'limpiarMetadatos', 'avisoMetadatos']) $(id).addEventListener('change', () => guardar({ [id]: $(id).checked }));
+for (const id of ['diasAdelante', 'diasAtras', 'avisoHoras', 'resumenHora', 'intervaloMin', 'sinFechaDias']) $(id).addEventListener('change', () => guardar({ [id]: Number($(id).value) }));
+// Lista simple: los tres detalles de golpe (apagados, o todos de vuelta).
+$('lista-simple').addEventListener('click', () => {
+  const encender = DETALLES.every((id) => datos.prefs[id] === false);
+  guardar(Object.fromEntries(DETALLES.map((id) => [id, encender])));
+});
+for (const id of ['soloTardias', 'sinFecha', 'vistaPrevia', 'avisos', 'experimental', ...DETALLES, 'iaImagenes', 'iaImagenAuto', 'tareaPrueba', 'limpiarMetadatos', 'avisoMetadatos']) $(id).addEventListener('change', () => guardar({ [id]: $(id).checked }));
 for (const seg of document.querySelectorAll('.segmentos[data-pref]')) {
   seg.addEventListener('click', (e) => {
     const b = e.target.closest('button');
@@ -1649,8 +1880,16 @@ setInterval(() => datos && (pintarBarra(), pintarPendientes()), 60_000);
 
 api.alCambiar((nuevos) => {
   const antes = JSON.stringify([datos?.respuestas?.find((r) => r.id === tareaSel?.id)?.cuando, datos?.trabajo?.fase, datos?.entregaCambio]);
+  // Lo que estaba pendiente y Moodle ya ve entregado: la fila se tacha y se va antes de repintar.
+  const estados = (d) => new Map((d?.agenda?.cursos || []).flatMap((c) => c.tareas.map((t) => [t.id, t.estado])));
+  const previos = estados(datos);
+  const hechas = [...estados(nuevos)].filter(([id, est]) => est === 'entregada' && previos.get(id) === 'pendiente')
+    .map(([id]) => document.querySelector(`#filas-pendientes .fila[data-tarea="${CSS.escape(id)}"]`)).filter(Boolean);
   datos = nuevos;
-  pintar();
+  if (exp() && hechas.length && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    hechas.forEach((f) => f.classList.add('entregada'));
+    setTimeout(pintar, 800);
+  } else pintar();
   // Llegó una respuesta (o cambió lo que se está haciendo) de la tarea abierta.
   if (tareaSel && JSON.stringify([datos.respuestas?.find((r) => r.id === tareaSel.id)?.cuando, datos.trabajo?.fase, datos.entregaCambio]) !== antes) refrescarEntrega();
 });

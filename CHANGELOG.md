@@ -1,5 +1,28 @@
 # Cambios
 
+## 0.2.4 · 2026-10-29
+
+- Nuevo en Ajustes → Experimental: «Funciones experimentales», apagado de entrada. Al
+  encenderlo, la lista se vuelve más tranquila:
+  - El número es lo que vence hoy («3 hoy»), en gris; el total sale al pasar el ratón.
+    El rojo queda sólo para lo que vence en menos de 1 hora.
+  - Las vencidas que aún aceptan entrega se llaman «Aún puedes entregar» y van
+    después de lo de hoy, en el widget y en la app.
+  - Los próximos días van plegados en una fila («Mañana y después») que se abre con
+    un clic, y las horas se leen «en 40 min» o «medianoche».
+  - «Lo siguiente»: la próxima tarea de hoy, más grande, y un anillo que se llena con
+    lo que ya entregaste hoy. Al entregar, la fila se tacha y se va.
+  - «Hoy no»: esconde una tarea hasta mañana, con deshacer.
+  - La semana de un vistazo (un punto por día según lo que hay) y los días seguidos
+    al día, sin avisos de racha perdida.
+  - Un saludo la primera vez del día y, si lo eliges, un solo aviso a una hora con lo
+    que vence hoy.
+  - Más contraste en el texto secundario de los temas claro y medianoche.
+  - En Ajustes → Detalles cada extra se puede apagar, o todos de golpe con «Dejarla
+    simple».
+- En el widget, lo que vence de madrugada (por ejemplo a las 12:00 a.m.) cuenta como
+  del día anterior, que es cuando se entrega.
+
 ## 0.2.3 · 2026-10-21
 
 - Desde la 0.2.1 la app no ponía tus archivos en Moodle, ni al abrir la entrega ni al

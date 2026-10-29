@@ -130,7 +130,7 @@ let ventanaArchivos = null;
 let archivosArrastre = [];
 let destinoArrastre = 'ChatGPT';
 let entregaArrastre = null; // { ventana, destino, notificar } de la entrega en Moodle abierta
-let estado = { datos: null, error: null, cargando: false, sesion: 'falta', escuela: null, prefs: preferencias.leer(), descartadas: preferencias.descartadas(), actualizacion: actualizaciones.estadoActualizacion() };
+let estado = { datos: null, error: null, cargando: false, sesion: 'falta', escuela: null, prefs: preferencias.leer(), descartadas: preferencias.descartadas(), pospuestas: preferencias.pospuestas(), actualizacion: actualizaciones.estadoActualizacion() };
 let reintento = null;
 // Sube con cada cambio de cuenta: lo que llegue de Moodle para la anterior se descarta.
 let generacion = 0;
@@ -1777,7 +1777,42 @@ ipcMain.handle('respuesta:borrar', (_e, tareaId) => {
 const ARCHIVO_AVISOS = path.join(DIR_DATOS, 'avisados.json');
 let avisados = new Set(leerJson(ARCHIVO_AVISOS) || []);
 
+// Resumen del día (experimental): un solo aviso a la hora elegida con lo que
+// vence hoy. Si a esa hora la computadora estaba apagada, sale en las 4 h
+// siguientes; más tarde ya no sirve. Una vez al día.
+const ARCHIVO_RESUMEN = path.join(DIR_DATOS, 'resumen.json');
+const MADRUGADA = 6 * 3_600_000;
+const diaDe = (ms) => { const d = new Date(ms - MADRUGADA); d.setHours(0, 0, 0, 0); return d.getTime(); };
+
+function revisarResumen() {
+  const p = estado.prefs;
+  if (SIN_RED || !p.experimental || !p.resumenHora || !estado.datos || estado.sesion !== 'lista' || !Notification.isSupported()) return;
+  const ahora = new Date();
+  const h = ahora.getHours();
+  if (h < p.resumenHora || h >= p.resumenHora + 4) return;
+  const dia = ahora.toDateString();
+  if (leerJson(ARCHIVO_RESUMEN)?.dia === dia) return;
+  escribirJson(ARCHIVO_RESUMEN, { dia });
+  const fuera = new Set([...(estado.descartadas || []), ...(estado.pospuestas || []).filter((t) => t.hasta > Date.now())].map((t) => t.id));
+  const deHoy = estado.datos.cursos.flatMap((c) => c.tareas)
+    .filter((t) => t.estado === 'pendiente' && t.entrega && !fuera.has(t.id))
+    .map((t) => Date.parse(t.entrega))
+    .filter((cuando) => cuando >= ahora.getTime() && diaDe(cuando) === diaDe(ahora.getTime()))
+    .sort((a, b) => a - b);
+  let cuerpo = 'Hoy no vence nada.';
+  if (deHoy.length) {
+    const primera = new Date(deHoy[0]);
+    const minutos = primera.getHours() * 60 + primera.getMinutes();
+    const cuando = minutos === 0 || minutos === 1439 ? 'a medianoche' : `a las ${primera.toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit' })}`;
+    cuerpo = `Hoy: ${deHoy.length} ${deHoy.length === 1 ? 'cosa' : 'cosas'}; la primera ${cuando}.`;
+  }
+  const aviso = new Notification({ title: 'Tu día en Insti Today', body: cuerpo, icon: ICONO_PNG });
+  aviso.on('click', () => abrirApp('pendientes'));
+  aviso.show();
+}
+
 function revisarAvisos() {
+  revisarResumen();
   const p = estado.prefs;
   if (SIN_RED || !p.avisos || !estado.datos || estado.sesion !== 'lista' || !Notification.isSupported()) return;
   const ahora = Date.now();
@@ -1869,6 +1904,7 @@ function datosConfiguracion() {
     actualizacion: estado.actualizacion,
     pagina: actualizaciones.PAGINA,
     descartadas: estado.descartadas,
+    pospuestas: estado.pospuestas,
     claude: claude.estado(),
   };
 }
@@ -2041,6 +2077,17 @@ ipcMain.handle('tareas:restaurar', (_e, id) => {
   publicar({ descartadas: preferencias.restaurar(id) });
   return datosConfiguracion();
 });
+// «Hoy no» (experimental): la esconde hasta mañana, sin preguntar (se deshace al momento).
+ipcMain.handle('tareas:posponer', (_e, tarea, hasta) => {
+  const ahora = Date.now();
+  if (!tarea?.id || !buscarEnAgenda(tarea.id) || !Number.isFinite(hasta) || hasta <= ahora || hasta > ahora + 2 * 86_400_000) return false;
+  publicar({ pospuestas: preferencias.posponer(String(tarea.id), hasta) });
+  return true;
+});
+ipcMain.handle('tareas:volver', (_e, id) => {
+  publicar({ pospuestas: preferencias.volver(String(id)) });
+  return datosConfiguracion();
+});
 ipcMain.handle('actualizacion:instalar', () => actualizaciones.instalarAhora());
 ipcMain.handle('actualizacion:buscar', () => actualizaciones.buscar());
 ipcMain.handle('actualizacion:descargar', () => descargarVersionNueva());
@@ -2181,6 +2228,7 @@ function recargarCuenta(extra = {}) {
     claude: null,
     respuestas: resumenRespuestas(),
     descartadas: preferencias.descartadas(),
+    pospuestas: preferencias.pospuestas(),
     ...extra,
   });
 }

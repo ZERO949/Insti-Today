@@ -51,6 +51,9 @@ contextBridge.exposeInMainWorld('agenda', {
   tareas: {
     descartar: (tarea) => ipcRenderer.invoke('tareas:descartar', tarea),
     restaurar: (id) => ipcRenderer.invoke('tareas:restaurar', id),
+    // «Hoy no» (experimental): esconderla hasta `hasta` (ms) y devolverla.
+    posponer: (tarea, hasta) => ipcRenderer.invoke('tareas:posponer', tarea, hasta),
+    volver: (id) => ipcRenderer.invoke('tareas:volver', id),
   },
   claude: {
     resolver: (tarea) => ipcRenderer.invoke('claude:resolver', tarea),

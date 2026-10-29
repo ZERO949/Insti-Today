@@ -275,3 +275,8 @@
   --sombra-texto: none;
   color-scheme: dark;
 }
+
+/* Ajustes → Experimental: el texto secundario y los enlaces con más contraste (WCAG AA). */
+:root[data-experimental][data-tema="claro"] { --tenue: #6e6e73; --acento: #0066cc; }
+:root[data-experimental]:not([data-tema]),
+:root[data-experimental][data-tema="medianoche"] { --tenue: #98989d; }

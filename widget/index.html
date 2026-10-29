@@ -33,8 +33,10 @@
   .titular { display: flex; align-items: center; gap: 8px; }
   h1 { margin: 0; font: 700 17px/1 var(--fuente-titulo); letter-spacing: -.022em; }
   .cuenta { font-size: 11px; font-weight: 600; line-height: 18px; height: 18px; min-width: 18px; padding: 0 6px; border-radius: 9px; text-align: center; background: var(--neutro); color: var(--suave); font-variant-numeric: tabular-nums; }
+  .cuenta { white-space: nowrap; }
   .cuenta.hay { background: color-mix(in srgb, var(--pronto) 16%, transparent); color: var(--pronto); }
   .cuenta.urge { background: var(--mal); color: #fff; }
+  .cuenta[hidden] { display: none; }
   .hoy { color: var(--tenue); font-size: 11.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hoy::first-letter { text-transform: uppercase; }
   .botones { display: flex; gap: 2px; margin-left: auto; margin-bottom: -3px; }
@@ -80,14 +82,55 @@
   .pastilla.pronto { color: var(--pronto); font-weight: 600; }
   .lado { display: grid; justify-items: end; align-items: center; }
   .lado > * { grid-area: 1 / 1; transition: opacity .15s var(--curva); }
-  .quitar { -webkit-app-region: no-drag; width: 22px; height: 22px; border: 0; border-radius: 50%; padding: 0; display: grid; place-items: center; background: var(--pieza); color: var(--suave); cursor: pointer; opacity: 0; pointer-events: none; }
+  .acciones { display: flex; gap: 4px; opacity: 0; pointer-events: none; }
+  .quitar, .posponer { -webkit-app-region: no-drag; width: 22px; height: 22px; border: 0; border-radius: 50%; padding: 0; display: grid; place-items: center; background: var(--pieza); color: var(--suave); cursor: pointer; }
   .quitar:hover { background: var(--mal); color: #fff; }
-  .quitar svg { width: 10px; height: 10px; pointer-events: none; }
+  .posponer:hover { background: var(--acento); color: #fff; }
+  .quitar svg, .posponer svg { width: 10px; height: 10px; pointer-events: none; }
+  .posponer svg { width: 11px; height: 11px; }
   .item:focus-within .pastilla { opacity: 0; pointer-events: none; }
-  .item:focus-within .quitar { opacity: 1; pointer-events: auto; }
+  .item:focus-within .acciones { opacity: 1; pointer-events: auto; }
   .item:hover .pastilla { pointer-events: none; }
   .item:hover .pastilla { opacity: 0; }
-  .item:hover .quitar { opacity: 1; pointer-events: auto; }
+  .item:hover .acciones { opacity: 1; pointer-events: auto; }
+  /* Lo siguiente: la primera de hoy, un poco más grande. */
+  .siguiente { margin: 2px 0 6px; padding: 11px 12px; background: var(--pieza); align-items: start; }
+  .siguiente:hover, .siguiente.activa { background: var(--pieza-hover); }
+  .siguiente .punto { margin-top: 5px; }
+  .siguiente .rotulo { font-size: 11px; font-weight: 600; color: var(--tenue); margin-bottom: 2px; }
+  .siguiente .titulo { font: 600 14px/1.3 var(--fuente-titulo); letter-spacing: -.012em; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .siguiente .lado { margin-top: 1px; }
+  .siguiente.saluda .punto { animation: respirar 1.4s var(--curva) 1; }
+  @keyframes respirar { 40% { transform: scale(1.7); box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 22%, transparent); } }
+  /* Entregada: palomita, se tacha y se va. */
+  .item.entregada { max-height: 80px; animation: irse .32s var(--curva) .45s forwards; }
+  .item.entregada .punto { background: var(--bien) !important; transform: scale(1.35); transition: transform .2s var(--curva); }
+  .item.entregada .titulo { text-decoration: line-through; color: var(--tenue); }
+  .item.entregada .lado { opacity: 0; }
+  @keyframes irse { to { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin: 0; } }
+  /* Progreso de hoy: el anillo se llena con lo entregado. */
+  .anillo { width: 15px; height: 15px; transform: rotate(-90deg); flex: none; }
+  .anillo circle { fill: none; stroke-width: 2.6; }
+  .anillo .pista { stroke: var(--neutro); }
+  .anillo .avance { stroke: var(--bien); stroke-linecap: round; transition: stroke-dashoffset .6s var(--curva); }
+  .anillo[hidden] { display: none; }
+  /* La semana de un vistazo: un punto por día, más grande cuanto más hay. */
+  .semana { display: flex; align-items: center; gap: 2px; padding: 0 12px 8px 12px; }
+  .semana[hidden] { display: none; }
+  .dia-s { width: 21px; display: grid; justify-items: center; gap: 3px; font-size: 11px; font-weight: 500; color: var(--tenue); }
+  .dia-s.hoy-s { color: var(--texto); font-weight: 700; }
+  .dia-s i { width: var(--t, 4px); height: var(--t, 4px); margin: calc((9px - var(--t, 4px)) / 2) 0; border-radius: 50%; background: var(--tenue); opacity: .7; }
+  .dia-s.hoy-s i { background: var(--texto); opacity: 1; }
+  .dia-s i.libre { background: transparent; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tenue) 55%, transparent); opacity: 1; }
+  .dia-s i.listo { background: var(--bien); opacity: 1; }
+  .racha { margin-left: auto; font-size: 11.5px; font-weight: 600; color: var(--suave); white-space: nowrap; }
+  .saludo { margin: 0 10px 8px; padding: 8px 10px; border-radius: 10px; background: var(--pieza); font-size: 12px; color: var(--suave); cursor: pointer; transition: opacity .4s var(--curva); }
+  .saludo b { color: var(--texto); font-weight: 600; }
+  .saludo.yendo { opacity: 0; }
+  @media (prefers-reduced-motion: reduce) {
+    .siguiente.saluda .punto, .item.entregada, .claude .punto-vivo { animation: none; }
+    .item.entregada { display: none; }
+  }
   /* Franjas de abajo (deshacer, IA, versión nueva): una línea fina y botones de cápsula. */
   .deshacer, .claude, .novedad { display: flex; align-items: center; gap: 9px; padding: 9px 12px 10px 16px; border-top: 1px solid var(--linea); font-size: 12px; color: var(--suave); }
   .deshacer[hidden], .claude[hidden], .novedad[hidden] { display: none; }
@@ -101,6 +144,8 @@
   .claude .cerrar:hover { background: var(--pieza); color: var(--texto); }
   .claude .tecla { display: inline-block; font-size: 11px; font-weight: 600; color: var(--texto); background: var(--pieza); border-radius: 5px; padding: 0 5px; margin: 0 1px; }
   .claude .punto-vivo { width: 8px; height: 8px; border-radius: 50%; background: var(--acento); flex: none; animation: latido 1.2s ease-in-out infinite; }
+  /* Experimental: late unas veces al aparecer y se queda quieto; la franja ya dice qué pasa. */
+  [data-experimental] .claude .punto-vivo { animation-iteration-count: 3; }
   .claude .hecho { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--bien); color: #fff; flex: none; }
   @keyframes latido { 50% { opacity: .3; transform: scale(.8); } }
   .meta .resuelta { color: var(--bien); margin-left: 4px; }
@@ -111,6 +156,15 @@
   .separador { font-size: 12px; font-weight: 600; color: var(--tenue); padding: 12px 10px 4px; }
   .separador.dia { color: var(--texto); }
   .separador.dia.vencidas { color: var(--mal); }
+  [data-experimental] .separador.vencidas { color: var(--pronto); }
+  .nada-hoy { font-size: 12px; color: var(--tenue); padding: 2px 10px 6px; }
+  /* Los días que vienen, plegados: se ven al pedirlos. */
+  .plegado { -webkit-app-region: no-drag; display: flex; align-items: center; gap: 6px; width: 100%; margin-top: 4px; padding: 9px 10px; border: 0; border-radius: 11px; background: transparent; font: inherit; font-size: 12px; font-weight: 600; color: var(--suave); cursor: pointer; text-align: left; transition: background .15s var(--curva); }
+  .plegado:hover { background: var(--hover); }
+  .plegado:focus-visible { outline: 2px solid color-mix(in srgb, var(--acento) 60%, transparent); outline-offset: -2px; }
+  .plegado .n { color: var(--tenue); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .plegado svg { margin-left: auto; width: 10px; height: 10px; color: var(--tenue); transition: transform .2s var(--curva); }
+  .plegado[aria-expanded="true"] svg { transform: rotate(90deg); }
   .vacio { display: flex; align-items: center; gap: 12px; padding: 6px 16px 16px; }
   .vacio .ok { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--bien); color: #fff; flex: none; }
   .vacio .ok svg { width: 15px; height: 15px; }
@@ -145,7 +199,7 @@
   <header>
     <div class="cabeza">
       <span class="hoy" id="hoy"></span>
-      <div class="titular"><h1>Pendientes</h1><span class="cuenta" id="cuenta">0</span></div>
+      <div class="titular"><h1>Pendientes</h1><svg class="anillo" id="anillo" viewBox="0 0 16 16" hidden><circle class="pista" cx="8" cy="8" r="6.2"/><circle class="avance" id="avance" cx="8" cy="8" r="6.2" stroke-dasharray="38.96" stroke-dashoffset="38.96"/></svg><span class="cuenta" id="cuenta" hidden></span></div>
     </div>
     <div class="botones" id="botones">
       <button class="boton" id="mensajes" title="Mensajes y anuncios" hidden>
@@ -163,6 +217,8 @@
       </button>
     </div>
   </header>
+  <div class="semana" id="semana" hidden></div>
+  <div class="saludo" id="saludo" hidden></div>
   <div class="panel-mensajes" id="panel-mensajes" hidden></div>
   <div class="aviso" id="aviso" hidden></div>
   <div class="lista" id="lista"></div>
@@ -186,10 +242,17 @@ let estado = { datos: null, error: null, cargando: false };
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const inicioDia = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+// Lo que vence de madrugada (p. ej. 12:00 a.m.) cuenta como del día anterior: se entrega esa noche.
+const MADRUGADA = 6 * 3_600_000;
+const diaDe = (t) => inicioDia(t - MADRUGADA);
 const fmtHoy = new Intl.DateTimeFormat('es-MX', { weekday: 'short', day: 'numeric', month: 'short' });
 const fmtHora = new Intl.DateTimeFormat('es-MX', { hour: 'numeric', minute: '2-digit' });
 
 const prefs = () => estado.prefs || { diasAdelante: 0, diasAtras: 7, soloTardias: true, sinFecha: true, sinFechaDias: 14, vistaPrevia: true };
+// Ajustes → Experimental. Apagado, el widget se ve y se comporta como en la 0.2.3.
+const exp = () => prefs().experimental === true;
+// Los extras de Ajustes → Detalles sólo cuentan con lo experimental encendido.
+const conDetalle = (id) => exp() && prefs()[id] !== false;
 
 // Qué se muestra, según Configuración:
 // - Lo no entregado que vence de hoy a `diasAdelante` días. Lo de hoy cuya
@@ -197,23 +260,103 @@ const prefs = () => estado.prefs || { diasAdelante: 0, diasAtras: 7, soloTardias
 //   también las que no).
 // - Lo vencido de hasta `diasAtras` días atrás, sin entregar; con
 //   `soloTardias`, sólo lo que aún acepta entrega.
+// Las quitadas y, con «Hoy no», las pospuestas hasta la fecha que se guardó.
+function escondidas({ pospuestas = true } = {}) {
+  const ids = new Set((estado.descartadas || []).map((t) => t.id));
+  if (pospuestas) for (const x of estado.pospuestas || []) if (x.hasta > Date.now()) ids.add(x.id);
+  return ids;
+}
+
+// Todas las tareas con fecha que no se quitaron, con su día.
+function conFecha(ocultas) {
+  return (estado.datos?.cursos || []).flatMap((c) => c.tareas)
+    .filter((t) => t.entrega && !ocultas.has(t.id))
+    .map((t) => ({ ...t, cuando: Date.parse(t.entrega), dia: diaDe(Date.parse(t.entrega)) }));
+}
+
+// Los próximos 7 días: cuántas quedan por entregar y cuántas ya se entregaron.
+function semana() {
+  const hoy = diaDe(Date.now());
+  const dias = Array.from({ length: 7 }, (_, i) => ({ dia: hoy + i * DIA, quedan: 0, hechas: 0 }));
+  for (const t of conFecha(escondidas())) {
+    const d = dias[Math.round((t.dia - hoy) / DIA)];
+    if (!d) continue;
+    if (t.estado === 'entregada') d.hechas++;
+    else if (t.estado === 'pendiente' && (t.cuando >= Date.now() || t.tardia)) d.quedan++;
+  }
+  return dias;
+}
+
+// Días seguidos sin nada pendiente, contando hacia atrás desde ayer (y hoy si ya
+// está todo). Los días sin tareas no suman ni la rompen. Nunca se dice que se rompió.
+function racha() {
+  const hoy = diaDe(Date.now());
+  const porDia = new Map();
+  for (const t of conFecha(escondidas({ pospuestas: false }))) {
+    const d = porDia.get(t.dia) || { quedan: 0, hechas: 0 };
+    if (t.estado === 'entregada') d.hechas++;
+    else if (t.estado === 'pendiente') d.quedan++;
+    porDia.set(t.dia, d);
+  }
+  let n = 0;
+  for (let d = hoy - DIA; d > hoy - 60 * DIA; d -= DIA) {
+    const x = porDia.get(d);
+    if (x?.quedan) break;
+    if (x?.hechas) n++;
+  }
+  const deHoy = porDia.get(hoy);
+  if (deHoy?.hechas && !deHoy.quedan) n++;
+  return n;
+}
+
+const fmtLetra = new Intl.DateTimeFormat('es-MX', { weekday: 'narrow' });
+const fmtDiaLargo = new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric' });
+function pintarSemana() {
+  const caja = $('semana');
+  caja.hidden = !conDetalle('verSemana') || estado.sesion !== 'lista' || !estado.datos;
+  if (caja.hidden) return;
+  const n = racha();
+  caja.innerHTML = semana().map((d, i) => {
+    const total = d.quedan + d.hechas;
+    const clase = !total ? 'libre' : !d.quedan ? 'listo' : '';
+    const tam = d.quedan >= 4 ? 9 : d.quedan >= 2 ? 7 : 5;
+    const dice = !total ? 'nada' : !d.quedan ? 'todo entregado' : `${d.quedan} por entregar`;
+    return `<span class="dia-s${i ? '' : ' hoy-s'}" title="${esc(mayusc(fmtDiaLargo.format(d.dia)))}: ${dice}">${esc(fmtLetra.format(d.dia).toUpperCase())}<i class="${clase}" style="--t:${clase ? 5 : tam}px"></i></span>`;
+  }).join('') + (n >= 2 ? `<span class="racha" title="Días seguidos sin nada pendiente">${n} días al día</span>` : '');
+}
+// Sin nada pendiente: una frase según la hora; cambia de un día a otro, no cada minuto.
+const FRASES_LIBRE = {
+  manana: ['Mañana despejada', 'Todo al día', 'Empiezas el día libre'],
+  tarde: ['Libre esta tarde', 'Todo al día', 'Nada por hoy'],
+  noche: ['Noche tranquila', 'Todo al día', 'A descansar'],
+};
+function fraseLibre() {
+  const h = new Date().getHours();
+  const lista = FRASES_LIBRE[h >= 6 && h < 12 ? 'manana' : h >= 12 && h < 19 ? 'tarde' : 'noche'];
+  return lista[Math.round(diaDe(Date.now()) / DIA) % lista.length];
+}
+const mayusc = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
 function pendientes() {
   const p = prefs();
   const ahora = Date.now();
-  const hoy = inicioDia(ahora);
+  const hoy = diaDe(ahora);
   const fin = hoy + (p.diasAdelante + 1) * DIA;
   const desde = hoy - p.diasAtras * DIA;
   const vale = (t) => t.tardia || !p.soloTardias;
   const proximas = [];
   const atrasadas = [];
   const sinFecha = [];
-  const quitadas = new Set((estado.descartadas || []).map((t) => t.id));
+  const quitadas = escondidas({ pospuestas: exp() });
+  let hechasHoy = 0;
   // Las sin fecha publicadas hace más de N días se dan por viejas.
   const limiteSinFecha = p.sinFechaDias > 0 ? ahora - p.sinFechaDias * DIA : -Infinity;
   (estado.datos?.cursos || []).forEach((c, i) => {
     const color = COLORES[i % COLORES.length];
     for (const t of c.tareas) {
-      if (t.estado !== 'pendiente' || quitadas.has(t.id)) continue;
+      if (quitadas.has(t.id)) continue;
+      if (t.estado === 'entregada' && t.entrega && diaDe(Date.parse(t.entrega)) === hoy) hechasHoy++;
+      if (t.estado !== 'pendiente') continue;
       // Sin fecha: no salen en el calendario de Moodle y son las que más
       // se olvidan. Las bloqueadas (aún no liberadas) no cuentan.
       if (!t.entrega) {
@@ -223,9 +366,10 @@ function pendientes() {
       }
       const cuando = Date.parse(t.entrega);
       const item = { ...t, curso: c.nombre, cursoId: c.id, color, cuando };
-      if (cuando >= hoy && cuando < fin) {
+      const dia = diaDe(cuando);
+      if (dia >= hoy && dia < fin) {
         if (cuando >= ahora || vale(t)) proximas.push(item);
-      } else if (cuando < hoy && cuando >= desde && vale(t)) {
+      } else if (dia < hoy && dia >= desde && vale(t)) {
         atrasadas.push(item);
       }
     }
@@ -233,30 +377,56 @@ function pendientes() {
   proximas.sort((a, b) => a.cuando - b.cuando);
   atrasadas.sort((a, b) => b.cuando - a.cuando);
   sinFecha.sort((a, b) => a.curso.localeCompare(b.curso, 'es') || a.titulo.localeCompare(b.titulo, 'es'));
-  return { deHoy: proximas, atrasadas, sinFecha };
+  return { deHoy: proximas, atrasadas, sinFecha, hechasHoy };
 }
+
+// Hasta cuándo se esconde una tarea pospuesta: el principio del día siguiente
+// (las 6 a.m., que es cuando empieza el día para Insti Today).
+const hastaManana = () => diaDe(Date.now()) + DIA + MADRUGADA;
 
 const fmtDiaCorto = new Intl.DateTimeFormat('es-MX', { weekday: 'short', day: 'numeric', month: 'short' });
 function nombreDia(t) {
-  const dif = Math.round((inicioDia(t) - inicioDia(Date.now())) / DIA);
+  const dif = Math.round((diaDe(t) - diaDe(Date.now())) / DIA);
   if (dif === 0) return 'Hoy';
   if (dif === 1) return 'Mañana';
   const s = fmtDiaCorto.format(t);
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function fila(t, pastilla, clase) {
+const LUNA = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 9.6A5.5 5.5 0 1 1 6.4 3a4.4 4.4 0 0 0 6.6 6.6Z"/></svg>';
+// extra: { siguiente, saluda, posponer } para la tarjeta de arriba y el botón «Hoy no».
+function fila(t, pastilla, clase, extra = {}) {
   const material = t.relacionados?.length || /\S/.test(t.instrucciones || '') ? CLIP : '';
-  return `<div class="item" tabindex="0" role="group" aria-label="Abrir detalle de ${esc(t.titulo)}" data-curso="${esc(t.cursoId)}" data-tarea="${esc(t.id)}" data-color="${t.color}" data-enlace="${esc(t.enlace)}">
+  const posponer = extra.posponer ? `<button type="button" class="posponer" data-posponer title="Hoy no: vuelve mañana" aria-label="Posponer ${esc(t.titulo)} hasta mañana">${LUNA}</button>` : '';
+  return `<div class="item${extra.siguiente ? ' siguiente' : ''}${extra.saluda ? ' saluda' : ''}" tabindex="0" role="group" aria-label="Abrir detalle de ${esc(t.titulo)}" data-curso="${esc(t.cursoId)}" data-tarea="${esc(t.id)}" data-color="${t.color}" data-enlace="${esc(t.enlace)}">
     <i class="punto" style="background:${t.color};color:${t.color}"></i>
-    <div style="min-width:0"><div class="titulo">${esc(t.titulo)}</div><div class="meta">${esc(t.curso)}${material}${estado.respuestas?.[t.id] ? `<span class="resuelta" title="${esc(estado.respuestas[t.id])} ya la resolvió">· respuesta lista</span>` : ''}</div></div>
-    <span class="lado"><span class="pastilla ${clase}">${pastilla}</span><button type="button" class="quitar" data-quitar title="Quitar de la lista" aria-label="Quitar ${esc(t.titulo)}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></span></div>`;
+    <div style="min-width:0">${extra.siguiente ? '<div class="rotulo">Lo siguiente</div>' : ''}<div class="titulo">${esc(t.titulo)}</div><div class="meta">${esc(t.curso)}${material}${estado.respuestas?.[t.id] ? `<span class="resuelta" title="${esc(estado.respuestas[t.id])} ya la resolvió">· respuesta lista</span>` : ''}</div></div>
+    <span class="lado"><span class="pastilla ${clase}">${pastilla}</span><span class="acciones">${posponer}<button type="button" class="quitar" data-quitar title="Quitar de la lista" aria-label="Quitar ${esc(t.titulo)}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></span></span></div>`;
 }
 
+// 12:00 a.m. y 11:59 p.m. se leen mejor como «medianoche».
+function hora(t) {
+  const d = new Date(t);
+  const m = d.getHours() * 60 + d.getMinutes();
+  return m === 0 || m === 1439 ? 'medianoche' : fmtHora.format(t);
+}
+
+// Experimental: rojo sólo a menos de 1 h; ámbar a menos de 6 h; lo demás, gris.
 function pastillaHoy(t) {
+  if (!exp()) return pastillaHoyClasica(t);
+  const ms = t.cuando - Date.now();
+  if (ms < 0) return ['tarde', 'pronto'];
+  if (diaDe(t.cuando) !== diaDe(Date.now())) return [hora(t.cuando), ''];
+  const h = ms / 3_600_000;
+  if (h < 1) return [`en ${Math.max(1, Math.round(ms / 60_000))} min`, 'mal'];
+  if (h < 6) return [`en ${Math.floor(h)} h`, 'pronto'];
+  return [hora(t.cuando), ''];
+}
+
+function pastillaHoyClasica(t) {
   const ms = t.cuando - Date.now();
   if (ms < 0) return ['tarde', 'mal'];
-  if (inicioDia(t.cuando) !== inicioDia(Date.now())) return [fmtHora.format(t.cuando), ''];
+  if (diaDe(t.cuando) !== diaDe(Date.now())) return [fmtHora.format(t.cuando), ''];
   const h = ms / 3_600_000;
   if (h < 1) return [`${Math.max(1, Math.round(ms / 60_000))} min`, 'mal'];
   if (h < 6) return [`${Math.floor(h)} h`, 'mal'];
@@ -264,7 +434,7 @@ function pastillaHoy(t) {
 }
 
 function pastillaAtrasada(t) {
-  const d = Math.round((inicioDia(Date.now()) - inicioDia(t.cuando)) / DIA);
+  const d = Math.round((diaDe(Date.now()) - diaDe(t.cuando)) / DIA);
   return [d === 1 ? 'ayer' : `hace ${d} d`, ''];
 }
 
@@ -273,6 +443,7 @@ function aplicarTema() {
   const p = prefs();
   const tema = p.tema === 'sistema' || !p.tema ? (oscuroSistema.matches ? 'medianoche' : 'claro') : p.tema;
   document.documentElement.dataset.tema = tema;
+  document.documentElement.toggleAttribute('data-experimental', exp());
   document.documentElement.style.setProperty('--alfa', String((p.opacidad ?? 92) / 100));
 }
 oscuroSistema.addEventListener('change', () => pintar());
@@ -419,6 +590,7 @@ function pintar() {
   aplicarTema();
   if (estado.mantenimiento) $('abrir-app').title='Tus archivos, entrega y ajustes';
   pintarMensajes();
+  pintarSemana();
   pintarClaude();
   pintarNovedad();
   $('hoy').textContent = fmtHoy.format(new Date());
@@ -432,6 +604,7 @@ function pintar() {
   // Sin sesión no se muestra nada más que cómo entrar: ni datos viejos ni un
   // "cargando" que no va a terminar nunca.
   if (estado.sesion === 'falta' || estado.sesion === 'caducada' || estado.entrando) {
+    $('cuenta').hidden = exp();
     $('cuenta').className = 'cuenta';
     $('cuenta').textContent = '–';
     pintarAcceso();
@@ -451,18 +624,100 @@ function pintar() {
     return;
   }
 
-  const { deHoy, atrasadas, sinFecha } = pendientes();
+  const { deHoy, atrasadas, sinFecha, hechasHoy } = pendientes();
   const total = deHoy.length + atrasadas.length + sinFecha.length;
   const cuenta = $('cuenta');
-  cuenta.textContent = total;
-  cuenta.className = `cuenta ${deHoy.some((t) => t.cuando - Date.now() < 6 * 3_600_000) ? 'urge' : total ? 'hay' : ''}`;
+  const conSiguiente = conDetalle('verSiguiente');
+  let html = '';
+  if (!exp()) {
+    // Como en la 0.2.3: el total, en rojo si algo vence en menos de 6 h.
+    cuenta.hidden = false;
+    cuenta.textContent = total;
+    cuenta.title = '';
+    cuenta.className = `cuenta ${deHoy.some((t) => t.cuando - Date.now() < 6 * 3_600_000) ? 'urge' : total ? 'hay' : ''}`;
+    $('anillo').toggleAttribute('hidden', true);
+    html = listaClasica(deHoy, atrasadas, sinFecha);
+  } else {
+    const hoy = diaDe(Date.now());
+    const soloHoy = deHoy.filter((t) => diaDe(t.cuando) === hoy);
+    const despues = deHoy.filter((t) => diaDe(t.cuando) !== hoy);
+    // El número es lo de hoy y en gris: el total de la semana no es una alarma.
+    cuenta.hidden = !soloHoy.length;
+    cuenta.textContent = `${soloHoy.length} hoy`;
+    cuenta.className = 'cuenta';
+    cuenta.title = `${soloHoy.length} para hoy · ${hechasHoy} ${hechasHoy === 1 ? 'entregada' : 'entregadas'} · ${total} en total`;
+    // Progreso: lo entregado de hoy contra lo de hoy. Vacío no dice nada:
+    // aparece con la primera entrega del día.
+    const metaHoy = soloHoy.length + hechasHoy;
+    $('anillo').toggleAttribute('hidden', !hechasHoy || !conSiguiente); // en un <svg>, .hidden no cambia el atributo
+    $('avance').style.strokeDashoffset = String(38.96 * (1 - (metaHoy ? hechasHoy / metaHoy : 0)));
 
+    // Orden: lo siguiente, el resto de hoy, lo que aún se puede entregar, los
+    // días que vienen (plegados) y sin fecha.
+    // Sin «Lo siguiente» (lista simple), lo de hoy va todo igual bajo «Hoy».
+    const siguiente = conSiguiente ? soloHoy.find((t) => t.cuando >= Date.now()) || soloHoy[0] : null;
+    const resto = soloHoy.filter((t) => t !== siguiente);
+    if (siguiente) {
+      // El punto respira una vez cuando cambia cuál es la siguiente, no cada minuto.
+      html += fila(siguiente, ...pastillaHoy(siguiente), { siguiente: true, saluda: siguiente.id !== ultimaSiguiente, posponer: true });
+      ultimaSiguiente = siguiente.id;
+    }
+    if (!soloHoy.length && total) html += `<div class="nada-hoy">${hechasHoy ? 'Lo de hoy ya está entregado.' : 'Nada vence hoy.'}</div>`;
+    if (resto.length && (siguiente || atrasadas.length || despues.length || sinFecha.length)) {
+      html += `<div class="separador dia">${siguiente ? 'También hoy' : 'Hoy'}</div>`;
+    }
+    if (resto.length) {
+      html += resto.map((t) => fila(t, ...pastillaHoy(t), { posponer: true })).join('');
+    }
+    if (atrasadas.length) {
+      html += `<div class="separador dia vencidas">${prefs().soloTardias ? 'Aún puedes entregar' : 'Vencidas'}</div>`;
+      html += atrasadas.map((t) => fila(t, ...pastillaAtrasada(t), { posponer: true })).join('');
+    }
+    if (despues.length) {
+      const etiqueta = despues.some((t) => diaDe(t.cuando) - hoy > DIA * 1.5) ? 'Mañana y después' : 'Mañana';
+      html += `<button type="button" class="plegado" id="plegado" aria-expanded="${verDespues}">${etiqueta} <span class="n">${despues.length}</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button>`;
+      if (verDespues) {
+        let dia = null;
+        for (const t of despues) {
+          const d = diaDe(t.cuando);
+          if (d !== dia) {
+            html += `<div class="separador dia">${nombreDia(t.cuando)}</div>`;
+            dia = d;
+          }
+          html += fila(t, ...pastillaHoy(t));
+        }
+      }
+    }
+    if (sinFecha.length) {
+      html += `<div class="separador${prefs().diasAdelante > 0 ? ' dia' : ''}">Sin fecha de entrega</div>`;
+      html += sinFecha.map((t) => fila(t, 'sin fecha', '', { posponer: true })).join('');
+    }
+  }
+  if (!total) {
+    html = estado.datos
+      ? `<div class="vacio"><span class="ok"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></span><div><b>${exp() ? fraseLibre() : 'Todo al día'}</b><span>${['Nada vence hoy', 'Nada vence hoy ni mañana', 'Nada en los próximos 3 días', 'Nada esta semana', 'Nada en dos semanas'][[0, 1, 2, 6, 13].indexOf(prefs().diasAdelante)] || 'Nada pendiente'}</span></div></div>`
+      : '<div class="vacio"><span>Revisando tus cursos…</span></div>';
+  }
+  const activa = document.querySelector('.item.activa')?.dataset.tarea;
+  $('lista').innerHTML = html;
+  if (activa) document.querySelector(`.item[data-tarea="${activa}"]`)?.classList.add('activa');
+  precargarVisibles();
+
+  if (estado.datos) {
+    const g = new Date(estado.datos.generado);
+    $('refrescar').title = `Actualizado ${fmtHora.format(g)} · se actualiza cada hora`;
+  }
+  ajustarAlto();
+}
+
+// La lista como en la 0.2.3 (lo experimental apagado).
+function listaClasica(deHoy, atrasadas, sinFecha) {
   // Con más de un día, la lista se agrupa por día.
   let html = '';
   if (prefs().diasAdelante > 0) {
     let dia = null;
     for (const t of deHoy) {
-      const d = inicioDia(t.cuando);
+      const d = diaDe(t.cuando);
       if (d !== dia) {
         html += `<div class="separador dia">${nombreDia(t.cuando)}</div>`;
         dia = d;
@@ -480,23 +735,11 @@ function pintar() {
     html += `<div class="separador${prefs().diasAdelante > 0 ? ' dia' : ''}">Sin fecha de entrega</div>`;
     html += sinFecha.map((t) => fila(t, 'sin fecha', '')).join('');
   }
-  if (!total) {
-    html = estado.datos
-      ? `<div class="vacio"><span class="ok"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></span><div><b>Todo al día</b><span>${['Nada vence hoy', 'Nada vence hoy ni mañana', 'Nada en los próximos 3 días', 'Nada esta semana', 'Nada en dos semanas'][[0, 1, 2, 6, 13].indexOf(prefs().diasAdelante)] || 'Nada pendiente'}</span></div></div>`
-      : '<div class="vacio"><span>Revisando tus cursos…</span></div>';
-  }
-  const activa = document.querySelector('.item.activa')?.dataset.tarea;
-  $('lista').innerHTML = html;
-  if (activa) document.querySelector(`.item[data-tarea="${activa}"]`)?.classList.add('activa');
-  precargarVisibles();
-
-  if (estado.datos) {
-    const g = new Date(estado.datos.generado);
-    $('refrescar').title = `Actualizado ${fmtHora.format(g)} · se actualiza cada hora`;
-  }
-  ajustarAlto();
+  return html;
 }
 
+let verDespues = false;
+let ultimaSiguiente = null;
 let cambiandoEscuela = false;
 let errorEscuela = '';
 
@@ -646,15 +889,17 @@ function precargarVisibles() {
   }, 1500);
 }
 
-// La ✕ quita la tarea de la lista y deja unos segundos para deshacerlo.
+// La ✕ quita la tarea de la lista y la luna la pospone a mañana; las dos
+// dejan unos segundos para deshacerlo.
 let deshacerPendiente = null;
-function ofrecerDeshacer(tarea) {
+function ofrecerDeshacer(tarea, pospuesta = false) {
   clearTimeout(deshacerPendiente);
   const caja = $('deshacer');
   caja.hidden = false;
-  caja.innerHTML = `<span>Quitaste «${esc(tarea.titulo)}»</span><button id="deshacer-boton">Deshacer</button>`;
+  caja.innerHTML = `<span>${pospuesta ? 'Mañana vuelve' : 'Quitaste'} «${esc(tarea.titulo)}»</span><button id="deshacer-boton">Deshacer</button>`;
   $('deshacer-boton').onclick = () => {
-    window.agenda.tareas.restaurar(tarea.id);
+    if (pospuesta) window.agenda.tareas.volver(tarea.id);
+    else window.agenda.tareas.restaurar(tarea.id);
     caja.hidden = true;
     ajustarAlto();
   };
@@ -666,8 +911,14 @@ function ofrecerDeshacer(tarea) {
 }
 
 $('lista').addEventListener('click', async (e) => {
-  const quitar = e.target.closest('[data-quitar]');
+  if (e.target.closest('#plegado')) {
+    verDespues = !verDespues;
+    pintar();
+    return;
+  }
+  const quitar = e.target.closest('[data-quitar], [data-posponer]');
   if (quitar) {
+    const pospuesta = quitar.matches('[data-posponer]');
     e.preventDefault();
     e.stopPropagation();
     if (quitandoTarea) return;
@@ -681,7 +932,8 @@ $('lista').addEventListener('click', async (e) => {
       curso: item.querySelector('.meta').textContent,
     };
     try {
-      if (await window.agenda.tareas.descartar(tarea)) ofrecerDeshacer(tarea);
+      const hecho = pospuesta ? window.agenda.tareas.posponer(tarea, hastaManana()) : window.agenda.tareas.descartar(tarea);
+      if (await hecho) ofrecerDeshacer(tarea, pospuesta);
     } finally {
       quitandoTarea = false;
       quitar.disabled = false;
@@ -767,8 +1019,52 @@ $('ocultar').onclick = () => window.agenda.ocultar();
 // Cada minuto: los contadores avanzan y, al cambiar el día, la lista también.
 setInterval(pintar, 60_000);
 
-window.agenda.alCambiar((nuevo) => { estado = nuevo; pintar(); });
-window.agenda.obtener().then((inicial) => { estado = inicial; pintar(); });
+// Lo que estaba pendiente y Moodle ya ve entregado: la fila se tacha y se va
+// antes de volver a pintar.
+const estados = (e) => new Map((e?.datos?.cursos || []).flatMap((c) => c.tareas.map((t) => [t.id, t.estado])));
+function recienEntregadas(antes, ahora) {
+  const previos = estados(antes);
+  return [...estados(ahora)].filter(([id, est]) => est === 'entregada' && previos.get(id) === 'pendiente').map(([id]) => id);
+}
+
+// Una vez al día, la primera vez que hay datos: cuánto hay hoy y cuándo es lo primero.
+function saludar() {
+  if (!conDetalle('verSaludo') || estado.sesion !== 'lista' || !estado.datos) return;
+  const hoy = String(diaDe(Date.now()));
+  try {
+    if (localStorage.getItem('saludo') === hoy) return;
+    localStorage.setItem('saludo', hoy);
+  } catch {}
+  const deHoy = pendientes().deHoy.filter((t) => diaDe(t.cuando) === diaDe(Date.now()) && t.cuando >= Date.now());
+  const h = new Date().getHours();
+  const hola = h >= 6 && h < 12 ? 'Buenos días' : h >= 12 && h < 19 ? 'Buenas tardes' : 'Buenas noches';
+  let texto = `${hola}. Hoy no vence nada.`;
+  if (deHoy.length) {
+    const [p] = pastillaHoy(deHoy[0]);
+    const cuando = p.startsWith('en ') ? p : p === 'medianoche' ? 'a medianoche' : `a las ${p}`;
+    texto = `${hola}. Hoy: <b>${deHoy.length} ${deHoy.length === 1 ? 'cosa' : 'cosas'}</b>; la primera ${esc(cuando)}.`;
+  }
+  const caja = $('saludo');
+  caja.innerHTML = texto;
+  caja.hidden = false;
+  const irse = () => {
+    caja.classList.add('yendo');
+    setTimeout(() => { caja.hidden = true; caja.classList.remove('yendo'); ajustarAlto(); }, 400);
+  };
+  caja.onclick = irse;
+  setTimeout(irse, 15_000);
+  ajustarAlto();
+}
+
+window.agenda.alCambiar((nuevo) => {
+  const hechas = recienEntregadas(estado, nuevo);
+  estado = nuevo;
+  const filas = hechas.map((id) => document.querySelector(`.item[data-tarea="${CSS.escape(id)}"]`)).filter(Boolean);
+  if (!exp() || !filas.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return pintar(), saludar();
+  filas.forEach((f) => f.classList.add('entregada'));
+  setTimeout(pintar, 800);
+});
+window.agenda.obtener().then((inicial) => { estado = inicial; pintar(); saludar(); });
 </script>
 </body>
 </html>

@@ -26,6 +26,12 @@ export const PREDETERMINADAS = {
   avisos: true,
   avisoHoras: 3,
   intervaloMin: 60,
+  // Ajustes → Experimental: la lista tranquila y sus extras. Apagado, todo como en la 0.2.3.
+  experimental: false,
+  verSemana: true, // los puntitos de la semana y los días seguidos al día
+  verSiguiente: true, // la tarjeta «Lo siguiente» y el anillo de lo entregado hoy
+  verSaludo: true, // la línea del widget la primera vez del día
+  resumenHora: 0, // un aviso con lo de hoy a esa hora; 0 = no
   // IA: con qué se resuelve y qué se le pide.
   // Una IA para todo, Claude o ChatGPT; lo de programación lo hace su agente
   // (Claude Code o Codex) y las imágenes siempre ChatGPT.
@@ -53,6 +59,7 @@ const PERMITIDOS = {
   tamano: [0.9, 1, 1.15],
   avisoHoras: [1, 2, 3, 6, 12],
   intervaloMin: [30, 60, 120],
+  resumenHora: [0, 7, 13, 19],
   sinFechaDias: [7, 14, 30, 60, 0],
   iaResolver: ['claude', 'chatgpt'],
 };
@@ -123,5 +130,26 @@ export function restaurar(id) {
   const ajustes = leerAjustes();
   const lista = id ? (ajustes.descartadas || []).filter((t) => t.id !== id) : [];
   fs.writeFileSync(ARCHIVO, JSON.stringify({ ...ajustes, descartadas: lista }, null, 2));
+  return lista;
+}
+
+// «Hoy no» (experimental): tareas escondidas hasta una fecha (ms). Las que ya
+// volvieron se olvidan solas.
+export function pospuestas() {
+  return (leerAjustes().pospuestas || []).filter((t) => t.hasta > Date.now());
+}
+
+export function posponer(id, hasta) {
+  const ajustes = leerAjustes();
+  const lista = pospuestas().filter((t) => t.id !== id);
+  lista.push({ id, hasta });
+  fs.writeFileSync(ARCHIVO, JSON.stringify({ ...ajustes, pospuestas: lista }, null, 2));
+  return lista;
+}
+
+export function volver(id) {
+  const ajustes = leerAjustes();
+  const lista = pospuestas().filter((t) => t.id !== id);
+  fs.writeFileSync(ARCHIVO, JSON.stringify({ ...ajustes, pospuestas: lista }, null, 2));
   return lista;
 }
