@@ -29,7 +29,8 @@ export const PREDETERMINADAS = {
   // Ajustes → Experimental: la lista tranquila y sus extras. Apagado, todo como en la 0.2.3.
   experimental: false,
   verSemana: true, // los puntitos de la semana y los días seguidos al día
-  verSiguiente: true, // la tarjeta «Lo siguiente» y el anillo de lo entregado hoy
+  verSiguiente: true, // la tarjeta «Lo siguiente»
+  verAnillo: true, // el anillo de lo entregado hoy, junto al número
   verSaludo: true, // la línea del widget la primera vez del día
   resumenHora: 0, // un aviso con lo de hoy a esa hora; 0 = no
   // IA: con qué se resuelve y qué se le pide.
@@ -47,7 +48,7 @@ export const PREDETERMINADAS = {
   iaPalabrasCodigo: 'leetcode, hackerrank, codeforces, cat, código, programación, estructuras de datos, implementa, python, java, c++, javascript, poo',
   chatgptModelo: 'auto', // lo que va en chatgpt.com/?model=
   tutorialVisto: false, // la guía corta del primer arranque
-  barraPlegada: false, // la barra lateral de la ventana sólo con iconos
+  barraPlegada: true, // la barra lateral de la ventana sólo con iconos (así abre la primera vez)
   avisoVersion: '', // en Mac: la última versión nueva de la que ya se avisó
 };
 

@@ -40,6 +40,14 @@
   .hoy { color: var(--tenue); font-size: 11.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hoy::first-letter { text-transform: uppercase; }
   .botones { display: flex; gap: 2px; margin-left: auto; margin-bottom: -3px; }
+  /* Experimental: los botones suben a la línea de la fecha y el título, el anillo
+     y el número tienen todo el ancho (también con el widget en su mínimo, 220 px). */
+  [data-experimental] header { position: relative; }
+  [data-experimental] .cabeza { flex: 1; }
+  [data-experimental] .hoy { padding-right: 76px; }
+  [data-experimental] .botones { position: absolute; top: 7px; right: 10px; margin: 0; }
+  [data-experimental] .titular { gap: 7px; }
+  [data-experimental] .titular > * { flex: none; }
   /* Actualizar siempre a la vista; esconder el widget sólo al pasar el ratón,
      para no pulsarla sin querer. */
   #ocultar { width: 0; opacity: 0; overflow: hidden; transition: opacity .2s var(--curva), width .2s var(--curva); }
@@ -150,7 +158,7 @@
   @keyframes latido { 50% { opacity: .3; transform: scale(.8); } }
   .meta .resuelta { color: var(--bien); margin-left: 4px; }
   .deshacer span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-  .deshacer button { -webkit-app-region: no-drag; margin-left: auto; flex: none; font: inherit; font-size: 12px; font-weight: 600; color: var(--acento); background: transparent; border: 0; border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+  .deshacer button { -webkit-app-region: no-drag; margin-left: auto; flex: none; font: inherit; font-size: 12px; font-weight: 600; color: var(--acento-texto, var(--acento)); background: transparent; border: 0; border-radius: 999px; padding: 3px 10px; cursor: pointer; }
   .deshacer button:hover { background: var(--pieza); }
   .novedad b { color: var(--texto); font-weight: 600; }
   .separador { font-size: 12px; font-weight: 600; color: var(--tenue); padding: 12px 10px 4px; }
@@ -184,7 +192,7 @@
   .secundario { -webkit-app-region: no-drag; font: inherit; font-size: 12.5px; font-weight: 500; color: var(--texto); background: var(--pieza); border: 0; border-radius: 999px; padding: 6px 14px; cursor: pointer; transition: background .15s var(--curva); }
   .secundario:hover { background: var(--pieza-hover); }
   .escuela { font-size: 11.5px; color: var(--tenue); display: flex; gap: 6px; align-items: center; }
-  .escuela a { color: var(--acento); cursor: pointer; text-decoration: none; }
+  .escuela a { color: var(--acento-texto, var(--acento)); cursor: pointer; text-decoration: none; }
   .escuela a:hover { text-decoration: underline; text-underline-offset: 2px; }
   .escuela-form { display: flex; gap: 6px; }
   .escuela-form input { -webkit-app-region: no-drag; flex: 1; min-width: 0; font: inherit; font-size: 12.5px; color: var(--texto); background: var(--pieza); border: 0; border-radius: 9px; padding: 6px 10px; outline: none; transition: box-shadow .15s var(--curva); }
@@ -589,6 +597,9 @@ function pintarChatGPT(c, caja) {
 function pintar() {
   aplicarTema();
   if (estado.mantenimiento) $('abrir-app').title='Tus archivos, entrega y ajustes';
+  // Experimental: sin el botón de la app, para que el título, el anillo y el
+  // número quepan; la app se abre desde la bandeja o desde una tarea.
+  $('abrir-app').hidden = exp();
   pintarMensajes();
   pintarSemana();
   pintarClaude();
@@ -649,7 +660,7 @@ function pintar() {
     // Progreso: lo entregado de hoy contra lo de hoy. Vacío no dice nada:
     // aparece con la primera entrega del día.
     const metaHoy = soloHoy.length + hechasHoy;
-    $('anillo').toggleAttribute('hidden', !hechasHoy || !conSiguiente); // en un <svg>, .hidden no cambia el atributo
+    $('anillo').toggleAttribute('hidden', !hechasHoy || !conDetalle('verAnillo')); // en un <svg>, .hidden no cambia el atributo
     $('avance').style.strokeDashoffset = String(38.96 * (1 - (metaHoy ? hechasHoy / metaHoy : 0)));
 
     // Orden: lo siguiente, el resto de hoy, lo que aún se puede entregar, los

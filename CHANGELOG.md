@@ -1,5 +1,18 @@
 # Cambios
 
+## 0.2.5 · 2026-10-29
+
+- La barra lateral de la ventana de Insti Today abre plegada (sólo iconos) si nunca
+  la has cambiado.
+- Con las funciones experimentales encendidas:
+  - El anillo de progreso tiene su propio interruptor en Ajustes → Detalles, aparte
+    de «Lo siguiente».
+  - El widget ya no tiene el botón de la app (se abre desde la bandeja) y los botones
+    suben a la línea de la fecha, para que el título, el anillo y el número quepan
+    aunque el widget esté en su tamaño más chico.
+  - Las letras de color (gris secundario, ámbar, rojo, verde y azul) tienen buen
+    contraste en todos los estilos, no sólo en claro y medianoche.
+
 ## 0.2.4 · 2026-10-29
 
 - Nuevo en Ajustes → Experimental: «Funciones experimentales», apagado de entrada. Al

@@ -246,7 +246,7 @@
   .pie-entregable { padding: 10px 11px 11px; display: flex; flex-direction: column; gap: 3px; }
   .pie-entregable .nombre { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pie-entregable .meta { font-size: 12px; color: var(--tenue); }
-  .pie-entregable .origen { color: var(--acento); font-weight: 600; }
+  .pie-entregable .origen { color: var(--acento-texto, var(--acento)); font-weight: 600; }
   .pie-entregable .origen.tuyo { color: var(--pronto); }
   .pie-entregable .botones { display: flex; gap: 5px; margin-top: 6px; }
   .pie-entregable .botones [data-adjuntar] { flex: 1; justify-content: center; }
@@ -328,7 +328,7 @@
   .cuenta-op .quien { min-width: 0; flex: 1; }
   .cuenta-op .quien b { display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cuenta-op .quien span { display: block; color: var(--tenue); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .cuenta-op .marca-activa { color: var(--acento); font-size: 13px; }
+  .cuenta-op .marca-activa { color: var(--acento-texto, var(--acento)); font-size: 13px; }
   .selector-cuentas hr { border: 0; height: 1px; background: var(--linea); margin: 5px 6px; }
   .selector-cuentas .pista { color: var(--tenue); font-size: 11px; padding: 4px 8px 2px; }
   .selector-cuentas .error-cuenta { color: var(--mal); font-size: 12px; padding: 4px 8px; }
@@ -483,7 +483,7 @@
     <h2 class="titulo-grupo">Experimental</h2>
     <div class="grupo">
       <div class="opcion">
-        <div class="texto"><b>Funciones experimentales</b><span>Una lista más tranquila: el número es lo de hoy, rojo sólo a menos de 1 hora y los próximos días plegados. Suma «Lo siguiente», la semana de un vistazo, «Hoy no» y el resumen del día. Pueden cambiar o desaparecer.</span></div>
+        <div class="texto"><b>Funciones experimentales</b></div>
         <label class="interruptor"><input type="checkbox" id="experimental"><i></i></label>
       </div>
     </div>
@@ -494,15 +494,19 @@
         <label class="interruptor"><input type="checkbox" id="verSemana"><i></i></label>
       </div>
       <div class="opcion">
-        <div class="texto"><b>Lo siguiente</b><span>La próxima tarea de hoy más grande, y un anillo con lo que ya entregaste</span></div>
+        <div class="texto"><b>Lo siguiente</b><span>La próxima tarea de hoy, más grande, arriba de la lista</span></div>
         <label class="interruptor"><input type="checkbox" id="verSiguiente"><i></i></label>
+      </div>
+      <div class="opcion">
+        <div class="texto"><b>Anillo de progreso</b><span>Junto al número, se llena con lo que ya entregaste hoy</span></div>
+        <label class="interruptor"><input type="checkbox" id="verAnillo"><i></i></label>
       </div>
       <div class="opcion">
         <div class="texto"><b>Saludo del día</b><span>Una línea en el widget la primera vez que lo ves en el día</span></div>
         <label class="interruptor"><input type="checkbox" id="verSaludo"><i></i></label>
       </div>
       <div class="opcion">
-        <div class="texto"><b>Lista simple</b><span>Apaga los tres y deja sólo las tareas</span></div>
+        <div class="texto"><b>Lista simple</b><span>Apaga todos los detalles y deja sólo las tareas</span></div>
         <button class="boton" id="lista-simple"></button>
       </div>
     </div>
@@ -598,7 +602,7 @@ const fmtDia = new Intl.DateTimeFormat('es-MX', { weekday: 'short', day: 'numeri
 const fmtLargo = new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' });
 const inicioDia = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
 // Los extras que se pueden apagar para una lista simple (Ajustes → Detalles).
-const DETALLES = ['verSemana', 'verSiguiente', 'verSaludo'];
+const DETALLES = ['verSemana', 'verSiguiente', 'verAnillo', 'verSaludo'];
 // Ajustes → Experimental. Apagado, la lista se ve y se comporta como en la 0.2.3.
 const exp = () => datos?.prefs?.experimental === true;
 // Los extras de Detalles sólo cuentan con lo experimental encendido.
@@ -1586,7 +1590,7 @@ function pintarBarra() {
     const deHoy = tareas.filter((t) => t.cuando && !pospuesta(t.id) && diaDe(t.cuando) === diaDe(ahora) && (t.cuando >= ahora || t.tardia)).length;
     // Anillo: lo entregado de hoy contra lo de hoy; aparece con la primera entrega.
     const hechas = conFecha().filter((t) => t.estado === 'entregada' && t.dia === diaDe(ahora)).length;
-    $('anillo').toggleAttribute('hidden', !hechas || !conDetalle('verSiguiente'));
+    $('anillo').toggleAttribute('hidden', !hechas || !conDetalle('verAnillo'));
     $('avance').style.strokeDashoffset = String(38.96 * (1 - (hechas / ((deHoy + hechas) || 1))));
     $('num-pendientes').innerHTML = deHoy ? `${deHoy}<span class="hoy-txt"> hoy</span>` : '';
     $('num-pendientes').title = `${deHoy} para hoy · ${hechas} ${hechas === 1 ? 'entregada' : 'entregadas'}`;
@@ -1633,7 +1637,7 @@ async function guardar(cambios) {
 }
 
 for (const id of ['diasAdelante', 'diasAtras', 'avisoHoras', 'resumenHora', 'intervaloMin', 'sinFechaDias']) $(id).addEventListener('change', () => guardar({ [id]: Number($(id).value) }));
-// Lista simple: los tres detalles de golpe (apagados, o todos de vuelta).
+// Lista simple: todos los detalles de golpe (apagados, o todos de vuelta).
 $('lista-simple').addEventListener('click', () => {
   const encender = DETALLES.every((id) => datos.prefs[id] === false);
   guardar(Object.fromEntries(DETALLES.map((id) => [id, encender])));

@@ -276,7 +276,17 @@
   color-scheme: dark;
 }
 
-/* Ajustes → Experimental: el texto secundario y los enlaces con más contraste (WCAG AA). */
-:root[data-experimental][data-tema="claro"] { --tenue: #6e6e73; --acento: #0066cc; }
+/* Ajustes → Experimental: los colores de texto (gris secundario, ámbar, rojo, verde
+   y azul) llegan a 4.5:1 (WCAG AA) en cada tema, contra el widget, la app y las
+   tarjetas. --acento-texto es el azul para letras en los temas oscuros, donde
+   --acento sigue siendo el fondo de los botones con letra blanca. */
 :root[data-experimental]:not([data-tema]),
-:root[data-experimental][data-tema="medianoche"] { --tenue: #98989d; }
+:root[data-experimental][data-tema="medianoche"] { --tenue: #98989b; --mal: #ff635a; --acento-texto: #369aff; }
+:root[data-experimental][data-tema="marca"] { --tenue: #8c9cc2; }
+:root[data-experimental][data-tema="claro"] { --tenue: #6d6d71; --pronto: #a75800; --mal: #cc2f26; --bien: #207c37; --acento: #006ad5; }
+:root[data-experimental][data-tema="papel"] { --tenue: #6e6352; --pronto: #895a10; --mal: #af402d; --bien: #387035; --acento: #995127; }
+:root[data-experimental][data-tema="bosque"] { --tenue: #8c9e93; --acento-texto: #4cac7f; }
+:root[data-experimental][data-tema="oceano"] { --tenue: #7fa1a9; --acento-texto: #25abbb; }
+:root[data-experimental][data-tema="lavanda"] { --tenue: #6d657a; --pronto: #935d0d; --mal: #b93b47; --bien: #28754d; }
+:root[data-experimental][data-tema="cereza"] { --tenue: #a58894; --acento-texto: #de6c8a; }
+:root[data-experimental][data-tema="contraste"] { --acento-texto: #4a87ff; }
