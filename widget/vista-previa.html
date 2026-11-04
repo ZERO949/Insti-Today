@@ -258,10 +258,12 @@ function actualizarArchivo(i) {
 async function dibujarPdf(lienzo, i) {
   const n = actual.n;
   const archivo = actual.detalle.archivos[i];
-  let doc = null;
+  // pdf.js 6 suelta el documento desde su carga (PDFDocumentProxy ya no tiene destroy).
+  let carga = null;
   try {
     const bytes = Uint8Array.from(atob(archivo.muestra.datos), (c) => c.charCodeAt(0));
-    doc = await pdfjs.getDocument({ data: bytes }).promise;
+    carga = pdfjs.getDocument({ data: bytes });
+    const doc = await carga.promise;
     const pagina = await doc.getPage(1);
     if (!actual || n !== actual.n || !lienzo.isConnected) return;
     const base = pagina.getViewport({ scale: 1 });
@@ -282,7 +284,7 @@ async function dibujarPdf(lienzo, i) {
   } catch {
     lienzo.closest('.muestra')?.remove();
   } finally {
-    doc?.destroy();
+    carga?.destroy().catch(() => {});
   }
 }
 
