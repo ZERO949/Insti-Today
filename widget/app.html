@@ -5,10 +5,6 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' file: data:; font-src 'self' file: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
 <title>Insti Today</title>
 <link rel="stylesheet" href="temas.css">
-<link rel="stylesheet" href="../node_modules/katex/dist/katex.min.css">
-<script src="../node_modules/katex/dist/katex.min.js"></script>
-<script src="../node_modules/katex/dist/contrib/auto-render.min.js"></script>
-<script src="markdown.js"></script>
 <style>
   [hidden] { display: none !important; }
   * { box-sizing: border-box; }
@@ -61,7 +57,7 @@
   h1 { margin: 0 0 4px; font: 700 28px/1.15 var(--fuente-titulo); letter-spacing: -.028em; }
   .sub { color: var(--tenue); font-size: 13px; }
 
-  /* Pendientes y respuestas: lista a la izquierda, detalle a la derecha */
+  /* Pendientes: lista a la izquierda, detalle a la derecha */
   .columnas { display: flex; flex: 1; min-height: 0; }
   .lista-col { width: 340px; flex: none; display: flex; flex-direction: column; border-right: 1px solid var(--linea); min-height: 0; background: var(--fondo-a); }
   .filtros { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 14px 12px; }
@@ -88,8 +84,6 @@
   .fila .info { min-width: 0; flex: 1; }
   .fila .titulo { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .fila .meta { color: var(--tenue); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .fila .meta .lista-ok { color: var(--bien); }
-  .fila img.mini-img { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; background: #fff; flex: none; }
   .pastilla { flex: none; font-size: 12px; font-weight: 500; color: var(--tenue); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .pastilla.mal { color: var(--mal); font-weight: 600; }
   .pastilla.pronto { color: var(--pronto); font-weight: 600; }
@@ -141,16 +135,6 @@
   .archivo .nombre { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .archivo .peso { color: var(--tenue); font-size: 12px; }
   .nota { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--pieza); color: var(--suave); font-size: 12.5px; }
-  .respuesta-md { user-select: text; line-height: 1.6; }
-  .respuesta-md h1, .respuesta-md h2, .respuesta-md h3 { font-size: 15px; margin: 18px 0 6px; letter-spacing: -.012em; }
-  .respuesta-md pre { background: var(--codigo, var(--pieza)); border-radius: 10px; padding: 12px 14px; overflow-x: auto; }
-  .respuesta-md code { font: 12.5px var(--mono); }
-  .respuesta-md blockquote { margin: 8px 0; padding: 2px 12px; border-left: 3px solid var(--pieza-hover); color: var(--suave); }
-  .respuesta-md .katex-display { overflow-x: auto; overflow-y: hidden; }
-  .imagenes { display: grid; gap: 12px; margin-bottom: 14px; }
-  .imagenes figure { margin: 0; }
-  .imagenes img { display: block; max-width: 100%; max-height: 460px; object-fit: contain; border-radius: 12px; border: 1px solid var(--linea); background: #fff; cursor: zoom-in; }
-  .imagenes figcaption { display: flex; gap: 6px; margin-top: 8px; }
 
   /* Ajustes: listas agrupadas con separadores con sangría, como en Ajustes del Sistema */
   h2.titulo-grupo { font-size: 13px; font-weight: 600; color: var(--suave); margin: 30px 0 8px 4px; }
@@ -175,11 +159,12 @@
   .boton.primario { background: var(--acento); color: #fff; font-weight: 600; }
   .boton.primario:hover { background: var(--acento); filter: brightness(1.08); }
   .boton.peligro { color: var(--mal); }
+  .boton.destructivo { background: var(--mal); color: #fff; font-weight: 600; }
+  .boton.destructivo:hover { background: var(--mal); filter: brightness(1.08); }
+  /* Foco con teclado: anillo del acento (como en el widget); con el ratón no sale. */
+  button:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+  .fila:focus-visible, .archivo:focus-visible, .entregable .vista:focus-visible { outline: 2px solid var(--acento); outline-offset: -2px; }
   .boton.chico { padding: 4px 11px; font-size: 12px; }
-  /* ChatGPT: blanco y con su logo. */
-  .boton.chatgpt { background: #fff; color: #0d0d0d; box-shadow: 0 0 0 1px rgb(0 0 0 / .12) inset; font-weight: 600; }
-  .boton.chatgpt:hover { background: #f2f2f2; }
-  .boton.chatgpt img { width: 15px; height: 15px; }
   .boton svg { width: 13px; height: 13px; }
   .boton:disabled { opacity: .45; cursor: default; }
   /* Interruptor de iOS */
@@ -223,11 +208,6 @@
   textarea { width: 100%; resize: vertical; margin-top: 8px; line-height: 1.45; }
   input[type=text] { width: 150px; }
   textarea:focus, input:focus, select:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--acento) 40%, transparent); }
-  .cuentas-ia { display: grid; gap: 6px; margin-top: 8px; }
-  .cuenta-ia { display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px; border-radius: 10px; background: var(--pieza); font-size: 12.5px; }
-  .cuenta-ia i { flex: none; width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; }
-  .cuenta-ia b { font-weight: 600; }
-  .cuenta-ia span { color: var(--suave); }
   .botones-campo { display: flex; justify-content: flex-end; margin-top: 8px; }
   .pie { color: var(--tenue); font-size: 12px; text-align: center; margin-top: 28px; }
   /* Espacio de entrega de una tarea */
@@ -246,21 +226,11 @@
   .pie-entregable { padding: 10px 11px 11px; display: flex; flex-direction: column; gap: 3px; }
   .pie-entregable .nombre { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pie-entregable .meta { font-size: 12px; color: var(--tenue); }
-  .pie-entregable .origen { color: var(--acento-texto, var(--acento)); font-weight: 600; }
-  .pie-entregable .origen.tuyo { color: var(--pronto); }
   .pie-entregable .botones { display: flex; gap: 5px; margin-top: 6px; }
   .pie-entregable .botones [data-adjuntar] { flex: 1; justify-content: center; }
-  .pie-entregable [data-revisar] { margin-top: 4px; justify-content: center; }
-  .revision-formulario { padding: 16px; margin: 12px 0; border: 1px solid var(--linea); border-radius: 12px; background: var(--fondo-a); }
-  .revision-formulario label { display: block; font-weight: 600; margin-bottom: 8px; overflow-wrap: anywhere; }
-  .revision-formulario textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 90px; margin: 8px 0; }
-  .revision-formulario .acciones { justify-content: flex-end; flex-wrap: wrap; }
   .boton.listo { background: color-mix(in srgb, var(--bien) 16%, transparent); color: var(--bien); }
   .soltar { border: 1.5px dashed var(--pieza-hover); border-radius: 14px; padding: 18px; text-align: center; color: var(--tenue); font-size: 12.5px; cursor: pointer; transition: border-color .15s var(--curva), background .15s var(--curva), color .15s var(--curva); }
   .soltar:hover, .soltando .soltar { border-color: var(--acento); color: var(--texto); background: color-mix(in srgb, var(--acento) 7%, transparent); }
-  .respuesta-plegable { margin-top: 12px; border: 1px solid var(--linea); border-radius: 12px; padding: 10px 14px; background: var(--fondo-a); }
-  .respuesta-plegable summary { cursor: pointer; font-weight: 600; }
-  .respuesta-plegable .acciones { margin: 8px 0; }
   .entrega-paso textarea { margin-top: 0; }
   .barra-entrega { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
   .boton.grande { padding: 9px 20px; font-weight: 600; font-size: 14px; }
@@ -319,8 +289,8 @@
   @keyframes desde-abajo { from { transform: translateY(140%); opacity: 0; } }
   .yo svg { width: 16px; height: 16px; }
   .deslizando, .deslizando * { cursor: grabbing !important; user-select: none !important; }
-  .selector-cuentas { position: absolute; top: calc(100% + 8px); right: 0; width: 260px; z-index: 20; display: flex; flex-direction: column; padding: 6px; border-radius: 14px; background: var(--elevado, var(--fondo-a)); border: 1px solid var(--borde); box-shadow: var(--sombra); transform-origin: top right; animation: aparecer .14s var(--curva); }
-  @keyframes aparecer { from { opacity: 0; transform: scale(.96) translateY(-4px); } }
+  .selector-cuentas { position: absolute; top: calc(100% + 8px); right: 0; width: 260px; z-index: 20; display: flex; flex-direction: column; padding: 6px; border-radius: 14px; background: var(--elevado, var(--fondo-a)); border: 1px solid var(--borde); box-shadow: var(--sombra); transform-origin: top right; animation: desplegar .14s var(--curva); }
+  @keyframes desplegar { from { opacity: 0; transform: scale(.96) translateY(-4px); } }
   .selector-cuentas .cuenta-op { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; background: none; color: var(--texto); text-align: left; padding: 7px 8px; border-radius: 9px; cursor: pointer; transition: background .1s var(--curva); }
   .selector-cuentas .cuenta-op:hover, .selector-cuentas .cuenta-op.sel { background: var(--hover); }
   .cuenta-op .bolita { width: 28px; height: 28px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #fff; font-size: 11.5px; font-weight: 600; background: var(--color-op); transition: transform .15s var(--curva); }
@@ -345,9 +315,7 @@
 <nav>
   <div class="marca"><img src="icono/icono.png" alt=""><div><b>Insti Today</b><span id="version"></span></div><button class="plegar" id="plegar" title="Plegar barra lateral"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2.2"/><path d="M6 2.5v11M10.5 6.5 9 8l1.5 1.5"/></svg></button></div>
   <button class="nav-item" data-ir="pendientes" title="Pendientes"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"/><circle cx="2.5" cy="4" r=".8" fill="currentColor"/><circle cx="2.5" cy="8" r=".8" fill="currentColor"/><circle cx="2.5" cy="12" r=".8" fill="currentColor"/></svg><span class="etiqueta">Pendientes</span><svg class="anillo" id="anillo" viewBox="0 0 16 16" hidden><circle class="pista" cx="8" cy="8" r="6.2"/><circle class="avance" id="avance" cx="8" cy="8" r="6.2" stroke-dasharray="38.96" stroke-dashoffset="38.96"/></svg><span class="num" id="num-pendientes"></span></button>
-  <button class="nav-item" data-ir="respuestas" title="Respuestas"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.6 4.4L14 7l-4.4 1.6L8 13l-1.6-4.4L2 7l4.4-1.6z"/></svg><span class="etiqueta">Respuestas</span><span class="num" id="num-respuestas"></span></button>
   <div class="nav-sep"></div>
-  <button class="nav-item" data-ir="ia" title="IA"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="10" height="9" rx="2"/><path d="M8 4V2M6 8h.01M10 8h.01M6 11h4"/></svg><span class="etiqueta">IA</span></button>
   <button class="nav-item" data-ir="ajustes" title="Ajustes"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4h6M12 4h1M3 8h1M7 8h6M3 12h7M13 12h0"/><circle cx="10.5" cy="4" r="1.5"/><circle cx="5.5" cy="8" r="1.5"/><circle cx="11.5" cy="12" r="1.5"/></svg><span class="etiqueta">Ajustes</span></button>
   <button class="nav-item" data-ir="cuenta" title="Cuenta"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="5.5" r="2.8"/><path d="M2.8 14c.8-2.6 2.8-4 5.2-4s4.4 1.4 5.2 4"/></svg><span class="etiqueta">Cuenta</span></button>
   <div class="nav-pie">
@@ -375,74 +343,11 @@
           </div>
         </div>
         <div class="semana" id="semana" hidden></div>
-        <div class="filas" id="filas-pendientes"></div>
+        <div class="filas" id="filas-pendientes" role="listbox" aria-label="Pendientes"></div>
       </div>
-      <div class="detalle-col" id="detalle-pendiente"><div class="vacio">Elige una tarea para ver sus instrucciones, sus archivos y resolverla.</div></div>
+      <div class="detalle-col" id="detalle-pendiente"><div class="vacio">Elige una tarea para ver sus instrucciones y sus archivos.</div></div>
     </div>
   </section>
-
-  <!-- RESPUESTAS -->
-  <section class="seccion" id="s-respuestas">
-    <div class="columnas">
-      <div class="lista-col">
-        <div class="filtros"><input type="search" id="buscar-respuestas" placeholder="Buscar en las respuestas…"></div>
-        <div class="filas" id="filas-respuestas"></div>
-      </div>
-      <div class="detalle-col" id="detalle-respuesta"><div class="vacio">Elige una respuesta.</div></div>
-    </div>
-  </section>
-
-  <!-- IA -->
-  <section class="seccion" id="s-ia"><div class="desplazable"><div class="pagina">
-    <h1>IA</h1><div class="sub">Con qué se resuelven las tareas y qué se les pide.</div>
-    <h2 class="titulo-grupo">Resolver</h2>
-    <div class="grupo">
-      <div class="opcion">
-        <div class="texto"><b>Resolver con</b><span id="ia-explica"></span><span id="ia-apps" class="apps"></span></div>
-        <div class="segmentos" data-pref="iaResolver"><button data-valor="chatgpt">ChatGPT</button><button data-valor="claude">Claude</button></div>
-      </div>
-      <div class="opcion columna">
-        <div class="texto"><b>Tus cuentas</b><span>Lo que Insti Today comprobó en esta computadora. Si algo no está disponible, usa solo la vía de respaldo.</span></div>
-        <div class="cuentas-ia" id="ia-cuentas"></div>
-      </div>
-      <div class="opcion">
-        <div class="texto"><b>Tarea de prueba</b><span>Agrega «Tarea de prueba · Derivadas parciales» a tu lista (vence hoy) para probar Resolver sin tocar tus tareas.</span></div>
-        <label class="interruptor"><input type="checkbox" id="tareaPrueba"><i></i></label>
-      </div>
-      <div class="opcion columna">
-        <div class="texto"><b>Qué le pides al resolver</b><span>Va junto con la tarea, sus instrucciones y sus archivos.</span></div>
-        <textarea id="iaPedido" rows="2"></textarea>
-        <div class="botones-campo"><button class="boton chico" data-restaurar-campo="iaPedido">Restaurar</button></div>
-      </div>
-      <div class="opcion">
-        <div class="texto"><b>Modelo de ChatGPT en el navegador</b><span>Sólo si no está Codex («auto» deja que elija). Codex y Claude usan el modelo que tengas elegido en ellos.</span></div>
-        <input type="text" id="chatgptModelo" spellcheck="false" maxlength="40">
-      </div>
-    </div>
-    <h2 class="titulo-grupo">Imágenes</h2>
-    <div class="grupo">
-      <div class="opcion">
-        <div class="texto"><b>Apunte digital en imagen</b><span>Para ejercicios, genera un apunte de tablet con letras irregulares y trazos a pulso, conservando exactas las fórmulas</span></div>
-        <label class="interruptor"><input type="checkbox" id="iaImagenes"><i></i></label>
-      </div>
-      <div class="opcion" id="fila-imagen-auto">
-        <div class="texto"><b>Sin preguntar</b><span>Si lo quitas, la respuesta trae un botón «Imagen» y la pides tú</span></div>
-        <label class="interruptor"><input type="checkbox" id="iaImagenAuto"><i></i></label>
-      </div>
-      <div class="opcion columna" id="fila-estilo">
-        <div class="texto"><b>Cómo se ve la hoja</b><span>El estilo; el contenido lo escribe la IA que resolvió.</span></div>
-        <textarea id="iaPedidoImagen" rows="5"></textarea>
-        <div class="botones-campo"><button class="boton chico" data-restaurar-campo="iaPedidoImagen">Restaurar</button></div>
-      </div>
-    </div>
-    <h2 class="titulo-grupo">App de Claude (respaldo)</h2>
-    <div class="grupo">
-      <div class="opcion">
-        <div class="texto"><b>App de escritorio de Claude</b><span id="claude-estado"></span></div>
-        <button class="boton" id="claude-boton"></button>
-      </div>
-    </div>
-  </div></div></section>
 
   <!-- AJUSTES -->
   <section class="seccion" id="s-ajustes"><div class="desplazable"><div class="pagina">
@@ -532,14 +437,6 @@
     <h2 class="titulo-grupo">Comportamiento</h2>
     <div class="grupo">
       <div class="opcion">
-        <div class="texto"><b>Quitar metadatos de lo que genera la IA</b><span>Al entregar, las imágenes, documentos de Office y PDF generados van en una copia sin credenciales de contenido (C2PA), EXIF/XMP, autor, programa ni propiedades; el original se queda como está. Las imágenes se vuelven a guardar (las JPEG con calidad alta) y la marca de agua invisible SynthID, que va en los píxeles, no se quita.</span></div>
-        <label class="interruptor"><input type="checkbox" id="limpiarMetadatos"><i></i></label>
-      </div>
-      <div class="opcion" id="fila-aviso-metadatos">
-        <div class="texto"><b>Avisar al adjuntar archivos de la IA</b><span>Un recordatorio de que se les quitan los metadatos.</span></div>
-        <label class="interruptor"><input type="checkbox" id="avisoMetadatos"><i></i></label>
-      </div>
-      <div class="opcion">
         <div class="texto"><b>Vista previa al pasar el ratón</b><span>Instrucciones y archivos de cada tarea</span></div>
         <label class="interruptor"><input type="checkbox" id="vistaPrevia"><i></i></label>
       </div>
@@ -589,8 +486,8 @@
 </main>
 
 <script>
-// Insti Today completo: la lista entera de pendientes, las respuestas de IA y
-// todos los ajustes. El widget y la bandeja la abren.
+// Insti Today completo: la lista entera de pendientes, la entrega y todos
+// los ajustes. El widget y la bandeja la abren.
 const api = window.agenda.config;
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -616,13 +513,11 @@ function hora(t) {
   return m === 0 || m === 1439 ? 'medianoche' : fmtHora.format(t);
 }
 const mayus = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-const CHISPA = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.6 4.4L14 7l-4.4 1.6L8 13l-1.6-4.4L2 7l4.4-1.6z"/></svg>';
 
 let datos = null;
 let seccion = new URLSearchParams(location.search).get('seccion') || 'pendientes';
 let filtroCuando = 'activas';
 let tareaSel = null;
-let respuestaSel = null;
 let menuAbierto = false;
 let detalleActual = null; // instrucciones y archivos de la tarea elegida
 
@@ -632,11 +527,10 @@ oscuroSistema.addEventListener('change', () => pintar());
 
 // ---------- Navegación ----------
 function ir(s) {
-  if (datos?.mantenimiento && ['ia','respuestas'].includes(s)) s = 'pendientes';
+  if (!document.getElementById(`s-${s}`)) s = 'pendientes';
   seccion = s;
   for (const b of document.querySelectorAll('.nav-item')) b.classList.toggle('activo', b.dataset.ir === s);
   for (const el of document.querySelectorAll('.seccion')) el.classList.toggle('activa', el.id === `s-${s}`);
-  if (s === 'ia') window.agenda.claude.agentes().then((d) => { datos = d; pintar(); }).catch(() => {});
 }
 document.querySelector('nav').addEventListener('click', (e) => {
   const b = e.target.closest('[data-ir]');
@@ -661,101 +555,25 @@ window.agenda.app.alIr((s, tareaId, guia) => {
 });
 
 // ---------- Guía del primer arranque ----------
-// Cuatro pasos cortos. Sale sola hasta que se termina o se salta, y se
-// vuelve a abrir desde Cuenta.
-let guia = null; // { paso, fondo }
-const GUIA_PASOS = 4;
+// Sale sola hasta que se cierra, y se vuelve a abrir desde Cuenta.
+let guia = null; // { fondo }
 function abrirGuia() {
   if (guia) return;
   const fondo = document.createElement('div');
   fondo.className = 'modal-fondo';
   document.body.appendChild(fondo);
-  guia = { paso: 0, fondo };
-  fondo.addEventListener('click', async (e) => {
-    const b = e.target.closest('button');
-    if (!b) return;
-    const g = b.dataset.g;
-    if (g === 'sig') {
-      guia.paso = Math.min(GUIA_PASOS - 1, guia.paso + 1);
-      // Al llegar a «tus IA», se comprueba otra vez qué hay instalado y con sesión.
-      if (guia.paso === 1) window.agenda.claude.agentes().then((d) => { datos = d; pintar(); });
-    }
-    else if (g === 'ant') guia.paso = Math.max(0, guia.paso - 1);
-    else if (g === 'entrar') return api.entrar();
-    else if (g === 'web') return window.agenda.abrir(b.dataset.url);
-    else if (g === 'ia') return guardar({ iaResolver: b.dataset.valor });
-    else if (g === 'fin' || g === 'prueba') return cerrarGuia(g === 'prueba');
-    else if (g === 'comprobar') {
-      b.disabled = true;
-      b.textContent = 'Comprobando…';
-      datos = await window.agenda.claude.agentes();
-      pintar();
-      return;
-    }
-    pintarGuia();
-  });
+  guia = { fondo };
+  fondo.addEventListener('click', (e) => e.target.closest('[data-g="fin"]') && cerrarGuia());
   pintarGuia();
 }
-async function cerrarGuia(conPrueba) {
+async function cerrarGuia() {
   guia?.fondo.remove();
   guia = null;
-  await guardar({ tutorialVisto: true, ...(conPrueba ? { tareaPrueba: true } : {}) });
-  if (conPrueba) ir('pendientes');
+  await guardar({ tutorialVisto: true });
 }
 function pintarGuia() {
   if (!guia || !datos) return;
-  if (datos.mantenimiento) {
-    guia.fondo.innerHTML = '<div class="modal guia"><h3>Todo lo de tus cursos, a la vista</h3><p>Consulta tareas y mensajes, encuentra tus materiales y prepara la entrega de tus propios archivos.</p><ol><li>Entra en el Moodle de tu escuela desde Cuenta.</li><li>Pulsa una tarea del widget para leer sus instrucciones. La burbuja reúne mensajes y anuncios.</li><li>Abre «Mis archivos y entrega», añade tus archivos y elige qué adjuntar.</li><li>Comprueba la carga y pulsa tú el envío final en Moodle.</li></ol><div class="acciones"><button class="boton primario" data-g="fin">Entendido</button></div></div>';
-    return;
-  }
-  const p = datos.prefs;
-  const m = datos.motores || {};
-  const c = datos.claude || {};
-  const listo = (x) => m[x] && m.sesion?.[x] && !m.bloqueos?.[x];
-  const nombreIa = p.iaResolver === 'claude' ? 'Claude' : 'ChatGPT';
-  const fila = (ok, nombre, texto, boton = '') => `<div class="estado-paso"><div><b>${nombre}</b><br><span class="${ok ? 'ok' : 'sub'}">${texto}</span></div>${boton}</div>`;
-  const textoCodex = listo('codex') ? '✓ Lista, con tu cuenta de ChatGPT'
-    : m.bloqueos?.codex ? `${esc(m.bloqueos.codex.texto)}. Mientras, se usa chatgpt.com`
-    : m.codex ? 'Abre Codex e inicia sesión con tu cuenta de ChatGPT'
-    : 'Instala la app de Codex e inicia sesión con ChatGPT';
-  const textoClaude = listo('claude') ? '✓ Claude Code listo'
-    : c.instalado ? (c.conectado ? '✓ App de Claude conectada' : 'App de Claude instalada: conéctala en IA')
-    : 'Instala la app de Claude e inicia sesión';
-  const pasos = [
-    () => `<h3>1 · Inicia sesión en Moodle</h3>
-      <p class="sub">Entras con tu usuario y contraseña de la plataforma. La contraseña va directo a tu Moodle y no se guarda: sólo el token de lectura, en esta computadora.</p>
-      ${datos.cuenta ? fila(true, esc(datos.cuenta), '✓ Sesión iniciada') : fila(false, 'Moodle', 'Todavía no has iniciado sesión', '<button class="boton primario" data-g="entrar">Iniciar sesión</button>')}`,
-    () => `<h3>2 · Inicia sesión en tus IA</h3>
-      <p class="sub">Insti Today usa tus propias cuentas, sin claves ni pagos aparte. Elige con cuál resolver (se cambia en IA):</p>
-      <div class="segmentos" style="margin:8px 0"><button class="${p.iaResolver !== 'claude' ? 'activo' : ''}" data-g="ia" data-valor="chatgpt">ChatGPT</button><button class="${p.iaResolver === 'claude' ? 'activo' : ''}" data-g="ia" data-valor="claude">Claude</button></div>
-      ${fila(listo('codex'), 'ChatGPT · app de Codex', textoCodex, listo('codex') ? '' : '<button class="boton" data-g="web" data-url="https://openai.com/codex/">Codex</button>')}
-      ${fila(listo('claude') || (c.instalado && c.conectado), 'Claude', textoClaude, listo('claude') || c.instalado ? '' : '<button class="boton" data-g="web" data-url="https://claude.ai/download">Claude</button>')}
-      <div class="acciones" style="margin-top:8px"><button class="boton chico" data-g="comprobar">Volver a comprobar</button></div>`,
-    () => `<h3>3 · Así funciona</h3>
-      <ol>
-        <li><b>Resolver con ${nombreIa}:</b> un clic en la tarea. La IA lee las instrucciones y los archivos, y decide si hace falta texto, una imagen, un documento o código.</li>
-        <li><b>Entregables:</b> lo que genera aparece en la tarea. Puedes añadir tus propios archivos y elegir qué se adjunta.</li>
-        <li><b>Entregar:</b> abre la entrega oficial de la tarea y suelta tus archivos en el borrador. «Guardar cambios» lo pulsas tú en Moodle.</li>
-      </ol>
-      <p class="sub">Te aviso cuando termina; mientras, sigue con lo tuyo.</p>`,
-    () => `<h3>4 · Según tu plan de IA</h3>
-      <ul>
-        <li><b>Con sesión y acceso</b>, ${nombreIa} trabaja en segundo plano y todo llega solo a Insti Today.</li>
-        <li><b>Si no hay sesión, se acabó tu límite o tu plan no lo incluye</b>, Insti Today lo detecta y usa el respaldo: abre chatgpt.com (arrastras los archivos y copias la respuesta) o la app de Claude (pulsas Enter).</li>
-        <li><b>Las imágenes</b> las hace ChatGPT y dependen de que tu plan permita generarlas.</li>
-        <li>Cómo está cada cuenta lo ves en <b>IA → Tus cuentas</b>.</li>
-      </ul>
-      <p class="sub">¿Quieres probar sin tocar tus tareas reales? Añade una tarea de prueba a la lista (se quita en IA).</p>`,
-  ];
-  const n = guia.paso;
-  guia.fondo.innerHTML = `<div class="modal guia">
-    <div class="puntos">${Array.from({ length: GUIA_PASOS }, (_, i) => `<i class="${i <= n ? 'hecho' : ''}"></i>`).join('')}</div>
-    ${pasos[n]()}
-    <div class="acciones entre">
-      ${n ? '<button class="boton" data-g="ant">Atrás</button>' : '<button class="boton" data-g="fin">Saltar</button>'}
-      <div class="acciones">${n < GUIA_PASOS - 1 ? '<button class="boton primario" data-g="sig">Siguiente</button>' : '<button class="boton" data-g="prueba">Probar con una tarea de prueba</button><button class="boton primario" data-g="fin">Empezar</button>'}</div>
-    </div>
-  </div>`;
+  guia.fondo.innerHTML = '<div class="modal guia"><h3>Todo lo de tus cursos, a la vista</h3><p>Consulta tareas y mensajes, encuentra tus materiales y prepara la entrega de tus propios archivos.</p><ol><li>Entra en el Moodle de tu escuela desde Cuenta.</li><li>Pulsa una tarea del widget para leer sus instrucciones. La burbuja reúne mensajes y anuncios.</li><li>Abre «Mis archivos y entrega», añade tus archivos y elige qué adjuntar.</li><li>Comprueba la carga y pulsa tú el envío final en Moodle.</li></ol><div class="acciones"><button class="boton primario" data-g="fin">Entendido</button></div></div>';
 }
 // Abre una tarea aunque el filtro no la enseñe.
 function abrirTarea(id) {
@@ -941,21 +759,18 @@ function pintarPendientes() {
       html += `<div class="grupo-titulo ${g === 'Aún puedes entregar' ? 'pronto' : g.startsWith('Vencidas') ? 'mal' : ''}">${esc(g === 'Hoy' && siguiente ? 'También hoy' : g)}</div>`;
     }
     const [p, clase] = pastilla(t);
-    const respuesta = datos.respuestas?.find((r) => r.id === t.id);
-    const resuelta = respuesta ? respuesta.explicacionPendiente ? ' · falta explicación de IA' : ' · <span class="lista-ok">respuesta y explicación listas</span>' : '';
     const rotulo = t === siguiente ? '<div class="rotulo">Lo siguiente</div>' : '';
-    html += `<div class="fila ${t === siguiente ? 'siguiente' : ''} ${tareaSel?.id === t.id ? 'sel' : ''}" data-tarea="${esc(t.id)}"><i class="punto" style="background:${t.color}"></i><div class="info">${rotulo}<div class="titulo">${esc(t.titulo)}</div><div class="meta">${esc(t.curso)}${resuelta}</div></div><span class="pastilla ${clase}">${esc(p)}</span></div>`;
+    html += `<div class="fila ${t === siguiente ? 'siguiente' : ''} ${tareaSel?.id === t.id ? 'sel' : ''}" data-tarea="${esc(t.id)}"><i class="punto" style="background:${t.color}"></i><div class="info">${rotulo}<div class="titulo">${esc(t.titulo)}</div><div class="meta">${esc(t.curso)}</div></div><span class="pastilla ${clase}">${esc(p)}</span></div>`;
   }
   pintarSemana();
-  $('filas-pendientes').innerHTML = html || `<div class="vacio">${datos.agenda ? 'Nada por aquí.' : 'Inicia sesión para ver tus tareas.'}</div>`;
+  pintarFilas($('filas-pendientes'), html || `<div class="vacio">${datos.agenda ? 'Nada por aquí.' : 'Inicia sesión para ver tus tareas.'}</div>`);
 }
 
-// ---------- La tarea: resolver, entregables y entrega ----------
-// Pasos: la tarea (instrucciones y archivos) → resolver → entregables (lo que
-// generó la IA y lo que subes tú; cada uno se adjunta o no) → tu entrega
-// (adjuntos y texto) → «Entregar», que abre la página oficial de Moodle.
+// ---------- La tarea: archivos y entrega ----------
+// Pasos: la tarea (instrucciones y archivos) → tus archivos (cada uno se
+// adjunta o no) → tu entrega (adjuntos y texto) → «Entregar», que abre la
+// página oficial de Moodle.
 let entregaActual = null;
-let revisionActual = null;
 let guardandoAdjunto = false;
 let notaTarea = '';
 
@@ -963,7 +778,6 @@ async function verTarea(id) {
   const t = todasLasTareas().find((x) => x.id === id);
   if (!t) return;
   tareaSel = t;
-  revisionActual = null;
   notaTarea = '';
   entregaActual = null;
   pintarPendientes();
@@ -993,46 +807,38 @@ function pintarDetalleTarea(d) {
   const t = tareaSel;
   if (!t) return;
   detalleActual = d;
-  const ruta = datos.rutas?.[t.id] || { resolverCon: 'ChatGPT' };
   const fecha = t.cuando ? `${mayus(fmtLargo.format(t.cuando))}${t.cuando < Date.now() ? (t.tardia ? ' · venció, acepta entrega tardía' : ' · venció') : ''}` : 'Sin fecha de entrega';
-  const trabajando = datos.trabajo?.tareaId === t.id && ['preparando', 'trabajando', 'dibujando', 'esperando'].includes(datos.trabajo.fase);
-  const revisionTrabajo = datos.trabajo?.tareaId === t.id && datos.trabajo.modo === 'revision' ? datos.trabajo : null;
-  const explicacionTrabajo = datos.trabajo?.tareaId === t.id && datos.trabajo.modo === 'explicacion' ? datos.trabajo : null;
   const instrucciones = d === null ? '<div class="sub">Cargando…</div>' : d.error ? '<div class="sub">No se pudo leer el detalle de Moodle.</div>' : `<div class="instrucciones">${esc(d.instrucciones || 'La tarea no trae instrucciones escritas.')}</div>`;
   const archivosTarea = d && !d.error && d.archivos?.length
-    ? `<div class="sub-titulo">Archivos de la tarea</div>${d.archivos.map((a, i) => `<div class="archivo" data-archivo="${i}" title="Abrir">${iconoArchivo(a.nombre)}<span class="nombre">${esc(a.nombre)}</span>${a.bytes ? `<span class="peso">${pesoLegible(a.bytes)}</span>` : ''}</div>`).join('')}`
+    ? `<div class="sub-titulo">Archivos de la tarea</div>${d.archivos.map((a, i) => `<div class="archivo" data-archivo="${i}" title="Abrir" tabindex="0" role="button">${iconoArchivo(a.nombre)}<span class="nombre">${esc(a.nombre)}</span>${a.bytes ? `<span class="peso">${pesoLegible(a.bytes)}</span>` : ''}</div>`).join('')}`
     : '';
 
   const en = entregaActual || { entregables: [], texto: '' };
   const lista = en.entregables || [];
   const adjuntos = lista.filter((x) => x.adjuntado);
   const tarjetas = lista.map((x) => `<div class="entregable ${x.adjuntado ? 'adjuntado' : ''}" data-ruta="${esc(x.ruta)}">
-      <div class="vista" data-abrir-entregable>${x.imagen ? `<img src="${esc(x.url)}" alt="">` : iconoArchivo(x.nombre)}</div>
+      <div class="vista" data-abrir-entregable tabindex="0" role="button" aria-label="Abrir ${esc(x.nombre)}">${x.imagen ? `<img src="${esc(x.url)}" alt="">` : iconoArchivo(x.nombre)}</div>
       <div class="pie-entregable">
         <div class="nombre" title="${esc(x.nombre)}">${esc(x.nombre)}</div>
-        <div class="meta"><span class="origen ${x.origen === 'Tuyo' ? 'tuyo' : ''}">${esc(x.origen === 'Tuyo' ? 'Tuyo' : `De ${x.origen}`)}</span> · ${pesoLegible(x.peso)}</div>
+        <div class="meta">${pesoLegible(x.peso)}</div>
         <div class="botones">
           <button type="button" class="boton chico ${x.adjuntado ? 'listo' : 'primario'}" data-adjuntar aria-pressed="${!!x.adjuntado}" title="${x.adjuntado ? 'Quitar de la entrega; el archivo se conserva' : 'Seleccionar para la entrega'}" ${guardandoAdjunto ? 'disabled' : ''}>${x.adjuntado ? 'Quitar adjunto' : 'Adjuntar'}</button>
           <button class="boton chico" data-mostrar-entregable title="Mostrar en la carpeta">📁</button>
           ${x.origen === 'Tuyo' ? '<button class="boton chico peligro" data-quitar-tuyo title="Quitar">✕</button>' : ''}
         </div>
-        ${x.revisable ? `<button type="button" class="boton chico" data-revisar aria-expanded="${revisionActual?.ruta === x.ruta}" ${trabajando ? 'disabled' : ''}>Pedir revisión</button>` : ''}
-        ${x.revisionDe ? `<div class="meta">Revisión de ${esc(x.revisionDe)}</div>` : ''}
       </div>
     </div>`).join('');
-  const prueba = t.cursoId === 'bbtoday-prueba';
   const resumenEntrega = adjuntos.length || en.texto
     ? `${adjuntos.length ? `${adjuntos.length} ${adjuntos.length === 1 ? 'archivo adjunto' : 'archivos adjuntos'}` : 'Sin archivos'}${en.texto ? ' · con texto' : ''}`
     : 'Aún no adjuntas nada.';
 
-  const foco = ['texto-entrega', 'comentario-revision'].includes(document.activeElement?.id) ? { id: document.activeElement.id, inicio: document.activeElement.selectionStart, fin: document.activeElement.selectionEnd } : null;
+  const foco = document.activeElement?.id === 'texto-entrega' ?{ id: document.activeElement.id, inicio: document.activeElement.selectionStart, fin: document.activeElement.selectionEnd } : null;
   $('detalle-pendiente').innerHTML = `<div class="detalle">
     <div class="curso" style="color:${t.color}">${esc(t.curso)}</div>
     <h2>${esc(t.titulo)}</h2>
     ${t.ruta?.length ? `<div class="ruta">${esc(t.ruta.join(' › '))}</div>` : ''}
     <div class="sub">${esc(fecha)}</div>
     <div class="acciones">
-      <button class="boton ${ruta.resolverCon === 'ChatGPT' ? 'chatgpt' : 'primario'}" data-resolver ${trabajando ? 'disabled' : ''}>${ruta.resolverCon === 'ChatGPT' ? '<img src="icono/chatgpt.png" alt="">' : CHISPA}${trabajando ? `${esc(ruta.resolverCon)} está trabajando…` : `Resolver y explicar con ${esc(ruta.resolverCon)}`}</button>
       <button class="boton" data-blackboard>Abrir en Moodle ↗</button>
       ${!exp() || (t.cuando && diaDe(t.cuando) > diaDe(Date.now())) ? '' : pospuesta(t.id) ? '<button class="boton" data-volver title="Que vuelva a salir hoy">Devolver a hoy</button>' : '<button class="boton" data-posponer title="Se esconde hasta mañana">Hoy no</button>'}
       <button class="boton" data-quitar>Quitar de la lista</button>
@@ -1045,32 +851,16 @@ function pintarDetalleTarea(d) {
       ${archivosTarea}
     </section>
 
-    <section class="paso" aria-labelledby="titulo-explicacion">
-      <div class="paso-titulo" id="titulo-explicacion">Cómo se hace</div>
-      <p class="sub">La IA explica el procedimiento y sus razones para que puedas repetirlo por tu cuenta. Este apartado es para estudiar.</p>
-      ${en.respuesta && !en.respuesta.explicacionPendiente ? '<div class="respuesta-md" id="md-explicacion"></div>' : en.respuesta ? `<p class="sub">Falta la explicación paso a paso de esta respuesta.</p><button class="boton chico" data-explicar ${trabajando ? 'disabled' : ''}>${explicacionTrabajo && trabajando ? 'Generando explicación…' : 'Generar explicación con IA'}</button>` : '<p class="sub">Al resolver la tarea, la IA generará aquí su explicación automáticamente.</p>'}
-      ${explicacionTrabajo ? `<p class="sub" role="${explicacionTrabajo.fase === 'error' ? 'alert' : 'status'}">${esc(explicacionTrabajo.fase === 'error' ? explicacionTrabajo.detalle : explicacionTrabajo.fase === 'lista' ? 'Explicación lista.' : explicacionTrabajo.fase === 'cancelada' ? 'Explicación cancelada.' : explicacionTrabajo.fase === 'esperando' ? 'Copia la explicación del chat para mostrarla aquí.' : 'La IA está explicando cómo se hace…')}${trabajando ? ' <button class="boton chico" data-detener-explicacion>Cancelar</button>' : ''}</p>` : ''}
-    </section>
-
     <section class="paso" id="zona-entregables">
-      <div class="paso-titulo"><span class="num">2</span>Entregables
+      <div class="paso-titulo"><span class="num">2</span>Mis archivos
         <span class="acciones-paso">
           ${lista.length > 1 && adjuntos.length < lista.length ? '<button class="boton chico" data-adjuntar-todo>Adjuntar todo</button>' : ''}
           <button class="boton chico" data-subir>＋ Subir tus archivos</button>
         </span>
       </div>
       ${lista.length ? `<div class="entregables">${tarjetas}</div>` : ''}
-      ${revisionActual ? `<div class="revision-formulario" role="region" aria-label="Revisar archivo">
-        <label for="comentario-revision">Revisar ${esc(revisionActual.nombre)}</label>
-        <p class="sub">Describe qué quieres corregir. La nueva versión aparece aquí y conserva el original.</p>
-        <textarea id="comentario-revision" maxlength="4000" placeholder="Por ejemplo: letras menos uniformes, corrige el paso 3 o desarrolla mejor la conclusión." ${revisionActual.enviando ? 'disabled' : ''}>${esc(revisionActual.comentario || '')}</textarea>
-        <div role="alert" class="sub" data-error-revision>${esc(revisionActual.error || '')}</div>
-        <div class="acciones"><button class="boton chico" data-cancelar-revision ${revisionActual.enviando ? 'disabled' : ''}>Cancelar</button><button class="boton primario" data-enviar-revision ${revisionActual.enviando ? 'disabled' : ''}>${revisionActual.enviando ? 'Enviando…' : 'Enviar revisión'}</button></div>
-      </div>` : ''}
       <p class="sub">Adjuntar selecciona el archivo para tu entrega. Otro clic lo quita de la selección y conserva el archivo.</p>
-      ${revisionTrabajo ? `<p class="sub" role="${revisionTrabajo.fase === 'error' ? 'alert' : 'status'}">${revisionTrabajo.fase === 'error' ? esc(revisionTrabajo.detalle || 'No se pudo revisar el archivo. El original se conserva.') : revisionTrabajo.fase === 'lista' ? 'Revisión lista. Elige qué versión quieres adjuntar.' : revisionTrabajo.fase === 'cancelada' ? 'Revisión cancelada. El original se conserva.' : 'Revisando ' + esc(revisionTrabajo.originalNombre || 'archivo') + '…'}${trabajando ? ' <button class="boton chico" data-detener-revision>Cancelar revisión</button>' : ''}</p>` : ''}
-      <div class="soltar" data-subir>${lista.length ? 'Arrastra aquí más fotos o archivos tuyos' : `Aquí aparece lo que genere ${esc(ruta.resolverCon)} (hojas, documentos, código) y lo que subas tú. Arrastra tus fotos o archivos aquí, o pulsa «Subir tus archivos».`}</div>
-      ${en.respuesta ? `<details class="respuesta-plegable"><summary>Respuesta escrita de ${esc(en.respuesta.ia)}</summary><div class="acciones"><button class="boton chico" data-copiar-respuesta>Copiar</button><button class="boton chico" data-usar-respuesta>Usar como texto de la entrega</button></div><div class="respuesta-md" id="md-tarea"></div></details>` : ''}
+      <div class="soltar" data-subir>${lista.length ? 'Arrastra aquí más fotos o archivos tuyos' : 'Arrastra aquí tus archivos o pulsa «Subir tus archivos».'}</div>
     </section>
 
     <section class="paso entrega-paso">
@@ -1078,55 +868,16 @@ function pintarDetalleTarea(d) {
       <textarea id="texto-entrega" rows="3" placeholder="Texto de la entrega (opcional): un comentario para el profesor o tu respuesta escrita.">${esc(en.texto || '')}</textarea>
       <div class="barra-entrega">
         <span class="sub">${resumenEntrega}${en.abierta ? ` · abriste la entrega ${esc(haceCuanto(en.abierta))}` : ''}</span>
-        <button class="boton primario grande" data-entregar ${prueba ? 'disabled title="La tarea de prueba no existe en Moodle"' : ''}>Entregar en Moodle</button>
+        <button class="boton primario grande" data-entregar>Entregar en Moodle</button>
       </div>
       ${en.estado ? `<div class="estado-entrega ${esc(en.estado.fase)}"><b>${esc({ preparando: 'Preparando', colocados: 'Archivos colocados', manual: 'Hazlo a mano', cancelada: 'Cancelada', error: 'Error', abierta: 'Página abierta' }[en.estado.fase] || en.estado.fase)}</b> · ${esc(en.estado.texto || '')} <span class="sub">${esc(haceCuanto(en.estado.cuando))}</span>${en.estado.fase === 'preparando' ? ' <button class="boton chico" data-cancelar-entrega>Cancelar</button>' : ''}</div>` : ''}
-      ${prueba ? '<div class="sub">La tarea de prueba no existe en Moodle: aquí puedes probar todo menos entregar.</div>' : ''}
     </section>
   </div>`;
-  if (en.respuesta && $('md-tarea')) {
-    $('md-tarea').innerHTML = formatoRespuesta.markdown(en.respuesta.texto);
-    formatoRespuesta.formulas($('md-tarea'));
-  }
-  if ($('md-explicacion')) {
-    $('md-explicacion').innerHTML = formatoRespuesta.markdown(en.respuesta.explicacion);
-    formatoRespuesta.formulas($('md-explicacion'));
-  }
   if (foco && $(foco.id) && !$(foco.id).disabled) {
     // El formulario de entrega conserva el foco al actualizarse.
     $(foco.id).focus({ preventScroll: true });
     $(foco.id).setSelectionRange(foco.inicio, foco.fin);
   }
-  if (datos.mantenimiento) {
-    document.querySelector('[data-resolver]')?.remove();
-    $('titulo-explicacion')?.closest('section')?.remove();
-    document.querySelector('#zona-entregables .soltar').textContent = 'Arrastra aquí tus archivos o pulsa «Subir tus archivos».';
-    document.querySelector('#zona-entregables .paso-titulo').childNodes[1].textContent = 'Mis archivos';
-  }
-}
-
-// Al adjuntar algo de la IA: aviso de que se le quitan los metadatos, con
-// «No volver a mostrar» (se vuelve a activar en Ajustes).
-function avisoMetadatos(nombres) {
-  if (datos.prefs.limpiarMetadatos === false || datos.prefs.avisoMetadatos === false) return Promise.resolve();
-  return new Promise((ok) => {
-    const fondo = document.createElement('div');
-    fondo.className = 'modal-fondo';
-    fondo.innerHTML = `<div class="modal">
-      <h3>Se quitan los metadatos de IA</h3>
-      <p class="sub">${nombres.length === 1 ? `«${esc(nombres[0])}» lo generó la IA.` : `${nombres.length} de estos archivos los generó la IA.`} Al entregarlos, Insti Today manda una copia sin los datos que lo indican: credenciales de contenido (C2PA), EXIF/XMP, autor, programa y propiedades del documento. El original no se toca. La marca de agua invisible SynthID de las imágenes va en los píxeles y no se quita.</p>
-      <label class="no-mostrar"><input type="checkbox" id="no-mostrar-metadatos"> No volver a mostrar</label>
-      <div class="acciones derecha"><button class="boton primario" data-ok>Entendido</button></div>
-    </div>`;
-    document.body.appendChild(fondo);
-    fondo.addEventListener('click', async (e) => {
-      if (!e.target.closest('[data-ok]') && e.target !== fondo) return;
-      const noMostrar = fondo.querySelector('#no-mostrar-metadatos').checked;
-      fondo.remove();
-      if (noMostrar) datos = await api.guardar({ avisoMetadatos: false });
-      ok();
-    });
-  });
 }
 
 // Confirmación antes de abrir la entrega: dice exactamente qué se va.
@@ -1154,21 +905,31 @@ function confirmarEntrega(t, en) {
   });
 }
 
+// Cerrar sesión o quitar una cuenta no se deshace (el token se borra): se pregunta antes.
+function confirmarQuitarCuenta(c) {
+  return new Promise((ok) => {
+    const fondo = document.createElement('div');
+    fondo.className = 'modal-fondo';
+    fondo.innerHTML = `<div class="modal">
+      <h3>${c.activa ? '¿Cerrar sesión de' : '¿Quitar'} «${esc(c.nombre)}»?</h3>
+      <p class="sub">${c.activa ? 'Para volver a entrar tendrás que escribir tu contraseña.' : 'Se borra de esta computadora; para usarla otra vez tendrás que iniciar sesión.'}</p>
+      <div class="acciones derecha"><button class="boton" data-no>Cancelar</button><button class="boton destructivo" data-si>${c.activa ? 'Cerrar sesión' : 'Quitar'}</button></div>
+    </div>`;
+    document.body.appendChild(fondo);
+    const cerrar = (si) => { fondo.remove(); document.removeEventListener('keydown', tecla); ok(si); };
+    const tecla = (e) => e.key === 'Escape' && cerrar(false);
+    document.addEventListener('keydown', tecla);
+    fondo.addEventListener('click', (e) => {
+      const si = e.target.closest('[data-si]');
+      if (si || e.target.closest('[data-no]') || e.target === fondo) cerrar(!!si);
+    });
+    fondo.querySelector('[data-no]').focus();
+  });
+}
+
 $('detalle-pendiente').addEventListener('click', async (e) => {
   const t = tareaSel;
   if (!t) return;
-  const ruta = datos.rutas?.[t.id] || { resolverCon: 'ChatGPT' };
-  if (e.target.closest('[data-resolver]')) {
-    const r = await window.agenda.claude.resolver({ tareaId: t.id });
-    notaTarea = r?.primeraVez
-      ? '<b>Insti Today ya está conectado con Claude.</b> Cierra Claude por completo y ábrelo otra vez; después vuelve a pulsar Resolver. Sólo pasa esta vez.'
-      : r?.error === 'sin-claude' ? 'Hace falta la app de escritorio de Claude (claude.ai/download).'
-      : r?.error ? esc(r.error)
-      : r?.fondo ? `${esc(ruta.resolverCon)} la está resolviendo en segundo plano. Te aviso al terminar y lo que genere aparece aquí, en <b>Entregables</b>.`
-      : 'Sigue en la app que se abrió; el widget te dice en qué va.';
-    pintarDetalleTarea(detalleActual);
-    return;
-  }
   if (e.target.closest('[data-blackboard]')) return window.agenda.abrir(t.enlace);
   if (e.target.closest('[data-posponer]')) {
     await window.agenda.tareas.posponer({ id: t.id, titulo: t.titulo, curso: t.curso }, hastaManana());
@@ -1192,18 +953,7 @@ $('detalle-pendiente').addEventListener('click', async (e) => {
     if (archivo) window.agenda.abrirArchivo({ url: archivo.url, nombre: archivo.nombre, curso: t.curso });
     return;
   }
-  if (e.target.closest('[data-explicar]')) {
-    e.target.disabled = true;
-    try {
-      const r = await window.agenda.entrega.explicar(t.id);
-      if (tareaSel?.id !== t.id) return;
-      notaTarea = r?.error ? esc(r.error) : r?.manual ? 'La IA explicará la respuesta en el chat. ' + (r.adjuntar ? 'Adjunta las copias de referencia y envía el pedido. ' : '') + 'Copia su explicación para verla aquí.' : 'La IA está generando la explicación. Tu respuesta y tus archivos se conservan.';
-    } catch (error) { notaTarea = esc(error.message); }
-    if (tareaSel?.id === t.id) pintarDetalleTarea(detalleActual);
-    return;
-  }
-  if (e.target.closest('[data-detener-explicacion]')) { await window.agenda.claude.cancelar(); return pintarDetalleTarea(detalleActual); }
-  // Entregables.
+  // Tus archivos.
   const tarjeta = e.target.closest('.entregable');
   const rutaArchivo = tarjeta?.dataset.ruta;
   if (rutaArchivo && e.target.closest('[data-adjuntar]')) {
@@ -1213,37 +963,11 @@ $('detalle-pendiente').addEventListener('click', async (e) => {
     guardandoAdjunto = true;
     e.target.closest('button').disabled = true;
     try {
-      if (!actual.adjuntado && actual.origen !== 'Tuyo') await avisoMetadatos([actual.nombre]);
       const en = await window.agenda.entrega.adjuntar(t.id, rutaArchivo, !actual.adjuntado);
       if (tareaSel?.id === t.id) { entregaActual = en; notaTarea = actual.adjuntado ? 'Se quitó de la entrega. El archivo se conserva.' : 'Archivo adjuntado a tu entrega.'; }
     } catch (error) {
       if (tareaSel?.id === t.id) notaTarea = esc('No se pudo cambiar el adjunto: ' + error.message);
     } finally { guardandoAdjunto = false; pintarDetalleTarea(detalleActual); }
-    return;
-  }
-  if (rutaArchivo && e.target.closest('[data-revisar]')) {
-    const archivo = entregaActual?.entregables.find(x => x.ruta === rutaArchivo);
-    if (!archivo) return;
-    revisionActual = { ruta: rutaArchivo, nombre: archivo.nombre, comentario: '' };
-    pintarDetalleTarea(detalleActual);
-    $('comentario-revision')?.focus();
-    return;
-  }
-  if (e.target.closest('[data-cancelar-revision]')) { revisionActual = null; return pintarDetalleTarea(detalleActual); }
-  if (e.target.closest('[data-detener-revision]')) { await window.agenda.claude.cancelar(); notaTarea = 'Revisión cancelada. El original se conserva.'; pintarDetalleTarea(detalleActual); return; }
-  if (e.target.closest('[data-enviar-revision]') && revisionActual && !revisionActual.enviando) {
-    const seleccion = revisionActual;
-    seleccion.comentario = $('comentario-revision').value.trim();
-    if (!seleccion.comentario) { seleccion.error = 'Escribe qué quieres cambiar.'; pintarDetalleTarea(detalleActual); $('comentario-revision')?.focus(); return; }
-    seleccion.enviando = true;
-    pintarDetalleTarea(detalleActual);
-    try {
-      const r = await window.agenda.entrega.revisar({ tareaId: t.id, ruta: seleccion.ruta, comentario: seleccion.comentario });
-      if (tareaSel?.id !== t.id) return;
-      if (r?.error) { seleccion.error = r.error; seleccion.enviando = false; }
-      else { revisionActual = null; notaTarea = r?.manual ? 'Adjunta el original en el chat que se abrió y envía el pedido. Copia la imagen corregida para traerla aquí; si es un documento, descarga el archivo y añádelo con «Subir tus archivos». Copiar texto guarda una alternativa en Markdown.' : 'La IA está revisando ese archivo. La nueva versión aparecerá en Entregables.'; }
-    } catch (error) { seleccion.error = error.message; seleccion.enviando = false; }
-    if (tareaSel?.id === t.id) pintarDetalleTarea(detalleActual);
     return;
   }
   if (rutaArchivo && e.target.closest('[data-mostrar-entregable]')) return window.agenda.entrega.mostrarArchivo(t.id, rutaArchivo);
@@ -1253,22 +977,11 @@ $('detalle-pendiente').addEventListener('click', async (e) => {
   }
   if (rutaArchivo && e.target.closest('[data-abrir-entregable]')) return window.agenda.entrega.abrirArchivo(t.id, rutaArchivo);
   if (e.target.closest('[data-adjuntar-todo]')) {
-    const generados = (entregaActual?.entregables || []).filter((x) => !x.adjuntado && x.origen !== 'Tuyo');
-    if (generados.length) await avisoMetadatos(generados.map((x) => x.nombre));
     entregaActual = await window.agenda.entrega.adjuntarTodo(t.id);
     return pintarDetalleTarea(detalleActual);
   }
   if (e.target.closest('[data-subir]')) {
     entregaActual = await window.agenda.entrega.subir(t.id);
-    return pintarDetalleTarea(detalleActual);
-  }
-  if (e.target.closest('[data-copiar-respuesta]')) {
-    await window.agenda.respuesta.copiar(t.id);
-    e.target.textContent = 'Copiada';
-    return;
-  }
-  if (e.target.closest('[data-usar-respuesta]') && entregaActual?.respuesta) {
-    entregaActual = await window.agenda.entrega.texto(t.id, entregaActual.respuesta.texto);
     return pintarDetalleTarea(detalleActual);
   }
   if (e.target.closest('[data-cancelar-entrega]')) {
@@ -1291,14 +1004,6 @@ $('detalle-pendiente').addEventListener('click', async (e) => {
 // El texto de la entrega se guarda solo.
 $('detalle-pendiente').addEventListener('change', async (e) => {
   if (e.target.id === 'texto-entrega' && tareaSel) entregaActual = await window.agenda.entrega.texto(tareaSel.id, e.target.value);
-});
-$('detalle-pendiente').addEventListener('input', (e) => {
-  if (e.target.id === 'comentario-revision' && revisionActual) {
-    revisionActual.comentario = e.target.value;
-    revisionActual.error = '';
-    const aviso = document.querySelector('[data-error-revision]');
-    if (aviso) aviso.textContent = '';
-  }
 });
 
 // Soltar fotos o archivos propios en la tarea.
@@ -1324,6 +1029,44 @@ $('filas-pendientes').addEventListener('click', (e) => {
   const f = e.target.closest('[data-tarea]');
   if (f) verTarea(f.dataset.tarea);
 });
+
+// Teclado en la lista, como en Mail: Tab entra una sola vez, ↑/↓ cambian de
+// fila y Enter (o Espacio) la abre. La lista se repinta sola (cada minuto, al
+// llegar datos), así que se conserva la fila que tenía el foco.
+function pintarFilas(lista, html) {
+  const foco = lista.contains(document.activeElement) ? document.activeElement.dataset.tarea : null;
+  lista.innerHTML = html;
+  const filas = [...lista.querySelectorAll('.fila')];
+  const actual = filas.find((f) => f.dataset.tarea === foco) || filas.find((f) => f.classList.contains('sel')) || filas[0];
+  for (const f of filas) {
+    f.tabIndex = f === actual ? 0 : -1;
+    f.setAttribute('role', 'option');
+    f.setAttribute('aria-selected', f.classList.contains('sel'));
+  }
+  if (foco && actual) actual.focus({ preventScroll: true });
+}
+$('filas-pendientes').addEventListener('keydown', (e) => {
+  const filas = [...e.currentTarget.querySelectorAll('.fila')];
+  const i = filas.indexOf(document.activeElement);
+  if (i < 0) return;
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    filas[i].click();
+  } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    const otra = filas[Math.max(0, Math.min(filas.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))];
+    filas[i].tabIndex = -1;
+    otra.tabIndex = 0;
+    otra.focus();
+  }
+});
+// Tarjetas de archivo (div con role="button"): Enter o Espacio, como un clic.
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('div[role="button"]')) {
+    e.preventDefault();
+    e.target.click();
+  }
+});
 $('buscar').addEventListener('input', pintarPendientes);
 $('filtro-materia').addEventListener('change', pintarPendientes);
 $('chips-cuando').addEventListener('click', (e) => {
@@ -1334,7 +1077,7 @@ $('chips-cuando').addEventListener('click', (e) => {
   pintarPendientes();
 });
 
-// ---------- Respuestas ----------
+// Cuánto hace de algo («hace 5 min», «Mar 3 nov»).
 const haceCuanto = (iso) => {
   const min = Math.round((Date.now() - Date.parse(iso)) / 60_000);
   if (min < 1) return 'hace un momento';
@@ -1343,89 +1086,7 @@ const haceCuanto = (iso) => {
   return mayus(fmtDia.format(Date.parse(iso)));
 };
 
-function pintarRespuestas() {
-  const texto = $('buscar-respuestas').value.trim().toLowerCase();
-  const lista = (datos.respuestas || []).filter((r) => !texto || `${r.titulo} ${r.curso || ''} ${r.ia}`.toLowerCase().includes(texto));
-  $('filas-respuestas').innerHTML = lista.length
-    ? lista.map((r) => `<div class="fila ${respuestaSel === r.id ? 'sel' : ''}" data-respuesta="${esc(r.id)}">${r.primera ? `<img class="mini-img" src="${esc(r.primera)}" alt="">` : ''}<div class="info"><div class="titulo">${esc(r.titulo)}</div><div class="meta">${esc(r.ia)} · ${esc(haceCuanto(r.cuando))}${r.imagenes ? ` · ${r.imagenes} ${r.imagenes === 1 ? 'imagen' : 'imágenes'}` : ''}</div></div></div>`).join('')
-    : `<div class="vacio">${texto ? 'Nada coincide.' : 'Cuando resuelvas una tarea con IA, su respuesta aparece aquí.'}</div>`;
-}
-
-async function verRespuesta(id) {
-  respuestaSel = id;
-  pintarRespuestas();
-  const r = await window.agenda.respuesta.obtener(id);
-  if (respuestaSel !== id) return;
-  if (!r) {
-    $('detalle-respuesta').innerHTML = '<div class="vacio">Esta respuesta ya no existe.</div>';
-    return;
-  }
-  const imagenes = (r.imagenes || []).map((u, i) => `<figure><img src="${esc(u)}" alt=""><figcaption><button class="boton chico primario" data-bajar-imagen="${i}">Descargar</button><button class="boton chico" data-copiar-imagen="${i}">Copiar imagen</button></figcaption></figure>`).join('');
-  $('detalle-respuesta').innerHTML = `<div class="detalle">
-    <div class="curso" style="color:var(--tenue)">${esc(r.curso || '')}</div>
-    <h2>${esc(r.titulo)}</h2>
-    <div class="sub">Respuesta de ${esc(r.ia === 'chatgpt' ? 'ChatGPT' : r.ia || 'Claude')} · ${esc(haceCuanto(r.cuando))}</div>
-    <div class="acciones">
-      ${r.texto ? '<button class="boton primario" data-copiar>Copiar respuesta</button>' : ''}
-      ${(r.imagenes || []).length > 1 ? '<button class="boton" data-bajar-todas>Descargar imágenes</button>' : ''}
-      ${r.imagenConChatGPT ? '<button class="boton" data-imagen>Hacer la hoja en imagen</button>' : ''}
-      ${r.carpeta ? '<button class="boton" data-carpeta>Abrir carpeta</button>' : ''}
-      ${r.enlace ? '<button class="boton" data-blackboard>Abrir en Moodle ↗</button>' : ''}
-      <button class="boton" data-ventana>Abrir en ventana</button>
-      <button class="boton peligro" data-borrar>Borrar</button>
-    </div>
-    <h3>Cómo se hace</h3>
-    <p class="sub">Explicación de la IA para estudiar el procedimiento.</p>
-    ${r.explicacion?.trim().length >= 80 ? '<div class="respuesta-md" id="md-aprendizaje-respuesta"></div>' : '<p class="sub">Falta la explicación de la IA. Puedes generarla desde el detalle de la tarea en Pendientes.</p>'}
-    ${imagenes ? `<h3>Imágenes</h3><div class="imagenes">${imagenes}</div>` : ''}
-    ${(r.archivos || []).length ? `<h3>Archivos entregados</h3>${r.archivos.map((a, i) => {
-      const ext = (a.nombre.split('.').pop() || '').toLowerCase();
-      return `<div class="archivo" data-abrir-archivo="${i}" title="Abrir"><span class="tipo" style="background:${TIPOS[ext] || '#5d6b82'}">${esc(ext.toUpperCase().slice(0, 4) || 'ARCH')}</span><span class="nombre">${esc(a.nombre)}</span><button class="boton chico" data-mostrar-archivo="${i}">Mostrar en carpeta</button></div>`;
-    }).join('')}` : ''}
-    ${r.texto ? `<h3>Respuesta</h3><div class="respuesta-md" id="md"></div>` : ''}
-  </div>`;
-  $('detalle-respuesta').dataset.enlace = r.enlace || '';
-  if ($('md-aprendizaje-respuesta')) {
-    $('md-aprendizaje-respuesta').innerHTML = formatoRespuesta.markdown(r.explicacion);
-    formatoRespuesta.formulas($('md-aprendizaje-respuesta'));
-  }
-  if (r.texto) {
-    $('md').innerHTML = formatoRespuesta.markdown(r.texto);
-    formatoRespuesta.formulas($('md'));
-  }
-}
-
-$('filas-respuestas').addEventListener('click', (e) => {
-  const f = e.target.closest('[data-respuesta]');
-  if (f) verRespuesta(f.dataset.respuesta);
-});
-$('buscar-respuestas').addEventListener('input', pintarRespuestas);
-$('detalle-respuesta').addEventListener('click', async (e) => {
-  const id = respuestaSel;
-  if (!id) return;
-  const abrir = e.target.closest('[data-abrir-archivo]');
-  const mostrar = e.target.closest('[data-mostrar-archivo]');
-  if (mostrar) return window.agenda.respuesta.mostrarArchivo(id, Number(mostrar.dataset.mostrarArchivo));
-  if (abrir) return window.agenda.respuesta.abrirArchivo(id, Number(abrir.dataset.abrirArchivo));
-  const b = e.target.closest('button');
-  if (!b) return;
-  const avisar = (texto) => { const antes = b.textContent; b.textContent = texto; setTimeout(() => (b.textContent = antes), 1500); };
-  if (b.dataset.copiar !== undefined) { await window.agenda.respuesta.copiar(id); avisar('Copiada'); }
-  else if (b.dataset.bajarTodas !== undefined) { await window.agenda.respuesta.descargarImagen(id); avisar('Descargadas'); }
-  else if (b.dataset.bajarImagen !== undefined) { await window.agenda.respuesta.descargarImagen(id, Number(b.dataset.bajarImagen)); avisar('Descargada'); }
-  else if (b.dataset.copiarImagen !== undefined) { await window.agenda.respuesta.copiarImagen(id, Number(b.dataset.copiarImagen)); avisar('Copiada'); }
-  else if (b.dataset.imagen !== undefined) { await window.agenda.respuesta.imagen(id); avisar('Abriendo…'); }
-  else if (b.dataset.carpeta !== undefined) window.agenda.respuesta.carpeta(id);
-  else if (b.dataset.blackboard !== undefined) window.agenda.abrir($('detalle-respuesta').dataset.enlace);
-  else if (b.dataset.ventana !== undefined) window.agenda.respuesta.ver(id);
-  else if (b.dataset.borrar !== undefined) {
-    await window.agenda.respuesta.borrar(id);
-    respuestaSel = null;
-    $('detalle-respuesta').innerHTML = '<div class="vacio">Respuesta borrada.</div>';
-  }
-});
-
-// ---------- Ajustes, IA y cuenta ----------
+// ---------- Ajustes y cuenta ----------
 const TEMAS = [['medianoche', 'Medianoche'], ['marca', 'Insti Today'], ['claro', 'Claro'], ['papel', 'Papel'], ['vidrio', 'Vidrio'], ['bosque', 'Bosque'], ['oceano', 'Océano'], ['lavanda', 'Lavanda'], ['cereza', 'Cereza'], ['contraste', 'Alto contraste'], ['sistema', 'Automático']];
 function mini(tema, nombre) {
   const real = tema === 'sistema' ? temaSistema() : tema;
@@ -1455,9 +1116,6 @@ function pintarAjustes() {
   for (const id of ['titulo-detalles', 'grupo-detalles', 'fila-resumen']) $(id).hidden = !exp();
   const simple = DETALLES.every((id) => p[id] === false);
   $('lista-simple').textContent = simple ? 'Volver a los detalles' : 'Dejarla simple';
-  $('limpiarMetadatos').checked = p.limpiarMetadatos !== false;
-  $('avisoMetadatos').checked = p.avisoMetadatos !== false;
-  $('fila-aviso-metadatos').style.display = p.limpiarMetadatos === false ? 'none' : '';
   $('alIniciar').checked = !!datos.alIniciar;
   $('fila-aviso').style.display = p.avisos ? '' : 'none';
   $('soloTardias').disabled = p.diasAtras === 0;
@@ -1481,61 +1139,6 @@ function pintarAjustes() {
     : '<div class="sub">Aparecen cuando inicies sesión.</div>';
 }
 
-function pintarIA() {
-  const p = datos.prefs;
-  for (const seg of document.querySelectorAll('.segmentos[data-pref]')) {
-    for (const b of seg.querySelectorAll('button')) b.classList.toggle('activo', b.dataset.valor === p[seg.dataset.pref]);
-  }
-  const apps = datos.apps || {};
-  const motores = datos.motores || {};
-  const enFondo = (m) => motores[m] && motores.sesion?.[m] && !motores.bloqueos?.[m];
-  $('ia-explica').textContent = p.iaResolver === 'chatgpt'
-    ? enFondo('codex')
-      ? 'Pulsas Resolver y Codex (con tu cuenta de ChatGPT) lo hace en segundo plano: decide si hace falta texto, la hoja en imagen, un documento o código, y todo aparece aquí.'
-      : 'Ahora mismo Codex no está disponible (mira «Tus cuentas»): se abre chatgpt.com, arrastras los archivos y copias su respuesta.'
-    : enFondo('claude')
-      ? 'Pulsas Resolver y Claude Code lo hace en segundo plano: texto, documentos o código; si hace falta la hoja en imagen, la dibuja Codex. Todo aparece aquí.'
-      : 'Ahora mismo Claude Code no está disponible (mira «Tus cuentas»): se abre la app de Claude con el mensaje escrito y pulsas Enter.';
-  const marca = (si) => (si ? '✓' : '✗');
-  $('ia-apps').textContent = `En esta computadora: Codex ${marca(apps.codex)} · Claude Code ${marca(apps.claudeCode)} · app de Claude ${marca(apps.claude)}`;
-  // Qué se puede usar ahora mismo, según lo que Insti Today comprobó.
-  const fila = (color, nombre, texto) => `<div class="cuenta-ia"><i style="background:${color}"></i><div><b>${nombre}</b> · <span>${texto}</span></div></div>`;
-  const estadoMotor = (m, nombre, siNo) => {
-    const b = motores.bloqueos?.[m];
-    if (!motores[m]) return fila('var(--neutro)', nombre, `No está instalado. ${siNo}`);
-    if (b) return fila('var(--pronto)', nombre, `${b.texto}. Mientras, ${siNo.charAt(0).toLowerCase()}${siNo.slice(1)}`);
-    if (!motores.sesion?.[m]) return fila('var(--pronto)', nombre, `Sin sesión iniciada. ${siNo}`);
-    return fila('var(--bien)', nombre, 'Listo: resuelve en segundo plano con tu cuenta.');
-  };
-  $('ia-cuentas').innerHTML =
-    estadoMotor('codex', 'ChatGPT · Codex', 'Se usa chatgpt.com (arrastras los archivos y copias la respuesta).') +
-    estadoMotor('claude', 'Claude · Claude Code', 'Se usa la app de Claude (pulsas Enter allí).');
-  $('tareaPrueba').checked = !!p.tareaPrueba;
-  $('iaImagenes').checked = !!p.iaImagenes;
-  $('iaImagenAuto').checked = !!p.iaImagenAuto;
-  $('fila-imagen-auto').style.display = 'none'; // sólo cuenta en la vía de respaldo
-  $('fila-estilo').style.display = p.iaImagenes ? '' : 'none';
-  for (const id of ['iaPedido', 'iaPedidoImagen', 'chatgptModelo']) if (document.activeElement !== $(id)) $(id).value = p[id] ?? '';
-  const c = datos.claude || {};
-  const boton = $('claude-boton');
-  if (!c.instalado) {
-    $('claude-estado').textContent = 'Hace falta la app de escritorio de Claude (claude.ai/download).';
-    boton.textContent = 'Descargar Claude';
-    boton.className = 'boton';
-    boton.onclick = () => window.agenda.abrir('https://claude.ai/download');
-  } else if (c.conectado && !c.desactualizado) {
-    $('claude-estado').textContent = 'Conectado. Si acabas de conectarlo, reinicia Claude una vez.';
-    boton.textContent = 'Desconectar';
-    boton.className = 'boton';
-    boton.onclick = async () => { datos = await window.agenda.claude.desconectar(); pintar(); };
-  } else {
-    $('claude-estado').textContent = c.desactualizado ? 'Insti Today cambió de sitio: vuelve a conectarlo.' : 'Claude está instalado pero Insti Today no está conectado.';
-    boton.textContent = 'Conectar';
-    boton.className = 'boton primario';
-    boton.onclick = async () => { datos = await window.agenda.claude.conectar(); pintar(); };
-  }
-}
-
 function pintarCuenta() {
   const host = new URL(datos.escuela).hostname;
   const cuentas = datos.cuentas || [];
@@ -1543,8 +1146,7 @@ function pintarCuenta() {
   $('cuenta').innerHTML = datos.cuenta
     ? cuentas.map((c) => `<div class="opcion">
         <div class="cuenta"><span class="avatar" style="background:${esc(c.color)}">${esc(iniciales(c))}</span>
-          <div class="texto"><b>${esc(c.nombre)}</b><span>${esc(c.usuario)} · ${esc(c.host)}${c.activa ? ' · <b style="display:inline;color:var(--acento)">En uso</b>' : ''}</span>
-            <div class="colores-cuenta">${colores.map((k) => `<button style="--c:${k}" class="${k === c.color ? 'activo' : ''}" data-color-cuenta="${esc(c.id)}" data-color="${k}" title="Usar este color"></button>`).join('')}</div></div></div>
+          <div class="texto"><b>${esc(c.nombre)}</b><span>${esc(c.usuario)} · ${esc(c.host)}${c.activa ? ' · <b style="display:inline;color:var(--acento)">En uso</b>' : ''}</span>            <div class="colores-cuenta">${colores.map((k) => `<button style="--c:${k}" class="${k === c.color ? 'activo' : ''}" data-color-cuenta="${esc(c.id)}" data-color="${k}" title="Usar este color"></button>`).join('')}</div></div></div>
         <div class="acciones-cuenta">${c.activa ? '' : `<button class="boton" data-usar-cuenta="${esc(c.id)}">Usar</button>`}<button class="boton peligro" data-quitar-cuenta="${esc(c.id)}">${c.activa ? 'Cerrar sesión' : 'Quitar'}</button></div>
       </div>`).join('') + `<div class="opcion"><div class="texto"><b>Añadir otra cuenta</b><span>Para cambiar rápido, mantén pulsado tu icono junto al buscador y desliza hacia arriba o hacia abajo.</span></div><button class="boton" data-agregar-cuenta>Añadir cuenta</button></div>`
     : `<div class="opcion"><div class="texto"><b>No has iniciado sesión</b><span>${esc(host)}</span></div><button class="boton primario" id="entrar">Iniciar sesión</button></div>`;
@@ -1596,9 +1198,6 @@ function pintarBarra() {
     $('num-pendientes').title = `${deHoy} para hoy · ${hechas} ${hechas === 1 ? 'entregada' : 'entregadas'}`;
     $('num-pendientes').style.display = deHoy ? '' : 'none';
   }
-  const n = (datos.respuestas || []).length;
-  $('num-respuestas').textContent = n || '';
-  $('num-respuestas').style.display = n ? '' : 'none';
   $('estado-revision').innerHTML = datos.cargando
     ? '<b>Revisando Moodle…</b>'
     : datos.actualizado ? `Revisado a las <b>${fmtHora.format(new Date(datos.actualizado))}</b>` : 'Sin revisar todavía';
@@ -1612,11 +1211,6 @@ function pintarBarra() {
 
 function pintar() {
   if (!datos) return;
-  if (datos.mantenimiento) {
-    document.querySelectorAll('[data-ir="ia"],[data-ir="respuestas"]').forEach(el=>el.hidden=true);
-    if (['ia','respuestas'].includes(seccion)) ir('pendientes');
-    for (const id of ['limpiarMetadatos','avisoMetadatos']) $(id)?.closest('.opcion')?.setAttribute('hidden','');
-  }
   // El mismo estilo que el widget.
   document.documentElement.dataset.tema = !datos.prefs.tema || datos.prefs.tema === 'sistema' ? temaSistema() : datos.prefs.tema;
   document.documentElement.toggleAttribute('data-experimental', exp());
@@ -1624,9 +1218,7 @@ function pintar() {
   pintarYo();
   pintarBarra();
   pintarPendientes();
-  pintarRespuestas();
   pintarAjustes();
-  pintarIA();
   pintarCuenta();
   pintarGuia();
 }
@@ -1642,18 +1234,7 @@ $('lista-simple').addEventListener('click', () => {
   const encender = DETALLES.every((id) => datos.prefs[id] === false);
   guardar(Object.fromEntries(DETALLES.map((id) => [id, encender])));
 });
-for (const id of ['soloTardias', 'sinFecha', 'vistaPrevia', 'avisos', 'experimental', ...DETALLES, 'iaImagenes', 'iaImagenAuto', 'tareaPrueba', 'limpiarMetadatos', 'avisoMetadatos']) $(id).addEventListener('change', () => guardar({ [id]: $(id).checked }));
-for (const seg of document.querySelectorAll('.segmentos[data-pref]')) {
-  seg.addEventListener('click', (e) => {
-    const b = e.target.closest('button');
-    if (b) guardar({ [seg.dataset.pref]: b.dataset.valor });
-  });
-}
-for (const id of ['iaPedido', 'iaPedidoImagen', 'chatgptModelo']) $(id).addEventListener('change', () => guardar({ [id]: $(id).value }));
-document.addEventListener('click', (e) => {
-  const b = e.target.closest('[data-restaurar-campo]');
-  if (b) guardar({ [b.dataset.restaurarCampo]: '' });
-});
+for (const id of ['soloTardias', 'sinFecha', 'vistaPrevia', 'avisos', 'experimental', ...DETALLES]) $(id).addEventListener('change', () => guardar({ [id]: $(id).checked }));
 $('opacidad').addEventListener('input', () => {
   $('opacidad-valor').textContent = `${$('opacidad').value} %`;
   guardar({ opacidad: Number($('opacidad').value) });
@@ -1703,10 +1284,8 @@ function pintarYo() {
   const id = activa?.id || null;
   if (cuentaPintada !== undefined && cuentaPintada !== id) {
     tareaSel = null;
-    respuestaSel = null;
     detalleActual = null;
-    $('detalle-pendiente').innerHTML = '<div class="vacio">Elige una tarea para ver sus instrucciones, sus archivos y resolverla.</div>';
-    $('detalle-respuesta').innerHTML = '<div class="vacio">Elige una respuesta.</div>';
+    $('detalle-pendiente').innerHTML = '<div class="vacio">Elige una tarea para ver sus instrucciones y sus archivos.</div>';
     $('filtro-materia').value = '';
   }
   cuentaPintada = id;
@@ -1866,10 +1445,11 @@ document.addEventListener('click', async (e) => {
   if (usar) return usarCuenta(usar.dataset.usarCuenta);
   const quitar = e.target.closest('[data-quitar-cuenta]');
   if (quitar) {
-    const r = await api.quitarCuenta(quitar.dataset.quitarCuenta);
-    datos = r.datos;
+    const id = quitar.dataset.quitarCuenta;
+    const c = cuentasDe().find((x) => x.id === id);
+    if (!c || !(await confirmarQuitarCuenta(c))) return;
+    datos = (await api.quitarCuenta(id)).datos;
     pintar();
-    if (!r.ok && r.mensaje) alert(r.mensaje);
     return;
   }
   const color = e.target.closest('[data-color-cuenta]');
@@ -1883,7 +1463,7 @@ document.addEventListener('click', async (e) => {
 setInterval(() => datos && (pintarBarra(), pintarPendientes()), 60_000);
 
 api.alCambiar((nuevos) => {
-  const antes = JSON.stringify([datos?.respuestas?.find((r) => r.id === tareaSel?.id)?.cuando, datos?.trabajo?.fase, datos?.entregaCambio]);
+  const antes = JSON.stringify(datos?.entregaCambio);
   // Lo que estaba pendiente y Moodle ya ve entregado: la fila se tacha y se va antes de repintar.
   const estados = (d) => new Map((d?.agenda?.cursos || []).flatMap((c) => c.tareas.map((t) => [t.id, t.estado])));
   const previos = estados(datos);
@@ -1894,8 +1474,8 @@ api.alCambiar((nuevos) => {
     hechas.forEach((f) => f.classList.add('entregada'));
     setTimeout(pintar, 800);
   } else pintar();
-  // Llegó una respuesta (o cambió lo que se está haciendo) de la tarea abierta.
-  if (tareaSel && JSON.stringify([datos.respuestas?.find((r) => r.id === tareaSel.id)?.cuando, datos.trabajo?.fase, datos.entregaCambio]) !== antes) refrescarEntrega();
+  // Cambió la entrega de la tarea abierta.
+  if (tareaSel && JSON.stringify(datos.entregaCambio) !== antes) refrescarEntrega();
 });
 api.obtener().then((d) => {
   datos = d;

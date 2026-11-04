@@ -4,10 +4,6 @@
 <meta charset="utf-8">
 <title>Vista previa</title>
 <link rel="stylesheet" href="temas.css">
-<link rel="stylesheet" href="../node_modules/katex/dist/katex.min.css">
-<script src="../node_modules/katex/dist/katex.min.js"></script>
-<script src="../node_modules/katex/dist/contrib/auto-render.min.js"></script>
-<script src="markdown.js"></script>
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; background: transparent; overflow: hidden; }
@@ -92,35 +88,10 @@
   .abrir:hover { background: var(--pieza-hover); }
   .ruta { font-size: 10.5px; color: var(--tenue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: -4px 0 8px; }
   .pie { gap: 8px; justify-content: flex-end; }
-  .resolver { font: inherit; font-size: 12px; font-weight: 600; color: #fff; background: var(--acento); border: 0; border-radius: 999px; padding: 5px 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-  .resolver:hover { filter: brightness(1.08); }
-  /* ChatGPT: blanco y con su logo. */
-  .resolver.chatgpt { background: #fff; color: #0d0d0d; box-shadow: 0 0 0 1px rgb(0 0 0 / .12) inset; }
-  .resolver.chatgpt:hover { filter: none; background: #f2f2f2; }
-  .resolver.chatgpt img { width: 14px; height: 14px; }
-  .resolver-grupo { position: relative; display: flex; }
-  .resolver-fila { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-  .con-agente { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--tenue); white-space: nowrap; }
+  .entregar { font: inherit; font-size: 12px; font-weight: 600; color: #fff; background: var(--acento); border: 0; border-radius: 999px; padding: 5px 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .entregar:hover { filter: brightness(1.08); }
   .pie button { white-space: nowrap; }
   .pie { flex-wrap: wrap; row-gap: 6px; gap: 6px; }
-  .resolver-grupo .resolver:first-of-type { border-radius: 999px 0 0 999px; }
-  .resolver.mas { border-radius: 0 999px 999px 0; padding: 5px 9px 5px 7px; margin-left: 1px; font-size: 10px; }
-  .rutas { position: absolute; right: 0; bottom: calc(100% + 6px); display: flex; flex-direction: column; min-width: 190px; padding: 5px; border-radius: 12px; background: var(--elevado, var(--fondo-a)); border: 1px solid var(--borde); box-shadow: var(--sombra); z-index: 5; }
-  .rutas button { font: inherit; font-size: 12px; text-align: left; color: var(--texto); background: none; border: 0; border-radius: 6px; padding: 6px 9px; cursor: pointer; }
-  .rutas button:hover { background: var(--acento); color: #fff; }
-  .resolver svg { width: 13px; height: 13px; }
-  .nota-claude { margin: 0 16px 12px; padding: 9px 12px; border-radius: 10px; font-size: 11.5px; color: var(--suave); background: var(--pieza); }
-  .nota-claude b { color: var(--texto); }
-  .respuesta { border-radius: 12px; background: color-mix(in srgb, var(--bien) 8%, var(--pieza)); border: 1px solid color-mix(in srgb, var(--bien) 25%, transparent); padding: 9px 11px; }
-  .respuesta .corta h1, .respuesta .corta h2, .respuesta .corta h3 { font-size: 12.5px; margin: 4px 0 2px; color: var(--texto); }
-  .respuesta .corta p, .respuesta .corta ul, .respuesta .corta ol { margin: 2px 0; }
-  .respuesta .corta ul, .respuesta .corta ol { padding-left: 18px; }
-  .respuesta .corta .katex-display { margin: 4px 0; }
-  .respuesta .corta { color: var(--suave); max-height: 104px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 60%, transparent); user-select: text; }
-  .imagenes-resp { display: flex; gap: 6px; margin-bottom: 6px; }
-  .imagenes-resp img { height: 84px; max-width: 100%; object-fit: cover; border-radius: 6px; background: #fff; }
-  .respuesta .botones-resp { display: flex; gap: 6px; margin-top: 8px; }
-  .respuesta button { font: inherit; font-size: 11.5px; font-weight: 500; color: var(--texto); background: var(--pieza-hover); border: 0; border-radius: 999px; padding: 3px 11px; cursor: pointer; }
   .cargando-linea { height: 10px; border-radius: 5px; margin: 6px 0; }
   .esqueleto.alto-pdf { height: 118px; }
   .muestra canvas { height: 118px; object-fit: cover; }
@@ -181,10 +152,6 @@ function chipsEntrega(t) {
 }
 
 let actual = null;
-let notaClaude = '';
-let menuRutas = false;
-const CODIGO = '<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 4.5L2 8l3.5 3.5M10.5 4.5L14 8l-3.5 3.5"/></svg>';
-const CHISPA = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.6 4.4L14 7l-4.4 1.6L8 13l-1.6-4.4L2 7l4.4-1.6z"/></svg>';
 const $contenido = document.getElementById('contenido');
 let esperaPrimera = null;
 
@@ -197,10 +164,6 @@ function pintar() {
     <h2>${esc(tarea.titulo)}</h2>
     ${(tarea.ruta || []).length ? `<div class="ruta" title="${esc(tarea.ruta.join(' › '))}">${esc(tarea.ruta.join(' › '))}</div>` : ''}
     ${chipsEntrega(tarea)}`;
-  if (actual.respuesta) {
-    html += `<div class="seccion">Respuesta de ${esc(actual.respuesta.ia === 'chatgpt' ? 'ChatGPT' : actual.respuesta.ia || 'Claude')}</div><div class="respuesta">${(actual.respuesta.imagenes || []).length ? `<div class="imagenes-resp">${actual.respuesta.imagenes.slice(-3).map((u) => `<img src="${esc(u)}" alt="">`).join('')}</div>` : ''}${actual.respuesta.texto ? `<div class="corta" data-respuesta-corta>${formatoRespuesta.markdown(actual.respuesta.texto.split(/\n\s*\n/).slice(0, 4).join('\n\n'))}</div>` : ''}
-      <div class="botones-resp"><button data-ver-respuesta>Ver completa</button>${actual.respuesta.texto ? '<button data-copiar-respuesta>Copiar</button>' : ''}${(actual.respuesta.imagenes || []).length ? `<button data-descargar-imagenes>Descargar ${actual.respuesta.imagenes.length > 1 ? 'imágenes' : 'imagen'}</button>` : ''}</div></div>`;
-  }
 
   const instrucciones = detalle?.instrucciones ?? tarea.instrucciones;
   if (cargando && !instrucciones) {
@@ -223,14 +186,8 @@ function pintar() {
     html += `<div class="seccion">Detalle</div><div class="vacio">${error ? 'No se pudo leer el detalle de Moodle.' : 'Sin instrucciones ni archivos en Moodle.'}</div>`;
   }
 
-  html += `</div>${notaClaude ? `<div class="nota-claude">${notaClaude}</div>` : ''}<div class="pie"><button class="abrir" data-url="${esc(tarea.enlace)}" title="Abrir en Moodle">Abrir en Moodle ↗</button>${actual.resolverCon === 'Claude' ? `<button class="resolver" data-resolver>${CHISPA}Resolver con Claude</button>` : '<button class="resolver chatgpt" data-resolver><img src="icono/chatgpt.png" alt="">Resolver con ChatGPT</button>'}</div>`;
+  html += `</div><div class="pie"><button class="abrir" data-url="${esc(tarea.enlace)}" title="Abrir en Moodle">Abrir en Moodle ↗</button><button class="entregar" data-entrega-propia>Mis archivos y entrega</button></div>`;
   $contenido.innerHTML = html;
-  const corta = $contenido.querySelector('[data-respuesta-corta]');
-  if (actual.mantenimiento) {
-    $contenido.querySelector('[data-resolver]')?.remove();
-    const boton=document.createElement('button');boton.className='resolver';boton.dataset.entregaPropia='';boton.textContent='Mis archivos y entrega';$contenido.querySelector('.pie').append(boton);
-  }
-  if (corta) formatoRespuesta.formulas(corta);
   for (const lienzo of $contenido.querySelectorAll('canvas[data-pdf]')) dibujarPdf(lienzo, Number(lienzo.dataset.pdf));
 }
 
@@ -365,10 +322,6 @@ vista.alDatos((datos) => {
   const fijarFoco = datos.fijada && !actual?.fijada;
   const nueva = !actual || datos.n !== actual.n;
   const visible = $tarjeta.classList.contains('visible');
-  if (nueva) {
-    notaClaude = '';
-    menuRutas = false;
-  }
   actual = datos;
   $tarjeta.classList.toggle('fijada', !!datos.fijada);
   document.getElementById('cerrar-vista').hidden = !datos.fijada;
@@ -427,7 +380,7 @@ $tarjeta.addEventListener('mouseleave', () => {
   vista.soltar();
 });
 $tarjeta.addEventListener('click', async (e) => {
-  if (e.target.closest('[data-entrega-propia]') && actual) return window.agenda.app.abrir('pendientes',actual.tarea.id);
+  if (e.target.closest('[data-entrega-propia]') && actual) return window.agenda.app.abrir('pendientes', actual.tarea.id);
   const el = e.target.closest('[data-archivo]');
   if (el && actual?.detalle) {
     // Se descarga con la sesión de la app (nunca pide volver a entrar) y
@@ -444,47 +397,6 @@ $tarjeta.addEventListener('click', async (e) => {
     const r = await window.agenda.abrirArchivo({ url: a.url, nombre: a.nombre, curso: actual.curso });
     marcar(r?.error || 'Abierto');
     setTimeout(() => marcar(null), 4000);
-    return;
-  }
-  if (e.target.closest('[data-mas-rutas]') && actual) {
-    if (actual.mantenimiento) return;
-    menuRutas = !menuRutas;
-    pintar();
-    return;
-  }
-  const ruta = e.target.closest('[data-ruta]')?.dataset.ruta;
-  if ((ruta || e.target.closest('[data-resolver]')) && actual) {
-    menuRutas = false;
-    const r = await window.agenda.claude.resolver({ tareaId: actual.tarea.id, forzar: ruta });
-    if (r?.primeraVez) {
-      notaClaude = '<b>Insti Today ya está conectado con Claude.</b> Cierra Claude por completo (también desde la bandeja) y ábrelo otra vez; después vuelve a pulsar <b>Resolver con Claude</b>. Sólo pasa esta vez.';
-    } else if (r?.error === 'sin-agente') {
-      notaClaude = `<b>${esc(r.agente)} no está instalado.</b> Instálalo (${esc(r.instalar)}) o cambia de IA en Insti Today → IA.`;
-    } else if (r?.error === 'sin-claude') {
-      notaClaude = 'Para resolver hace falta la app de escritorio de <b>Claude</b>. Descárgala en claude.ai/download, inicia sesión y vuelve a intentarlo.';
-    } else if (r?.error) {
-      notaClaude = esc(r.error);
-    } else if (r?.fondo) {
-      notaClaude = '';
-    }
-    if (notaClaude) pintar();
-    return;
-  }
-  const bajar = e.target.closest('[data-descargar-imagenes]');
-  if (bajar && actual) {
-    window.agenda.respuesta.descargarImagen(actual.tarea.id);
-    bajar.textContent = 'Descargada';
-    return;
-  }
-  if (e.target.closest('[data-ver-respuesta]') && actual) {
-    window.agenda.respuesta.ver(actual.tarea.id);
-    return;
-  }
-  const copiar = e.target.closest('[data-copiar-respuesta]');
-  if (copiar && actual) {
-    window.agenda.respuesta.copiar(actual.tarea.id);
-    copiar.textContent = 'Copiada';
-    setTimeout(() => (copiar.textContent = 'Copiar'), 1600);
     return;
   }
   const enlace = e.target.closest('[data-url]');

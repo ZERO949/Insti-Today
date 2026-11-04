@@ -136,27 +136,15 @@
   .saludo b { color: var(--texto); font-weight: 600; }
   .saludo.yendo { opacity: 0; }
   @media (prefers-reduced-motion: reduce) {
-    .siguiente.saluda .punto, .item.entregada, .claude .punto-vivo { animation: none; }
+    .siguiente.saluda .punto, .item.entregada { animation: none; }
     .item.entregada { display: none; }
   }
-  /* Franjas de abajo (deshacer, IA, versión nueva): una línea fina y botones de cápsula. */
-  .deshacer, .claude, .novedad { display: flex; align-items: center; gap: 9px; padding: 9px 12px 10px 16px; border-top: 1px solid var(--linea); font-size: 12px; color: var(--suave); }
-  .deshacer[hidden], .claude[hidden], .novedad[hidden] { display: none; }
-  .claude .texto { min-width: 0; flex: 1; line-height: 1.35; }
-  .claude .texto b { color: var(--texto); font-weight: 600; }
-  .claude .texto .sub { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--tenue); font-size: 11.5px; }
-  .claude .accion, .novedad button { -webkit-app-region: no-drag; flex: none; font: inherit; font-size: 12px; font-weight: 600; color: #fff; background: var(--acento); border: 0; border-radius: 999px; padding: 4px 12px; cursor: pointer; transition: filter .15s var(--curva); }
-  .claude .accion:hover, .novedad button:hover { filter: brightness(1.08); }
+  /* Franjas de abajo (deshacer, versión nueva): una línea fina y botones de cápsula. */
+  .deshacer, .novedad { display: flex; align-items: center; gap: 9px; padding: 9px 12px 10px 16px; border-top: 1px solid var(--linea); font-size: 12px; color: var(--suave); }
+  .deshacer[hidden], .novedad[hidden] { display: none; }
+  .novedad button { -webkit-app-region: no-drag; flex: none; font: inherit; font-size: 12px; font-weight: 600; color: #fff; background: var(--acento); border: 0; border-radius: 999px; padding: 4px 12px; cursor: pointer; transition: filter .15s var(--curva); }
+  .novedad button:hover { filter: brightness(1.08); }
   .novedad button { margin-left: auto; }
-  .claude .cerrar { -webkit-app-region: no-drag; flex: none; width: 22px; height: 22px; border: 0; border-radius: 50%; background: transparent; color: var(--tenue); cursor: pointer; display: grid; place-items: center; padding: 0; }
-  .claude .cerrar:hover { background: var(--pieza); color: var(--texto); }
-  .claude .tecla { display: inline-block; font-size: 11px; font-weight: 600; color: var(--texto); background: var(--pieza); border-radius: 5px; padding: 0 5px; margin: 0 1px; }
-  .claude .punto-vivo { width: 8px; height: 8px; border-radius: 50%; background: var(--acento); flex: none; animation: latido 1.2s ease-in-out infinite; }
-  /* Experimental: late unas veces al aparecer y se queda quieto; la franja ya dice qué pasa. */
-  [data-experimental] .claude .punto-vivo { animation-iteration-count: 3; }
-  .claude .hecho { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--bien); color: #fff; flex: none; }
-  @keyframes latido { 50% { opacity: .3; transform: scale(.8); } }
-  .meta .resuelta { color: var(--bien); margin-left: 4px; }
   .deshacer span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
   .deshacer button { -webkit-app-region: no-drag; margin-left: auto; flex: none; font: inherit; font-size: 12px; font-weight: 600; color: var(--acento-texto, var(--acento)); background: transparent; border: 0; border-radius: 999px; padding: 3px 10px; cursor: pointer; }
   .deshacer button:hover { background: var(--pieza); }
@@ -214,7 +202,7 @@
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2" y="3.5" width="12" height="9" rx="1.8"/><path d="M2.5 4.5 8 9l5.5-4.5"/></svg>
         <span class="bolita" id="bolita" hidden></span>
       </button>
-      <button class="boton" id="abrir-app" title="Tus tareas, archivos y ajustes">
+      <button class="boton" id="abrir-app" title="Tus archivos, entrega y ajustes">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M6.5 2.5v11"/></svg>
       </button>
       <button class="boton" id="refrescar" title="Actualizar ahora">
@@ -231,7 +219,6 @@
   <div class="aviso" id="aviso" hidden></div>
   <div class="lista" id="lista"></div>
   <div class="deshacer" id="deshacer" hidden></div>
-  <div class="claude" id="claude" hidden></div>
   <div class="novedad" id="novedad" hidden></div>
 </div>
 
@@ -408,7 +395,7 @@ function fila(t, pastilla, clase, extra = {}) {
   const posponer = extra.posponer ? `<button type="button" class="posponer" data-posponer title="Hoy no: vuelve mañana" aria-label="Posponer ${esc(t.titulo)} hasta mañana">${LUNA}</button>` : '';
   return `<div class="item${extra.siguiente ? ' siguiente' : ''}${extra.saluda ? ' saluda' : ''}" tabindex="0" role="group" aria-label="Abrir detalle de ${esc(t.titulo)}" data-curso="${esc(t.cursoId)}" data-tarea="${esc(t.id)}" data-color="${t.color}" data-enlace="${esc(t.enlace)}">
     <i class="punto" style="background:${t.color};color:${t.color}"></i>
-    <div style="min-width:0">${extra.siguiente ? '<div class="rotulo">Lo siguiente</div>' : ''}<div class="titulo">${esc(t.titulo)}</div><div class="meta">${esc(t.curso)}${material}${estado.respuestas?.[t.id] ? `<span class="resuelta" title="${esc(estado.respuestas[t.id])} ya la resolvió">· respuesta lista</span>` : ''}</div></div>
+    <div style="min-width:0">${extra.siguiente ? '<div class="rotulo">Lo siguiente</div>' : ''}<div class="titulo">${esc(t.titulo)}</div><div class="meta">${esc(t.curso)}${material}</div></div>
     <span class="lado"><span class="pastilla ${clase}">${pastilla}</span><span class="acciones">${posponer}<button type="button" class="quitar" data-quitar title="Quitar de la lista" aria-label="Quitar ${esc(t.titulo)}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></span></span></div>`;
 }
 
@@ -481,128 +468,13 @@ function pintarNovedad() {
   }
 }
 
-// Barra de «Resolver con Claude»: qué falta (pulsar Enter), en qué va y
-// cuándo está la respuesta.
-const X = '<svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>';
-function pintarClaude() {
-  if (estado.mantenimiento) { $('claude').hidden=true; return; }
-  const c = estado.claude;
-  const caja = $('claude');
-  if (!c) {
-    caja.hidden = true;
-    return;
-  }
-  caja.hidden = false;
-  if (c.ia === 'chatgpt') return pintarChatGPT(c, caja);
-  if (c.ia === 'agente') return pintarAgente(c, caja);
-  if (c.ia === 'fondo') return pintarFondo(c, caja);
-  if (c.fase === 'esperando') {
-    caja.innerHTML = `<span class="punto-vivo"></span><div class="texto"><b>Pulsa <span class="tecla">Enter</span> en Claude</b><span class="sub">para resolver «${esc(c.titulo)}»</span></div><button class="cerrar" id="claude-cerrar" title="Cancelar">${X}</button>`;
-  } else if (c.fase === 'leyendo') {
-    caja.innerHTML = `<span class="punto-vivo"></span><div class="texto"><b>Claude está resolviendo…</b><span class="sub">«${esc(c.titulo)}»</span></div><button class="cerrar" id="claude-cerrar" title="Ocultar">${X}</button>`;
-  } else {
-    // Claude dijo que era de programación: se ofrece el agente de código.
-    const extra = c.tipo === 'codigo'
-      ? '<button class="accion" id="claude-agente" title="Resolverla con el agente de código">Código</button>'
-      : c.conImagen ? '<button class="accion" id="claude-imagen" title="Que ChatGPT haga la hoja">Imagen</button>' : '';
-    caja.innerHTML = `<span class="hecho">${PALOMITA}</span><div class="texto"><b>Respuesta lista · copiada</b><span class="sub">«${esc(c.titulo)}»</span></div>${extra}<button class="accion" id="claude-ver">Ver</button><button class="cerrar" id="claude-cerrar" title="Ocultar">${X}</button>`;
-    $('claude-ver').onclick = () => window.agenda.respuesta.ver(c.tareaId);
-    if ($('claude-agente')) $('claude-agente').onclick = () => window.agenda.claude.resolver({ tareaId: c.tareaId, forzar: 'agente' });
-    if ($('claude-imagen')) $('claude-imagen').onclick = () => window.agenda.respuesta.imagen(c.tareaId);
-  }
-  $('claude-cerrar').onclick = () => window.agenda.claude.cancelar();
-}
-
-const PALOMITA = '<svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg>';
-
-// En segundo plano: la IA trabaja sola y la respuesta llega aquí. Mientras,
-// se ve cuánto lleva.
-let relojFondo = null;
-const transcurrido = (inicio) => {
-  const s = Math.max(0, Math.round((Date.now() - inicio) / 1000));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-};
-function pintarFondo(c, caja) {
-  clearInterval(relojFondo);
-  const cerrar = `<button class="cerrar" id="claude-cerrar" title="${['lista', 'error'].includes(c.fase) ? 'Ocultar' : 'Cancelar'}">${X}</button>`;
-  const vivo = '<span class="punto-vivo"></span>';
-  if (c.fase === 'preparando' || c.fase === 'trabajando' || c.fase === 'dibujando') {
-    const titulo = c.fase === 'preparando' ? 'Preparando la tarea…' : c.fase === 'dibujando' ? 'Dibujando la hoja…' : `${esc(c.nombre)} está resolviendo…`;
-    caja.innerHTML = `${vivo}<div class="texto"><b>${titulo} <span id="reloj-fondo" style="font-weight:400;color:var(--tenue)">${transcurrido(c.inicio)}</span></b><span class="sub">«${esc(c.titulo)}» · te aviso al terminar</span></div>${cerrar}`;
-    relojFondo = setInterval(() => {
-      const el = $('reloj-fondo');
-      if (el) el.textContent = transcurrido(c.inicio);
-      else clearInterval(relojFondo);
-    }, 1000);
-  } else if (c.fase === 'error') {
-    caja.innerHTML = `<span class="hecho" style="color:var(--mal);background:color-mix(in srgb, var(--mal) 18%, transparent)">!</span><div class="texto"><b>No se pudo resolver</b><span class="sub" title="${esc(c.detalle || '')}">${esc(c.detalle || c.titulo)}</span></div>${cerrar}`;
-  } else {
-    caja.innerHTML = `<span class="hecho">${PALOMITA}</span><div class="texto"><b>${c.sinArchivos ? 'Respuesta escrita; sin archivos' : 'Archivos generados'}</b><span class="sub">${c.sinArchivos ? 'La IA no generó archivos entregables. Revisa el texto.' : '«'+esc(c.titulo)+'» · revisa los archivos antes de adjuntar'}</span></div><button class="accion" id="claude-ver">Ver</button>${cerrar}`;
-    $('claude-ver').onclick = () => window.agenda.app.abrir('pendientes', c.tareaId);
-  }
-  $('claude-cerrar').onclick = () => window.agenda.claude.cancelar();
-}
-
-// Agente de código (Claude Code o Codex) en una terminal: la respuesta es el
-// RESPUESTA.md que deja en la carpeta de la tarea.
-function pintarAgente(c, caja) {
-  const cerrar = `<button class="cerrar" id="claude-cerrar" title="${c.fase === 'lista' ? 'Ocultar' : 'Dejar de esperar'}">${X}</button>`;
-  const carpeta = c.carpeta ? '<button class="accion" id="claude-archivos" title="La carpeta de la tarea, con el código">Carpeta</button>' : '';
-  if (c.fase === 'preparando') {
-    caja.innerHTML = `<span class="punto-vivo"></span><div class="texto"><b>Preparando la carpeta para ${esc(c.agente)}…</b><span class="sub">«${esc(c.titulo)}»</span></div>${cerrar}`;
-  } else if (c.fase === 'esperando') {
-    caja.innerHTML = c.enter
-      ? `<span class="punto-vivo"></span><div class="texto"><b>Pulsa <span class="tecla">Enter</span> en ${esc(c.agente)}</b><span class="sub">${c.modo === 'imagen' ? 'para que dibuje la hoja' : 'y aprueba lo que te pregunte'}</span></div>${c.modo === 'codigo' ? carpeta : ''}${cerrar}`
-      : `<span class="punto-vivo"></span><div class="texto"><b>${esc(c.agente)} está programando</b><span class="sub">En la terminal; aprueba lo que te pregunte</span></div>${carpeta}${cerrar}`;
-  } else {
-    const sub = c.modo === 'imagen' ? 'La hoja está lista para descargar' : c.modo === 'resolver' ? 'Respuesta copiada' : 'Resumen copiado · código en la carpeta';
-    caja.innerHTML = `<span class="hecho">${PALOMITA}</span><div class="texto"><b>${esc(c.agente)} terminó</b><span class="sub">${sub}</span></div>${c.modo === 'codigo' ? carpeta : ''}<button class="accion" id="claude-ver">Ver</button>${cerrar}`;
-    $('claude-ver').onclick = () => window.agenda.respuesta.ver(c.tareaId);
-  }
-  if ($('claude-archivos')) $('claude-archivos').onclick = () => window.agenda.claude.archivos();
-  $('claude-cerrar').onclick = () => window.agenda.claude.cancelar();
-}
-
-// Con ChatGPT la respuesta vuelve por el portapapeles: hay que copiarla.
-function pintarChatGPT(c, caja) {
-  const pegar = window.agenda.plataforma === 'darwin' ? '⌘V' : 'Ctrl+V';
-  const cerrar = `<button class="cerrar" id="claude-cerrar" title="${c.fase === 'lista' ? 'Ocultar' : 'Cancelar'}">${X}</button>`;
-  let icono = '<span class="punto-vivo"></span>';
-  let titulo;
-  let sub;
-  let accion = '';
-  if (c.fase === 'preparando') {
-    titulo = 'Preparando la tarea para ChatGPT…';
-    sub = `«${esc(c.titulo)}»`;
-  } else if (c.fase === 'esperando') {
-    titulo = c.adjuntar
-      ? `Arrastra ${c.adjuntar === 1 ? 'el archivo' : 'los archivos'} y pulsa <span class="tecla">Enter</span>`
-      : c.pegar
-      ? `Pega <span class="tecla">${pegar}</span> en ChatGPT`
-      : c.modo === 'imagen' ? 'ChatGPT está haciendo la imagen…' : 'ChatGPT está resolviendo…';
-    sub = c.adjuntar ? 'desde la ventanita; luego copia su respuesta' : c.pegar ? 'y pulsa Enter; luego copia su respuesta' : c.modo === 'imagen' ? 'Al salir: clic derecho → Copiar imagen' : 'Al terminar, copia su respuesta';
-    if (c.carpeta) accion = '<button class="accion" id="claude-archivos" title="Los archivos de la tarea, para arrastrarlos a ChatGPT">Archivos</button>';
-  } else {
-    icono = '<span class="hecho"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></span>';
-    titulo = c.recibido === 'imagen' ? 'Imagen guardada' : 'Respuesta guardada';
-    sub = 'Lo que copies de ChatGPT se añade';
-    accion = '<button class="accion" id="claude-ver">Ver</button>';
-  }
-  caja.innerHTML = `${icono}<div class="texto"><b>${titulo}</b><span class="sub">${sub}</span></div>${accion}${cerrar}`;
-  if ($('claude-ver')) $('claude-ver').onclick = () => window.agenda.respuesta.ver(c.tareaId);
-  if ($('claude-archivos')) $('claude-archivos').onclick = () => window.agenda.claude.archivos();
-  $('claude-cerrar').onclick = () => window.agenda.claude.cancelar();
-}
-
 function pintar() {
   aplicarTema();
-  if (estado.mantenimiento) $('abrir-app').title='Tus archivos, entrega y ajustes';
   // Experimental: sin el botón de la app, para que el título, el anillo y el
   // número quepan; la app se abre desde la bandeja o desde una tarea.
   $('abrir-app').hidden = exp();
   pintarMensajes();
   pintarSemana();
-  pintarClaude();
   pintarNovedad();
   $('hoy').textContent = fmtHoy.format(new Date());
   $('refrescar').classList.toggle('girando', estado.cargando);

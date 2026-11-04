@@ -2234,11 +2234,7 @@ function recargarCuenta(extra = {}) {
 }
 
 // Mientras la IA trabaja en una tarea, su respuesta es de la cuenta activa.
-const iaOcupada = () => ['preparando', 'esperando', 'trabajando', 'dibujando', 'leyendo'].includes(estado.claude?.fase);
-const MENSAJE_IA_OCUPADA = 'Espera a que la IA termine (o cancélala) antes de cambiar de cuenta.';
-
 function cambiarDeCuenta(id) {
-  if (iaOcupada()) return { ok: false, mensaje: MENSAJE_IA_OCUPADA };
   if (cuentaApp.estaEntrando()) return { ok: false, mensaje: 'Termina de iniciar sesión primero.' };
   try {
     cuentaApp.cambiarCuenta(id);
@@ -2252,7 +2248,6 @@ function cambiarDeCuenta(id) {
 }
 
 async function agregarCuenta() {
-  if (iaOcupada()) return { ok: false, mensaje: MENSAJE_IA_OCUPADA };
   if (cuentaApp.estaEntrando() || !cuentaApp.cuenta()) {
     entrar();
     return { ok: true };
@@ -2279,7 +2274,6 @@ ipcMain.handle('cuentas:agregar', async () => ({ ...(await agregarCuenta()), dat
 ipcMain.handle('cuentas:quitar', async (_e, id) => {
   const activa = cuentaApp.listaCuentas().find((c) => c.activa);
   if (activa?.id === id) {
-    if (iaOcupada()) return { ok: false, mensaje: MENSAJE_IA_OCUPADA, datos: datosConfiguracion() };
     await salirDeCuenta();
   } else {
     await cuentaApp.quitarCuenta(String(id || ''));
