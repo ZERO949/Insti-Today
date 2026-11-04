@@ -309,6 +309,32 @@
   .colores-cuenta button:hover { transform: scale(1.15); }
   .colores-cuenta button.activo { box-shadow: 0 0 0 2px var(--fondo-a), 0 0 0 3.5px var(--c); }
   .acciones-cuenta { display: flex; gap: 6px; flex: none; }
+
+  /* Al pulsar responde ya, no al soltar: los botones se hunden un poco y las
+     filas se oscurecen. */
+  .boton, .chip, .plegar, .segmentos button, .tema .mini { transition-property: background, background-color, color, filter, box-shadow, transform; transition-duration: .15s, .15s, .15s, .15s, .15s, .1s; transition-timing-function: var(--curva); }
+  .boton:active:not(:disabled), .chip:active, .plegar:active, .segmentos button:active, .tema:active .mini { transform: scale(.96); }
+  .nav-item:active, .fila:active, .archivo:active, .cuenta-op:active { background: var(--pieza-hover); }
+
+  /* Lo que se cierra se va por donde llegó, un poco más rápido, y ya no
+     recibe clics mientras se va. */
+  .saliendo { pointer-events: none; }
+  .modal-fondo.saliendo { animation: desvanecer .15s var(--curva) forwards; }
+  .modal-fondo.saliendo .modal { animation: bajar .15s var(--curva) forwards; }
+  .selector-cuentas.saliendo { animation: plegarse .12s var(--curva) forwards; }
+  @keyframes desvanecer { to { opacity: 0; } }
+  @keyframes bajar { to { opacity: 0; transform: translateY(8px) scale(.98); } }
+  @keyframes plegarse { to { opacity: 0; transform: scale(.96) translateY(-4px); } }
+
+  /* Reducir movimiento: sin desplazamientos, rebotes ni cambios de ancho;
+     lo que aparece o se va sólo se funde. */
+  @media (prefers-reduced-motion: reduce) {
+    .modal, .selector-cuentas { animation-name: aparecer; }
+    .modal-fondo.saliendo .modal, .selector-cuentas.saliendo { animation-name: desvanecer; }
+    .yo { transition-property: background, box-shadow; }
+    .yo.salto, .yo.desde-arriba .letras, .yo.desde-abajo .letras { animation: none; }
+    .animada nav { transition: none; }
+  }
 </style>
 </head>
 <body>
@@ -554,6 +580,14 @@ window.agenda.app.alIr((s, tareaId, guia) => {
   if (guia) abrirGuia();
 });
 
+// Una hoja o un menú que se cierra: sale con su animación (.saliendo) y luego
+// se quita. Sin id, para que uno nuevo pueda abrirse ya mientras éste se va.
+function irse(el) {
+  el.removeAttribute('id');
+  el.classList.add('saliendo');
+  setTimeout(() => el.remove(), 150);
+}
+
 // ---------- Guía del primer arranque ----------
 // Sale sola hasta que se cierra, y se vuelve a abrir desde Cuenta.
 let guia = null; // { fondo }
@@ -567,7 +601,7 @@ function abrirGuia() {
   pintarGuia();
 }
 async function cerrarGuia() {
-  guia?.fondo.remove();
+  if (guia) irse(guia.fondo);
   guia = null;
   await guardar({ tutorialVisto: true });
 }
@@ -898,7 +932,7 @@ function confirmarEntrega(t, en) {
     fondo.addEventListener('click', (e) => {
       const si = e.target.closest('[data-si]');
       if (si || e.target.closest('[data-no]') || e.target === fondo) {
-        fondo.remove();
+        irse(fondo);
         ok(!!si);
       }
     });
@@ -916,7 +950,7 @@ function confirmarQuitarCuenta(c) {
       <div class="acciones derecha"><button class="boton" data-no>Cancelar</button><button class="boton destructivo" data-si>${c.activa ? 'Cerrar sesión' : 'Quitar'}</button></div>
     </div>`;
     document.body.appendChild(fondo);
-    const cerrar = (si) => { fondo.remove(); document.removeEventListener('keydown', tecla); ok(si); };
+    const cerrar = (si) => { irse(fondo); document.removeEventListener('keydown', tecla); ok(si); };
     const tecla = (e) => e.key === 'Escape' && cerrar(false);
     document.addEventListener('keydown', tecla);
     fondo.addEventListener('click', (e) => {
@@ -1292,8 +1326,9 @@ function pintarYo() {
 }
 
 function pintarSelector() {
-  $('selector-cuentas')?.remove();
-  if (!selector) return;
+  const viejo = $('selector-cuentas');
+  if (!selector) return viejo && irse(viejo);
+  viejo?.remove();
   const lista = cuentasDe();
   const caja = document.createElement('div');
   caja.id = 'selector-cuentas';
@@ -1358,6 +1393,8 @@ async function agregarCuenta() {
 const UMBRAL = 16; // px para elegir la cuenta de al lado
 const VUELTA = 8; // y para soltarla si el dedo regresa
 const ESPERA_MANTENER = 260;
+// La resistencia de borde de iOS: al principio sigue a la mitad del dedo y se acerca a `limite` sin llegar.
+const goma = (d, limite, c = 0.55) => (d * limite * c) / (limite + c * Math.abs(d));
 let gesto = null; // { y, puntero, mantenido, indice, dir, estabaAbierto }
 const yo = $('yo');
 
@@ -1405,8 +1442,9 @@ yo.addEventListener('pointermove', (e) => {
   cerrarSelector();
   document.body.classList.add('deslizando');
   yo.classList.add('pulsado', 'arrastrando');
-  // El icono sigue un poco al dedo, como una goma.
-  yo.style.setProperty('--arrastre', `${Math.max(-7, Math.min(7, dy * 0.3))}px`);
+  // El icono sigue al dedo como una goma: cuanto más lejos, más cuesta (nunca
+  // pasa de 14 px), sin topar de golpe.
+  yo.style.setProperty('--arrastre', `${goma(dy, 14)}px`);
   const dir = Math.abs(dy) > UMBRAL ? Math.sign(dy) : Math.abs(dy) < VUELTA ? 0 : gesto.dir;
   if (dir !== gesto.dir) mostrarPaso(dir);
 });
