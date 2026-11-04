@@ -33,6 +33,7 @@ export const PREDETERMINADAS = {
   verAnillo: true, // el anillo de lo entregado hoy, junto al número
   verSaludo: true, // la línea del widget la primera vez del día
   resumenHora: 0, // un aviso con lo de hoy a esa hora; 0 = no
+  vidrioLiquido: false, // con el tema Vidrio: refracción, la gota que sigue al ratón y el brillo
   // IA: con qué se resuelve y qué se le pide.
   // Una IA para todo, Claude o ChatGPT; lo de programación lo hace su agente
   // (Claude Code o Codex) y las imágenes siempre ChatGPT.

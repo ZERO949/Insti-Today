@@ -121,4 +121,6 @@ contextBridge.exposeInMainWorld('agenda', {
     cancelar: () => ipcRenderer.invoke('acceso:cancelar'),
   },
   alCambiar: (fn) => ipcRenderer.on('agenda:estado', (_e, estado) => fn(estado)),
+  // Vidrio líquido: el fondo de pantalla que queda detrás del widget (o null).
+  alEscritorio: (fn) => ipcRenderer.on('agenda:escritorio', (_e, fondo) => fn(fondo)),
 });

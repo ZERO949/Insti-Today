@@ -162,6 +162,29 @@ function escribirJson(archivo, valor) {
 function avisar() {
   ventana?.webContents.send('agenda:estado', estado);
   configuracion?.webContents.send('config:estado', datosConfiguracion());
+  mandarEscritorio();
+}
+
+// Vidrio líquido (Windows): el widget vive al fondo de todas las ventanas, así
+// que detrás sólo tiene el fondo de pantalla. La página lo dibuja desenfocado
+// justo donde está la ventana; el acrílico de Windows no sirve porque en una
+// ventana que nunca se activa se ve gris liso.
+// shortcut: toma el fondo como «Rellenar» y el mismo en todas las pantallas; con fondos distintos por pantalla o «Ajustar»/«Mosaico» no coincide del todo.
+const FONDO_WINDOWS = path.join(process.env.APPDATA || '', 'Microsoft', 'Windows', 'Themes', 'TranscodedWallpaper');
+function mandarEscritorio() {
+  if (!ventana || ventana.isDestroyed()) return;
+  const p = estado.prefs;
+  let fondo = null;
+  if (WIN && p.experimental && p.tema === 'vidrio' && p.vidrioLiquido) {
+    try {
+      const b = ventana.getBounds();
+      const d = screen.getDisplayMatching(b).bounds;
+      // ?v= cambia con el archivo: Spotlight y la presentación lo reemplazan.
+      const url = `${pathToFileURL(FONDO_WINDOWS).href}?v=${Math.round(fs.statSync(FONDO_WINDOWS).mtimeMs)}`;
+      fondo = { url, x: b.x - d.x, y: b.y - d.y, ancho: d.width, alto: d.height, zoom: ventana.webContents.getZoomFactor() };
+    } catch {}
+  }
+  ventana.webContents.send('agenda:escritorio', fondo);
 }
 
 // La tarea de prueba (IA → «Tarea de prueba»): vive sólo en Insti Today, vence
@@ -329,11 +352,15 @@ function crearVentana() {
   ventana.loadFile(path.join(DIR, 'index.html'));
   ventana.once('ready-to-show', () => {
     ventana.webContents.setZoomFactor(estado.prefs.tamano);
+    mandarEscritorio();
     ventana.showInactive();
     alFondo();
   });
   ventana.on('show', alFondo);
   ventana.on('focus', () => setImmediate(alFondo));
+  ventana.webContents.on('did-finish-load', mandarEscritorio);
+  ventana.on('move', mandarEscritorio);
+  screen.on('display-metrics-changed', mandarEscritorio);
 
   const guardar = () => {
     if (ventana.isDestroyed()) return;
@@ -1909,6 +1936,21 @@ function datosConfiguracion() {
   };
 }
 
+// Vidrio líquido en la ventana de Insti Today (Windows): el acrílico del sistema
+// desenfoca lo que hay detrás y la página lo deja ver. Windows lo pinta gris
+// liso si «Efectos de transparencia» está apagado o la ventana no está activa.
+// Oscuro a la fuerza: el tema Vidrio es oscuro y el acrílico sigue al sistema.
+// Con la transparencia apagada queda el Vidrio de siempre, como en app.html.
+// shortcut: se mira al abrir la ventana y al cambiar Ajustes; si se cambia en Windows con la app abierta, se nota al reabrirla.
+function materialApp() {
+  if (!WIN || !configuracion || configuracion.isDestroyed()) return;
+  const p = estado.prefs;
+  const liquida = !!(p.experimental && p.tema === 'vidrio' && p.vidrioLiquido) && !nativeTheme.prefersReducedTransparency;
+  nativeTheme.themeSource = liquida ? 'dark' : 'system';
+  configuracion.setBackgroundColor(liquida ? '#00000000' : '#1b1b1f');
+  configuracion.setBackgroundMaterial(liquida ? 'acrylic' : 'none');
+}
+
 // Insti Today completo: pendientes, respuestas de IA y ajustes. La abren el
 // botón del widget y la bandeja; «seccion» elige dónde abre.
 function abrirApp(seccion = 'pendientes', tareaId = null, { guia = false } = {}) {
@@ -1934,6 +1976,7 @@ function abrirApp(seccion = 'pendientes', tareaId = null, { guia = false } = {})
     show: false,
     webPreferences: { preload: path.join(DIR, 'preload.cjs'), contextIsolation: true, sandbox: true },
   });
+  materialApp();
   configuracion.loadFile(path.join(DIR, 'app.html'), { query: { seccion, ...(tareaId ? { tarea: tareaId } : {}), ...(guia ? { guia: '1' } : {}) } });
   configuracion.once('ready-to-show', () => {
     configuracion.show();
@@ -1995,6 +2038,8 @@ function programarActualizacion() {
 function aplicarPreferencias(anteriores) {
   const p = estado.prefs;
   for (const v of [ventana, vistaPrevia]) v?.webContents.setZoomFactor(p.tamano);
+  mandarEscritorio();
+  materialApp();
   if (!anteriores || anteriores.intervaloMin !== p.intervaloMin) programarActualizacion();
   if (anteriores && (!anteriores.avisos || anteriores.avisoHoras !== p.avisoHoras)) revisarAvisos();
 }

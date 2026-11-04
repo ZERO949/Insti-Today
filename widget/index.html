@@ -5,6 +5,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; font-src 'self' file: data:; img-src 'self' file: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
 <title>Insti Today</title>
 <link rel="stylesheet" href="temas.css">
+<script src="vidrio-liquido.js"></script>
 <style>
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
@@ -188,10 +189,60 @@
   .error-escuela { color: var(--mal); font-size: 12px; }
   .girador { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--pieza); border-top-color: var(--suave); animation: giro .9s linear infinite; flex: none; }
   .aviso button { -webkit-app-region: no-drag; font: inherit; font-weight: 600; color: var(--texto); background: var(--pieza); border: 0; border-radius: 999px; padding: 2px 10px; margin-left: 6px; cursor: pointer; }
+  /* Vidrio líquido (Ajustes → Experimental, sólo con el tema Vidrio): canto de
+     luz, un reflejo que sigue al ratón y una gota de vidrio sobre la fila. La
+     ventana es transparente y no ve el escritorio, así que la lente dobla lo
+     del propio widget, como la burbuja de la barra de Android. */
+  [data-liquido] .marco {
+    position: relative; border-color: transparent;
+    background-image: linear-gradient(160deg, rgb(255 255 255 / .1), transparent 32%, transparent 72%, rgb(255 255 255 / .05));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .35), inset 0 -1px 0 rgb(255 255 255 / .08), inset 0 0 22px rgb(255 255 255 / .05);
+  }
+  [data-liquido] .marco::before {
+    content: ''; position: absolute; inset: 0; z-index: 2; padding: 1px; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(135deg, rgb(255 255 255 / .6), rgb(255 255 255 / .1) 38%, rgb(255 255 255 / .04) 62%, rgb(255 255 255 / .32));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  }
+  /* Detrás, el fondo de pantalla desenfocado en su sitio (main.js manda dónde)
+     y un velo neutro encima para que se lea, sin el tono del tema. */
+  [data-liquido][data-escritorio] .marco { isolation: isolate; background-color: rgb(14 14 16 / calc(var(--alfa, .92) * .32)); }
+  .escritorio { display: none; }
+  [data-liquido][data-escritorio] .escritorio {
+    display: block; position: absolute; inset: -40px; z-index: -1; pointer-events: none;
+    background-repeat: no-repeat; filter: blur(24px) saturate(1.6) brightness(.9);
+  }
+  .reflejo, .gota { display: none; }
+  [data-liquido] .reflejo {
+    display: block; position: absolute; left: -130px; top: -130px; z-index: 1; width: 260px; height: 260px; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(closest-side, rgb(255 255 255 / .1), rgb(255 255 255 / .03) 60%, transparent);
+    opacity: 0; transition: opacity .35s var(--curva); will-change: transform;
+  }
+  [data-liquido] .marco:hover .reflejo { opacity: 1; }
+  [data-liquido] .lista { position: relative; }
+  [data-liquido] .gota {
+    display: block; position: absolute; top: 0; left: 0; z-index: 1; height: 0; border-radius: 11px; pointer-events: none; will-change: transform;
+    background: linear-gradient(180deg, rgb(255 255 255 / .13), rgb(255 255 255 / .03) 55%, rgb(255 255 255 / .06));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .38), inset 0 -1px 1px rgb(255 255 255 / .12), inset 0 0 0 .5px rgb(255 255 255 / .2), 0 4px 14px rgb(0 0 0 / .18);
+    opacity: 0; transition: opacity .18s var(--curva), scale .4s cubic-bezier(.3, 1.6, .5, 1);
+  }
+  [data-liquido] .gota.ve { opacity: 1; backdrop-filter: var(--lente) saturate(150%) brightness(1.06); }
+  [data-liquido] .gota.pulsada { scale: .985 .92; transition-duration: .18s, .12s; }
+  [data-liquido] .item:hover:not(.activa):not(.siguiente) { background: transparent; }
+  [data-liquido] .item { transition: background .15s var(--curva), scale .4s cubic-bezier(.3, 1.6, .5, 1); }
+  [data-liquido] .item:active { scale: .985; transition-duration: .15s, .12s; }
+  [data-liquido] .siguiente { background: rgb(255 255 255 / .07); box-shadow: inset 0 1px 0 rgb(255 255 255 / .22), inset 0 0 0 .5px rgb(255 255 255 / .1); }
+  [data-liquido] .boton { transition: background .15s var(--curva), color .15s var(--curva), scale .4s cubic-bezier(.3, 1.6, .5, 1); }
+  [data-liquido] .boton:hover { background: rgb(255 255 255 / .12); box-shadow: inset 0 1px 0 rgb(255 255 255 / .3); }
+  [data-liquido] .boton:active { scale: .86; transition-duration: .15s, .15s, .1s; }
+  [data-liquido] .cuenta, [data-liquido] .secundario, [data-liquido] .panel-mensajes { box-shadow: inset 0 1px 0 rgb(255 255 255 / .25), inset 0 0 0 .5px rgb(255 255 255 / .12); }
+  @media (prefers-reduced-motion: reduce) {
+    [data-liquido] .gota, [data-liquido] .item, [data-liquido] .boton { transition: opacity .18s var(--curva); scale: none; }
+  }
 </style>
 </head>
 <body>
 <div class="marco" id="marco">
+  <div class="escritorio" id="escritorio"></div>
   <header>
     <div class="cabeza">
       <span class="hoy" id="hoy"></span>
@@ -441,6 +492,7 @@ function aplicarTema() {
   document.documentElement.dataset.tema = tema;
   document.documentElement.toggleAttribute('data-experimental', exp());
   document.documentElement.style.setProperty('--alfa', String((p.opacidad ?? 92) / 100));
+  document.documentElement.toggleAttribute('data-liquido', exp() && tema === 'vidrio' && p.vidrioLiquido === true);
 }
 oscuroSistema.addEventListener('change', () => pintar());
 contrasteSistema.addEventListener('change', () => pintar());
@@ -689,7 +741,7 @@ function ajustarAlto() {
   const marco = $('marco');
   const natural = [...marco.children].reduce((alto, elemento) => {
     const css = getComputedStyle(elemento);
-    if (css.display === 'none') return alto;
+    if (css.display === 'none' || css.position === 'absolute') return alto; // el reflejo del vidrio líquido no cuenta
     return alto + (elemento.id === 'lista' ? elemento.scrollHeight : elemento.offsetHeight)
       + parseFloat(css.marginTop) + parseFloat(css.marginBottom);
   }, marco.offsetHeight - marco.clientHeight);
@@ -705,6 +757,64 @@ const medirContenido = new ResizeObserver(() => {
   requestAnimationFrame(() => { medidaPendiente = false; ajustarAlto(); });
 });
 for (const elemento of $('marco').children) medirContenido.observe(elemento);
+
+// Vidrio líquido: la gota de vidrio (vidrio-liquido.js) sigue al ratón por la
+// lista, y el reflejo del canto sigue al puntero.
+const liquido = () => document.documentElement.hasAttribute('data-liquido');
+const gota = crearGota($('lista'));
+const reflejo = Object.assign(document.createElement('i'), { className: 'reflejo' });
+$('marco').append(reflejo);
+$('lista').addEventListener('pointerover', (e) => {
+  const item = liquido() && e.target.closest('.item');
+  if (item && !item.classList.contains('entregada')) gota.mover(item);
+});
+$('lista').addEventListener('pointerleave', gota.soltar);
+
+// El fondo de pantalla detrás del widget, recortado como «Rellenar»: la imagen
+// cubre la pantalla y se corre lo que la ventana está movida en ella.
+const imgEscritorio = new Image();
+let escritorio = null;
+function pintarEscritorio() {
+  const capa = $('escritorio');
+  const raiz = document.documentElement;
+  if (!escritorio) return raiz.removeAttribute('data-escritorio');
+  if (imgEscritorio.dataset.url !== escritorio.url) {
+    imgEscritorio.dataset.url = escritorio.url;
+    imgEscritorio.onload = pintarEscritorio;
+    imgEscritorio.onerror = () => raiz.removeAttribute('data-escritorio');
+    imgEscritorio.src = escritorio.url;
+    return;
+  }
+  if (!imgEscritorio.naturalWidth) return;
+  const { x, y, ancho, alto, zoom } = escritorio;
+  const s = Math.max(ancho / imgEscritorio.naturalWidth, alto / imgEscritorio.naturalHeight);
+  const w = imgEscritorio.naturalWidth * s;
+  const h = imgEscritorio.naturalHeight * s;
+  const borde = 40; // la capa sobresale para que el desenfoque no aclare las orillas
+  capa.style.backgroundImage = `url("${escritorio.url}")`;
+  capa.style.backgroundSize = `${w / zoom}px ${h / zoom}px`;
+  capa.style.backgroundPosition = `${((ancho - w) / 2 - x) / zoom + borde}px ${((alto - h) / 2 - y) / zoom + borde}px`;
+  raiz.setAttribute('data-escritorio', '');
+}
+window.agenda.alEscritorio?.((fondo) => {
+  escritorio = fondo;
+  pintarEscritorio();
+});
+
+// El reflejo sigue al ratón: una vez por cuadro y sólo con transform.
+let puntero = null;
+$('marco').addEventListener('pointermove', (e) => {
+  if (!liquido()) return;
+  const pendiente = puntero;
+  puntero = [e.clientX, e.clientY];
+  if (pendiente) return;
+  requestAnimationFrame(() => {
+    const r = $('marco').getBoundingClientRect();
+    reflejo.style.transform = `translate(${puntero[0] - r.left}px, ${puntero[1] - r.top}px)`;
+    puntero = null;
+  });
+});
+
 
 // Vista previa: la primera vez aparece tras una pausa corta sobre la fila
 // (pasar el ratón de largo no la dispara); con la tarjeta ya abierta, pasar

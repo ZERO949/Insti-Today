@@ -5,6 +5,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' file: data:; font-src 'self' file: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
 <title>Insti Today</title>
 <link rel="stylesheet" href="temas.css">
+<script src="vidrio-liquido.js"></script>
 <style>
   [hidden] { display: none !important; }
   * { box-sizing: border-box; }
@@ -345,6 +346,36 @@
     .yo.salto, .yo.desde-arriba .letras, .yo.desde-abajo .letras { animation: none; }
     .animada nav { transition: none; }
   }
+
+  /* Vidrio líquido (Ajustes → Experimental, tema Vidrio, en Windows): la ventana
+     lleva el acrílico del sistema (main.js) y la página lo deja ver. Las
+     tarjetas son vidrio y una gota se desliza en la barra y en la lista. */
+  [data-liquido], [data-liquido] body { background: transparent; }
+  [data-liquido] nav { position: relative; background: rgb(255 255 255 / .035); border-right-color: rgb(255 255 255 / .1); }
+  [data-liquido] main { background: rgb(8 8 10 / .22); }
+  [data-liquido] .lista-col { background: rgb(255 255 255 / .03); border-right-color: rgb(255 255 255 / .1); }
+  [data-liquido] .filas { position: relative; }
+  [data-liquido] .grupo, [data-liquido] .archivo, [data-liquido] .entregable {
+    background: rgb(255 255 255 / .06); border-color: rgb(255 255 255 / .12);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .14);
+  }
+  [data-liquido] .nav-item.activo, [data-liquido] .nav-item:hover, [data-liquido] .fila:hover:not(.sel):not(.siguiente) { background: transparent; }
+  [data-liquido] .fila.siguiente { background: rgb(255 255 255 / .07); box-shadow: inset 0 1px 0 rgb(255 255 255 / .2), inset 0 0 0 .5px rgb(255 255 255 / .1); }
+  .gota { display: none; }
+  [data-liquido] .gota {
+    display: block; position: absolute; top: 0; left: 0; z-index: 1; height: 0; border-radius: 10px; pointer-events: none; will-change: transform;
+    background: linear-gradient(180deg, rgb(255 255 255 / .13), rgb(255 255 255 / .03) 55%, rgb(255 255 255 / .06));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .38), inset 0 -1px 1px rgb(255 255 255 / .12), inset 0 0 0 .5px rgb(255 255 255 / .2), 0 4px 14px rgb(0 0 0 / .18);
+    opacity: 0; transition: opacity .18s var(--curva), scale .4s cubic-bezier(.3, 1.6, .5, 1);
+  }
+  [data-liquido] nav .gota { border-radius: 8px; }
+  [data-liquido] .gota.ve { opacity: 1; backdrop-filter: var(--lente) saturate(150%) brightness(1.06); }
+  [data-liquido] .gota.pulsada { scale: .985 .92; transition-duration: .18s, .12s; }
+  [data-liquido] .nav-item, [data-liquido] .fila { transition: background .12s var(--curva), scale .4s cubic-bezier(.3, 1.6, .5, 1); }
+  [data-liquido] .nav-item:active, [data-liquido] .fila:active { scale: .985; transition-duration: .12s, .12s; }
+  @media (prefers-reduced-motion: reduce) {
+    [data-liquido] .gota, [data-liquido] .nav-item, [data-liquido] .fila { transition: opacity .18s var(--curva); scale: none; }
+  }
 </style>
 </head>
 <body>
@@ -426,6 +457,10 @@
       <div class="opcion">
         <div class="texto"><b>Funciones experimentales</b></div>
         <label class="interruptor"><input type="checkbox" id="experimental"><i></i></label>
+      </div>
+      <div class="opcion" id="fila-liquido">
+        <div class="texto"><b>Vidrio líquido</b><span>Con el tema Vidrio, el widget dobla la luz, una gota sigue al ratón y todo responde con rebote</span></div>
+        <label class="interruptor"><input type="checkbox" id="vidrioLiquido"><i></i></label>
       </div>
     </div>
     <h2 class="titulo-grupo" id="titulo-detalles">Detalles</h2>
@@ -563,6 +598,8 @@ const contrasteSistema = matchMedia('(prefers-contrast: more)');
 const temaSistema = () => (contrasteSistema.matches ? 'contraste' : oscuroSistema.matches ? 'medianoche' : 'claro');
 oscuroSistema.addEventListener('change', () => pintar());
 contrasteSistema.addEventListener('change', () => pintar());
+// «Efectos de transparencia» apagados en Windows: sin vidrio líquido.
+const sinTransparencia = matchMedia('(prefers-reduced-transparency: reduce)');
 
 // ---------- Navegación ----------
 function ir(s) {
@@ -570,7 +607,29 @@ function ir(s) {
   seccion = s;
   for (const b of document.querySelectorAll('.nav-item')) b.classList.toggle('activo', b.dataset.ir === s);
   for (const el of document.querySelectorAll('.seccion')) el.classList.toggle('activa', el.id === `s-${s}`);
+  ponerGotaNav();
 }
+
+// Vidrio líquido: una gota (vidrio-liquido.js) marca la sección de la barra y
+// otra sigue al ratón por la lista de pendientes.
+const liquido = () => document.documentElement.hasAttribute('data-liquido');
+const gotaNav = crearGota(document.querySelector('nav'), { radio: 8 });
+const gotaFilas = crearGota($('filas-pendientes'), { radio: 10 });
+function ponerGotaNav() {
+  if (liquido()) gotaNav.mover(document.querySelector('.nav-item.activo'));
+  else gotaNav.soltar();
+}
+// Al plegar o abrir la barra, la gota se coloca de nuevo sin viajar.
+document.querySelector('nav').addEventListener('transitionend', (e) => {
+  if (e.target.tagName !== 'NAV' || e.propertyName !== 'width') return;
+  gotaNav.soltar();
+  ponerGotaNav();
+});
+$('filas-pendientes').addEventListener('pointerover', (e) => {
+  const fila = liquido() && e.target.closest('.fila');
+  if (fila && !fila.classList.contains('entregada')) gotaFilas.mover(fila);
+});
+$('filas-pendientes').addEventListener('pointerleave', gotaFilas.soltar);
 document.querySelector('nav').addEventListener('click', (e) => {
   const b = e.target.closest('[data-ir]');
   if (b) ir(b.dataset.ir);
@@ -1161,7 +1220,8 @@ function pintarAjustes() {
   $('resumen-ej').textContent = p.resumenHora ? 'Llega así: «Hoy: 3 cosas; la primera a las 2:00 p.m.»' : 'Un solo aviso con lo que vence hoy';
   for (const id of ['soloTardias', 'sinFecha', 'vistaPrevia', 'avisos', ...DETALLES]) $(id).checked = p[id] !== false;
   $('experimental').checked = p.experimental === true;
-  for (const id of ['titulo-detalles', 'grupo-detalles', 'fila-resumen']) $(id).hidden = !exp();
+  $('vidrioLiquido').checked = p.vidrioLiquido === true;
+  for (const id of ['titulo-detalles', 'grupo-detalles', 'fila-resumen', 'fila-liquido']) $(id).hidden = !exp();
   const simple = DETALLES.every((id) => p[id] === false);
   $('lista-simple').textContent = simple ? 'Volver a los detalles' : 'Dejarla simple';
   $('alIniciar').checked = !!datos.alIniciar;
@@ -1262,9 +1322,13 @@ function pintar() {
   // El mismo estilo que el widget.
   document.documentElement.dataset.tema = !datos.prefs.tema || datos.prefs.tema === 'sistema' ? temaSistema() : datos.prefs.tema;
   document.documentElement.toggleAttribute('data-experimental', exp());
+  // El acrílico sólo existe en Windows (main.js) y con «Efectos de transparencia»;
+  // si no, queda el Vidrio de siempre.
+  document.documentElement.toggleAttribute('data-liquido', exp() && datos.prefs.tema === 'vidrio' && datos.prefs.vidrioLiquido === true && window.agenda.plataforma === 'win32' && !sinTransparencia.matches);
   plegarBarra(!!datos.prefs.barraPlegada);
   pintarYo();
   pintarBarra();
+  ponerGotaNav();
   pintarPendientes();
   pintarAjustes();
   pintarCuenta();
@@ -1282,7 +1346,7 @@ $('lista-simple').addEventListener('click', () => {
   const encender = DETALLES.every((id) => datos.prefs[id] === false);
   guardar(Object.fromEntries(DETALLES.map((id) => [id, encender])));
 });
-for (const id of ['soloTardias', 'sinFecha', 'vistaPrevia', 'avisos', 'experimental', ...DETALLES]) $(id).addEventListener('change', () => guardar({ [id]: $(id).checked }));
+for (const id of ['soloTardias', 'sinFecha', 'vistaPrevia', 'avisos', 'experimental', 'vidrioLiquido', ...DETALLES]) $(id).addEventListener('change', () => guardar({ [id]: $(id).checked }));
 $('opacidad').addEventListener('input', () => {
   $('opacidad-valor').textContent = `${$('opacidad').value} %`;
   guardar({ opacidad: Number($('opacidad').value) });
