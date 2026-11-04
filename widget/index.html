@@ -204,12 +204,14 @@
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
   }
   /* Detrás, el fondo de pantalla desenfocado en su sitio (main.js manda dónde)
-     y un velo neutro encima para que se lea, sin el tono del tema. */
-  [data-liquido][data-escritorio] .marco { isolation: isolate; background-color: rgb(14 14 16 / calc(var(--alfa, .92) * .32)); }
+     y un velo neutro encima para que se lea, sin el tono del tema. La opacidad
+     de Ajustes (--alfa, .4–1) mueve las dos cosas: al 40 % el vidrio es casi
+     claro y poco esmerilado; al 100 %, oscuro y muy esmerilado. */
+  [data-liquido][data-escritorio] .marco { isolation: isolate; background-color: rgb(14 14 16 / clamp(.03, calc(var(--alfa, .92) * .75 - .27), .48)); }
   .escritorio { display: none; }
   [data-liquido][data-escritorio] .escritorio {
     display: block; position: absolute; inset: -40px; z-index: -1; pointer-events: none;
-    background-repeat: no-repeat; filter: blur(24px) saturate(1.6) brightness(.9);
+    background-repeat: no-repeat; filter: blur(calc(4px + (var(--alfa, .92) - .4) * 45px)) saturate(1.6) brightness(.9);
   }
   .reflejo, .gota { display: none; }
   [data-liquido] .reflejo {

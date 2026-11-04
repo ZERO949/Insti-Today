@@ -1,5 +1,10 @@
 # Cambios
 
+## 0.2.8 · 2026-11-04
+
+- Con «Vidrio líquido», la opacidad del widget se nota: al 40 % el vidrio es casi
+  claro y deja ver tu fondo de pantalla; al 100 % es oscuro y muy esmerilado.
+
 ## 0.2.7 · 2026-11-04
 
 - Nuevo en Ajustes → Experimental: «Vidrio líquido», apagado de entrada. Con el
