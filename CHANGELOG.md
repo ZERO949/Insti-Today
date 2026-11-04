@@ -1,5 +1,18 @@
 # Cambios
 
+## 0.2.7 · 2026-11-04
+
+- Nuevo en Ajustes → Experimental: «Vidrio líquido», apagado de entrada. Con el
+  estilo Vidrio:
+  - El widget deja ver tu fondo de pantalla desenfocado, con un canto de luz y un
+    reflejo que sigue al ratón. Una gota de vidrio se desliza a la tarea bajo el
+    puntero, se estira al viajar y dobla lo que pasa por su borde.
+  - En Windows, la ventana de Insti Today desenfoca lo que tiene detrás y sus
+    tarjetas son de vidrio; una gota marca la sección de la barra lateral y otra
+    sigue al ratón por la lista de pendientes.
+  - Apagado, el estilo Vidrio queda como siempre. La ventana también vuelve a él si
+    los efectos de transparencia de Windows están apagados.
+
 ## 0.2.6 · 2026-11-03
 
 - Sin IA en ningún lado: se quitaron las secciones IA y Respuestas, «Resolver», «Cómo
