@@ -9,7 +9,7 @@
   [hidden] { display: none !important; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--fondo-b); }
-  body { color: var(--texto); font: 13px/1.45 var(--fuente); letter-spacing: -.008em; -webkit-font-smoothing: antialiased; display: flex; overflow: hidden; }
+  body { color: var(--texto); font: 13px/1.45 var(--fuente); letter-spacing: 0; -webkit-font-smoothing: antialiased; display: flex; overflow: hidden; }
   button, select, input, textarea { font: inherit; letter-spacing: inherit; }
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-thumb { background: var(--pieza-hover); border-radius: 5px; border: 3px solid transparent; background-clip: padding-box; }
@@ -45,7 +45,7 @@
   .barra-plegada .plegar svg { transform: scaleX(-1); }
   .barra-plegada .nav-item { position: relative; justify-content: center; padding: 8px 0; }
   .barra-plegada .nav-item .num.urge { background: var(--mal); color: #fff; }
-  .barra-plegada .nav-item .num { position: absolute; top: 1px; right: 4px; min-width: 15px; height: 15px; padding: 0 4px; margin: 0; border-radius: 8px; background: var(--pieza-hover); color: var(--texto); font-size: 9.5px; line-height: 15px; text-align: center; }
+  .barra-plegada .nav-item .num { position: absolute; top: 1px; right: 4px; min-width: 17px; height: 17px; padding: 0 4px; margin: 0; border-radius: 9px; background: var(--pieza-hover); color: var(--texto); font-size: 11px; line-height: 17px; text-align: center; }
   .barra-plegada .nav-pie { padding: 12px 0 0; display: flex; justify-content: center; }
   .barra-plegada #actualizar { width: 32px; height: 32px; padding: 0; justify-content: center; }
 
@@ -131,7 +131,7 @@
   .detalle .instrucciones { white-space: pre-wrap; color: var(--suave); line-height: 1.6; user-select: text; }
   .archivo { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 12px; background: var(--fondo-a); border: 1px solid var(--linea); cursor: pointer; margin-bottom: 6px; transition: background .12s var(--curva); }
   .archivo:hover { background: var(--hover); }
-  .archivo .tipo { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; font-size: 9.5px; font-weight: 700; color: #fff; flex: none; }
+  .archivo .tipo { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; font-size: 11px; letter-spacing: -.02em; font-weight: 700; color: #fff; flex: none; }
   .archivo .nombre { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .archivo .peso { color: var(--tenue); font-size: 12px; }
   .nota { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--pieza); color: var(--suave); font-size: 12.5px; }
@@ -214,7 +214,7 @@
   .paso { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--linea); }
   .paso-titulo { display: flex; align-items: center; gap: 10px; font: 600 16px/1.3 var(--fuente-titulo); letter-spacing: -.015em; margin-bottom: 12px; }
   .paso-titulo .num { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font: 600 12px/1 var(--fuente); background: var(--acento); color: #fff; flex: none; }
-  .acciones-paso { margin-left: auto; display: flex; gap: 6px; font: 400 13px/1.45 var(--fuente); letter-spacing: -.008em; }
+  .acciones-paso { margin-left: auto; display: flex; gap: 6px; font: 400 13px/1.45 var(--fuente); letter-spacing: 0; }
   .sub-titulo { font-size: 12px; font-weight: 600; color: var(--tenue); margin: 16px 0 8px; }
   .entregables { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-bottom: 12px; }
   .entregable { border: 1px solid var(--linea); border-radius: 14px; overflow: hidden; background: var(--fondo-a); display: flex; flex-direction: column; transition: box-shadow .2s var(--curva); }
@@ -325,6 +325,16 @@
   @keyframes desvanecer { to { opacity: 0; } }
   @keyframes bajar { to { opacity: 0; transform: translateY(8px) scale(.98); } }
   @keyframes plegarse { to { opacity: 0; transform: scale(.96) translateY(-4px); } }
+
+  /* «Efectos de transparencia» apagados en el sistema: el fondo de las hojas
+     no se desenfoca; se oscurece un poco más para separarlas igual. */
+  @media (prefers-reduced-transparency: reduce) {
+    .modal-fondo { backdrop-filter: none; background: rgb(0 0 0 / .5); }
+  }
+
+  /* Las filas que pasan por debajo de los filtros se desvanecen en el borde
+     en vez de cortarse; sólo cuando la lista ya se desplazó. */
+  .filas.desplazada { -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18px); mask-image: linear-gradient(to bottom, transparent, #000 18px); }
 
   /* Reducir movimiento: sin desplazamientos, rebotes ni cambios de ancho;
      lo que aparece o se va sólo se funde. */
@@ -548,8 +558,11 @@ let menuAbierto = false;
 let detalleActual = null; // instrucciones y archivos de la tarea elegida
 
 const oscuroSistema = matchMedia('(prefers-color-scheme: dark)');
-const temaSistema = () => (oscuroSistema.matches ? 'medianoche' : 'claro');
+// «Aumentar contraste» del sistema: con «Automático», el estilo de alto contraste.
+const contrasteSistema = matchMedia('(prefers-contrast: more)');
+const temaSistema = () => (contrasteSistema.matches ? 'contraste' : oscuroSistema.matches ? 'medianoche' : 'claro');
 oscuroSistema.addEventListener('change', () => pintar());
+contrasteSistema.addEventListener('change', () => pintar());
 
 // ---------- Navegación ----------
 function ir(s) {
@@ -1101,6 +1114,7 @@ document.addEventListener('keydown', (e) => {
     e.target.click();
   }
 });
+$('filas-pendientes').addEventListener('scroll', (e) => e.target.classList.toggle('desplazada', e.target.scrollTop > 0), { passive: true });
 $('buscar').addEventListener('input', pintarPendientes);
 $('filtro-materia').addEventListener('change', pintarPendientes);
 $('chips-cuando').addEventListener('click', (e) => {

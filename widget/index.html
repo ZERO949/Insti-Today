@@ -12,7 +12,7 @@
   body {
     color: var(--texto);
     font: 13px/1.38 var(--fuente);
-    letter-spacing: -.008em;
+    letter-spacing: 0;
     -webkit-font-smoothing: antialiased;
     user-select: none;
   }
@@ -57,7 +57,7 @@
   .boton svg { width: 14px; height: 14px; }
   /* Mensajes: la bolita y su lista, que sólo se ve al pasar o hacer clic. */
   #mensajes { position: relative; }
-  .bolita { position: absolute; top: -1px; right: -2px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 8px; background: var(--mal); color: #fff; font-size: 9.5px; font-weight: 700; line-height: 15px; text-align: center; box-shadow: 0 0 0 2px var(--fondo-a); }
+  .bolita { position: absolute; top: -1px; right: -2px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--mal); color: #fff; font-size: 11px; font-weight: 700; line-height: 17px; text-align: center; box-shadow: 0 0 0 2px var(--fondo-a); }
   .panel-mensajes { margin: 0 10px 8px; border-radius: 12px; background: var(--pieza); max-height: 230px; overflow-y: auto; }
   .panel-mensajes[hidden] { display: none; }
   .panel-mensajes::-webkit-scrollbar { width: 6px; }
@@ -434,14 +434,16 @@ function pastillaAtrasada(t) {
 }
 
 const oscuroSistema = matchMedia('(prefers-color-scheme: dark)');
+const contrasteSistema = matchMedia('(prefers-contrast: more)');
 function aplicarTema() {
   const p = prefs();
-  const tema = p.tema === 'sistema' || !p.tema ? (oscuroSistema.matches ? 'medianoche' : 'claro') : p.tema;
+  const tema = p.tema === 'sistema' || !p.tema ? (contrasteSistema.matches ? 'contraste' : oscuroSistema.matches ? 'medianoche' : 'claro') : p.tema;
   document.documentElement.dataset.tema = tema;
   document.documentElement.toggleAttribute('data-experimental', exp());
   document.documentElement.style.setProperty('--alfa', String((p.opacidad ?? 92) / 100));
 }
 oscuroSistema.addEventListener('change', () => pintar());
+contrasteSistema.addEventListener('change', () => pintar());
 
 // Aviso de versión nueva: para descargar, descargándose, lista para instalar
 // o (en Mac y el .deb) con el enlace a la página de descarga.

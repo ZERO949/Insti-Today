@@ -11,7 +11,7 @@
   body {
     color: var(--texto);
     font: 12.5px/1.45 var(--fuente);
-    letter-spacing: -.008em;
+    letter-spacing: 0;
     -webkit-font-smoothing: antialiased;
   }
   /* La ventana ocupa todo el alto y no cambia de tamaño: la tarjeta se mueve
@@ -77,9 +77,9 @@
     .esqueleto { animation: none; }
   }
   .fila { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 7px 10px; }
-  .tipo { font-size: 9.5px; font-weight: 700; letter-spacing: .04em; padding: 2px 5px; border-radius: 4px; color: #fff; }
+  .tipo { font-size: 11px; font-weight: 700; letter-spacing: .02em; padding: 2px 5px; border-radius: 4px; color: #fff; }
   .nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
-  .origen { font-size: 10.5px; color: var(--tenue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .origen { font-size: 11px; color: var(--tenue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bajar { color: var(--tenue); display: flex; align-items: center; gap: 4px; font-size: 11px; white-space: nowrap; }
   .archivo:hover .bajar { color: var(--texto); }
   .bajar svg { width: 13px; height: 13px; }
@@ -92,7 +92,7 @@
   .pie { border-top: 1px solid var(--linea); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
   .abrir { font: inherit; font-size: 12px; font-weight: 500; color: var(--texto); background: var(--pieza); border: 0; border-radius: 999px; padding: 5px 13px; cursor: pointer; }
   .abrir:hover { background: var(--pieza-hover); }
-  .ruta { font-size: 10.5px; color: var(--tenue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: -4px 0 8px; }
+  .ruta { font-size: 11px; color: var(--tenue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: -4px 0 8px; }
   .pie { gap: 8px; justify-content: flex-end; }
   .entregar { font: inherit; font-size: 12px; font-weight: 600; color: #fff; background: var(--acento); border: 0; border-radius: 999px; padding: 5px 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
   .entregar:hover { filter: brightness(1.08); }
@@ -320,8 +320,9 @@ new ResizeObserver(() => {
 }).observe($tarjeta);
 
 const oscuroSistema = matchMedia('(prefers-color-scheme: dark)');
+const contrasteSistema = matchMedia('(prefers-contrast: more)');
 function aplicarTema(p) {
-  const tema = !p?.tema || p.tema === 'sistema' ? (oscuroSistema.matches ? 'medianoche' : 'claro') : p.tema;
+  const tema = !p?.tema || p.tema === 'sistema' ? (contrasteSistema.matches ? 'contraste' : oscuroSistema.matches ? 'medianoche' : 'claro') : p.tema;
   document.documentElement.dataset.tema = tema;
 }
 

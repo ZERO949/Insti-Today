@@ -2003,7 +2003,7 @@ ipcMain.handle('config:obtener', () => datosConfiguracion());
 ipcMain.handle('app:abrir', (_e, seccion, tareaId) => abrirApp(seccion, tareaId));
 // El estilo elegido para el widget, para las demás ventanas («sistema» se
 // resuelve con el modo de Windows o de macOS).
-ipcMain.handle('tema:actual', () => (estado.prefs.tema && estado.prefs.tema !== 'sistema' ? estado.prefs.tema : nativeTheme.shouldUseDarkColors ? 'medianoche' : 'claro'));
+ipcMain.handle('tema:actual', () => (estado.prefs.tema && estado.prefs.tema !== 'sistema' ? estado.prefs.tema : nativeTheme.shouldUseHighContrastColors ? 'contraste' : nativeTheme.shouldUseDarkColors ? 'medianoche' : 'claro'));
 // Instrucciones y archivos de una tarea para la app (sin las muestras).
 ipcMain.handle('app:detalle', async (_e, cursoId, tareaId) => {
   const curso = estado.datos?.cursos.find((c) => c.id === cursoId);
