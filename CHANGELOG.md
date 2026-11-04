@@ -1,5 +1,27 @@
 # Cambios
 
+## 0.2.6 · 2026-11-03
+
+- Sin IA en ningún lado: se quitaron las secciones IA y Respuestas, «Resolver», «Cómo
+  se hace», «Pedir revisión», la franja de la IA del widget, la respuesta en la vista
+  previa y los ajustes de metadatos. La guía del primer arranque es una sola pantalla.
+  Tus archivos, la entrega, los mensajes y todo lo demás siguen igual.
+- Cerrar sesión o quitar una cuenta pregunta antes, porque luego hay que volver a
+  escribir la contraseña.
+- La lista de pendientes se usa con el teclado: Tab entra, ↑ y ↓ cambian de tarea y
+  Enter la abre. Los archivos de la tarea se abren con Enter o Espacio, y se ve dónde
+  está el foco.
+- Los botones responden al pulsar, no al soltar, y las hojas y el menú de cuentas se
+  van con la misma animación con la que llegaron.
+- Con «Reducir animaciones» del sistema, todo aparece y se va con un fundido, sin
+  deslizarse ni rebotar.
+- Con los efectos de transparencia del sistema apagados, el fondo de las hojas no se
+  desenfoca. Con «Automático» y más contraste en el sistema, se usa el estilo de alto
+  contraste.
+- Los números de las burbujas y las etiquetas de tipo de archivo se leen mejor (11 px),
+  y la ventana para iniciar sesión usa el estilo que elegiste.
+- Las miniaturas de PDF de la vista previa ya no dejan el documento en memoria.
+
 ## 0.2.5 · 2026-10-29
 
 - La barra lateral de la ventana de Insti Today abre plegada (sólo iconos) si nunca
