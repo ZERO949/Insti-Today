@@ -1,5 +1,21 @@
 # Cambios
 
+## 0.3.0 · 2026-11-05
+
+- Insti Today se reescribió en Rust (Tauri): el instalador pesa ~4 MB en vez de 110 MB
+  y la app instalada ~9 MB en vez de ~350 MB. Usa el WebView2 que ya trae Windows.
+- Se quitaron las funciones de IA que ya no se veían (resolver con Claude, ChatGPT o
+  Codex, respuestas, revisión) y el servidor MCP.
+- Al instalar encima de la versión anterior, ésta se quita sola; tu sesión, tus ajustes
+  y tus archivos se conservan. El navegador de Moodle de la app vuelve a iniciar sesión
+  solo la primera vez que abras una página.
+- Sólo Windows por ahora.
+- La opacidad del fondo va de 0 % a 100 % (al 0 % el vidrio líquido es claro y apenas
+  esmerilado, sin verse pixelado) y el slider ya no salta al arrastrarlo. Con «Vidrio líquido», la
+  pestaña activa de la barra es más discreta y rebota más al cambiar de sección.
+- El vidrio líquido del widget se ve más limpio: más brillo y color, un canto más
+  suave y las esquinas redondas ya no salen escalonadas.
+
 ## 0.2.8 · 2026-11-04
 
 - Con «Vidrio líquido», la opacidad del widget se nota: al 40 % el vidrio es casi

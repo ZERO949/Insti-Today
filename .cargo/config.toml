@@ -1,0 +1,3 @@
+# TDM-GCC no trae libgcc_eh: se usan las bibliotecas mingw que vienen con Rust.
+[target.x86_64-pc-windows-gnu]
+rustflags = ["-C", "link-self-contained=yes"]

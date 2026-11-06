@@ -255,7 +255,7 @@ export function htmlATexto(html) {
       .replace(/<\/(p|div|h[1-6]|li|tr|ul|ol|table)>/gi, '\n')
       .replace(/<[^>]+>/g, ''),
   )
-    .replace(/[ \t]+\n/g, '\n')
+    .replace(/[^\S\n]+\n/g, '\n') // \r\n y &nbsp; de Moodle dejaban líneas «vacías»
     .replace(/\n{3,}/g, '\n\n')
     .trim();
   return { texto, enlaces: [...new Set(enlaces)] };

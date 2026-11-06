@@ -1,0 +1,65 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Insti Today",
+  "version": "../package.json",
+  "identifier": "mx.institoday.app",
+  "build": {
+    "frontendDist": "../widget",
+    "beforeBuildCommand": "node tools/vendor.mjs",
+    "beforeDevCommand": "node tools/vendor.mjs"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": {
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "$DOCUMENT/Insti Today/**",
+          "$DATA/Microsoft/Windows/Themes/*"
+        ]
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "createUpdaterArtifacts": true,
+    "publisher": "Insti Today",
+    "category": "Productivity",
+    "shortDescription": "Tus pendientes de Moodle en el escritorio",
+    "icon": [
+      "../widget/icono/icono.ico",
+      "../widget/icono/icono.png"
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "installerIcon": "../widget/icono/icono.ico",
+        "startMenuFolder": "",
+        "languages": [
+          "Spanish"
+        ],
+        "installerHooks": "./nsis/migrar.nsh"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/ZERO949/Insti-Today/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEVDRDAxNUU1NUU2MDkzRTEKUldUaGsyQmU1UlhRN0ZxbE1DQlBIOXN3a3g5YTUxODByUjRzYUppazZ1eFpQNXNTMVdPUkd6ZU0K",
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}

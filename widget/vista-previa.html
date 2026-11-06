@@ -107,8 +107,8 @@
 <div class="tarjeta" id="tarjeta" role="dialog" aria-label="Detalle de la tarea" tabindex="-1"><button type="button" class="cerrar-vista" id="cerrar-vista" aria-label="Cerrar detalle" hidden>✕</button><div class="contenido" id="contenido"></div></div>
 
 <script type="module">
-import * as pdfjs from '../node_modules/pdfjs-dist/build/pdf.min.mjs';
-pdfjs.GlobalWorkerOptions.workerSrc = new URL('../node_modules/pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).href;
+import * as pdfjs from './vendor/pdf.min.mjs';
+pdfjs.GlobalWorkerOptions.workerSrc = new URL('vendor/pdf.worker.min.mjs', import.meta.url).href;
 
 const vista = window.agenda.vista;
 const $tarjeta = document.getElementById('tarjeta');

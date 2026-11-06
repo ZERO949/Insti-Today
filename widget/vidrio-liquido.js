@@ -4,8 +4,9 @@
 // burbuja de la barra de pestañas de Android. Todo va por eventos y animaciones
 // del compositor: quieta no gasta nada.
 //
-// crearGota(contenedor, { radio }) → { mover(fila), soltar() }. El contenedor
-// tiene que estar posicionado; la gota se pinta con la clase .gota de cada página.
+// crearGota(contenedor, { radio, burbuja }) → { mover(fila), soltar() }. El
+// contenedor tiene que estar posicionado; la gota se pinta con la clase .gota de
+// cada página. Con burbuja, el rebote de la app de Android y una lente más suave.
 
 (() => {
   const quieto = matchMedia('(prefers-reduced-motion: reduce)');
@@ -67,7 +68,9 @@
     return mapas.get(clave);
   }
 
-  window.crearGota = (contenedor, { radio = 11 } = {}) => {
+  window.crearGota = (contenedor, { radio = 11, burbuja = false } = {}) => {
+    // [ancho y alto al estirarse, al pasarse, píxeles que se pasa, ms, lente]
+    const [estira, pasa, sobra, ms, dobla] = burbuja ? [[0.9, 1.4], [1.05, 0.88], 5, 540, 12] : [[0.97, 1.16], [1.01, 0.95], 3, 420, 20];
     const lente = filtro();
     const gota = Object.assign(document.createElement('i'), { className: 'gota' });
     gota.setAttribute('aria-hidden', 'true');
@@ -117,15 +120,15 @@
       en = fila;
       if (antes === null || antes === y || quieto.matches) return;
       const d = y - antes;
-      fijar(20, 80);
+      fijar(dobla, 80);
       const esta = gota.animate(
         [
           { transform: `translateY(${antes}px)`, height: `${hAntes}px` },
-          { transform: `translateY(${antes + d * 0.55}px) scale(.97, 1.16)`, offset: 0.45 },
-          { transform: `translateY(${y + Math.sign(d) * 3}px) scale(1.01, .95)`, offset: 0.75 },
+          { transform: `translateY(${antes + d * 0.55}px) scale(${estira})`, offset: 0.45 },
+          { transform: `translateY(${y + Math.sign(d) * sobra}px) scale(${pasa})`, offset: 0.75 },
           { transform: `translateY(${y}px)`, height: `${h}px` },
         ],
-        { duration: 420, easing: 'cubic-bezier(.3, .7, .2, 1)' },
+        { duration: ms, easing: 'cubic-bezier(.3, .7, .2, 1)' },
       );
       anim = esta;
       esta.onfinish = () => anim === esta && fijar(0, 220);

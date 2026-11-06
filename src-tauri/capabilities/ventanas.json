@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "ventanas",
+  "description": "Sólo las ventanas propias escuchan eventos; las de Moodle no tienen acceso al puente.",
+  "windows": ["widget", "vista", "app", "acceso", "arrastre", "privacidad"],
+  "permissions": ["core:event:default"]
+}

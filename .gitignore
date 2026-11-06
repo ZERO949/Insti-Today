@@ -3,3 +3,6 @@ dist/
 sesion*.json
 *.log
 widget/mcp/
+widget/vendor/
+src-tauri/target/
+src-tauri/gen/

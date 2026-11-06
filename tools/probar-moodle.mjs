@@ -19,7 +19,6 @@ const { agenda } = await import('../src/agenda.js');
 const { mensajes } = await import('../src/mensajes.js');
 const { detalle, muestraDe } = await import('../src/detalle.js');
 const { descargar, aplanar, olvidarUsuario, configurarTransporte } = await import('../src/cliente.js');
-const { resumen } = await import('../src/datos.js');
 
 let ok = 0;
 const prueba = async (nombre, fn) => {
@@ -178,13 +177,6 @@ await prueba('mensajes, avisos y notificaciones', async () => {
   assert.ok(!lista.some((m) => m.texto === 'Gracias!'), 'no se muestran tus propios mensajes');
   assert.equal(lista.find((m) => m.de === 'Diana López').curso, 'Equipo Proyecto 3');
   for (let i = 1; i < lista.length; i++) assert.ok(Date.parse(lista[i - 1].cuando) >= Date.parse(lista[i].cuando));
-});
-
-await prueba('resumen con calificaciones', async () => {
-  const r = await resumen();
-  const calc = r.cursos.find((c) => c.nombre === 'Cálculo Vectorial');
-  assert.equal(calc.total.texto, '9.50');
-  assert.equal(calc.anuncios[0].titulo, 'Cambio de salón');
 });
 
 await prueba('token inválido = sesión caducada (401)', async () => {

@@ -1,7 +1,7 @@
 # Insti Today
 
-Tus pendientes de **Moodle**, a la vista. Un widget de escritorio para Windows,
-Mac y Linux que reúne tus tareas, exámenes, foros con fecha, mensajes, avisos y
+Tus pendientes de **Moodle**, a la vista. Un widget de escritorio para Windows
+que reúne tus tareas, exámenes, foros con fecha, mensajes, avisos y
 notificaciones de la plataforma de tu escuela. Hecho para la
 [Plataforma UII](https://plataforma.uii.edu.mx/moodle), sirve para cualquier
 Moodle que tenga activa la app móvil.
@@ -41,13 +41,11 @@ sesión y pega la dirección de tu plataforma.
 
 ## Instalar
 
-**Windows (rápido):** descomprime `Insti-Today-Windows.zip` en una carpeta fija
-(por ejemplo Documentos) y abre `Insti Today.exe`. Windows puede avisar que la app
-no está firmada: «Más información → Ejecutar de todas formas».
-
-**Instaladores (Windows .exe, Mac .dmg, Linux AppImage/.deb):** sube este proyecto a
-un repositorio tuyo de GitHub y ejecuta *Actions → Construir → Run workflow*.
-Los instaladores quedan en los artefactos de la ejecución.
+**Windows:** descarga `Insti-Today-Setup.exe` del último
+[release](https://github.com/ZERO949/Insti-Today/releases/latest) y ábrelo (~4 MB).
+Windows puede avisar que la app no está firmada: «Más información → Ejecutar de
+todas formas». Si ya tenías la versión anterior, el instalador la reemplaza y
+conserva tu sesión y tus ajustes.
 
 **Android (APK):** instala `Insti-Today-Android.apk` en el teléfono (Android 7 o
 posterior). Android pedirá permitir «instalar apps de origen desconocido» para la
@@ -57,29 +55,26 @@ sus archivos, mensajes y avisos, y te recuerda las tareas antes de que venzan;
 
 ## Desarrollo
 
-Node.js 22 o posterior.
+Rust (toolchain `x86_64-pc-windows-gnu` o `msvc`) y Node.js 22 o posterior.
 
 ```text
 npm ci
-npm run widget                 # abre la app
+npm run app                    # abre la app (Tauri, modo desarrollo)
 npm run moodle-falso           # un Moodle de prueba en http://127.0.0.1:8765/moodle (alumno / secreto)
-npm run probar-moodle          # pruebas de la capa de Moodle contra el Moodle falso
+npm run probar                 # pruebas de Rust y de la capa de Moodle en JS
+npm run empaquetar             # → src-tauri/target/release/bundle/nsis/ (instalador de ~4 MB)
 ```
 
 Para probar la app contra el Moodle falso sin tocar tus datos reales:
 
 ```text
-INSTI_DATOS=/tmp/insti npm run widget
+INSTI_DATOS=/tmp/insti npm run app
 # en el widget: «cambiar» → 127.0.0.1:8765/moodle → Iniciar sesión → alumno / secreto
 ```
 
-Capturas automáticas (las usa el autor para revisar la interfaz):
-`BB_CAPTURA=salida.png`, `BB_CAPTURA_MENSAJES=1`, `BB_CAPTURA_TAREA="título"`,
-`INSTI_PRUEBA_ENTRAR=usuario:contraseña`, `INSTI_PRUEBA_ENTREGA="título"`.
-
 ### App de Android (`movil/`)
 
-Es una app de Capacitor que reutiliza la capa de Moodle de `src/` (empaquetada con
+Es una app de Capacitor que reutiliza la capa de Moodle en JS de `src/` (empaquetada con
 esbuild; los módulos de Node se cambian por los de `movil/fuente/shims`). Hace falta
 el JDK (17 o posterior) y el SDK de Android (`ANDROID_HOME`, por defecto `~/Android/Sdk`).
 
@@ -94,36 +89,22 @@ npm run apk                           # → dist/Insti-Today-Android.apk (firmad
 
 | Archivo | Qué hace |
 | --- | --- |
-| `src/sesion.js` | Dirección del Moodle, token (`/login/token.php`), carpeta de datos |
-| `src/cliente.js` | Cliente REST de Moodle (`ws()`), descargas de `pluginfile.php` con token |
-| `src/datos.js` | Cursos en progreso y calificaciones |
-| `src/agenda.js` | Tareas, exámenes, foros y actividades del calendario → la lista del widget |
-| `src/detalle.js` | Archivos y vista previa de una tarea |
-| `src/mensajes.js` | Mensajes, avisos y notificaciones |
-| `src/servidor.js` | Servidor MCP opcional (para Claude Desktop) |
-| `widget/sesion-app.js` | Ventana de inicio de sesión, navegador interno, abrir páginas |
-| `widget/acceso.html` | La ventana «Iniciar sesión» |
-| `widget/entrega.js` | Soltar archivos en el selector de Moodle |
-| `widget/main.js`, `widget/*.html` | El widget y la app (heredados de BB Today) |
+| `src-tauri/src/moodle.rs` | Dirección del Moodle, token, cliente REST, descargas con token |
+| `src-tauri/src/agenda.rs` | Tareas, exámenes, foros y calendario; vista previa; mensajes |
+| `src-tauri/src/app_logica.rs` | Revisar Moodle, avisos, vista previa, cuentas, puente con las páginas |
+| `src-tauri/src/ventanas.rs` | Ventanas, anclado al escritorio, navegador de Moodle |
+| `src-tauri/src/entrega.rs` | Tus archivos y «Entregar en Moodle» |
+| `src-tauri/src/sistema.rs` | Bandeja, avisos de Windows, actualizaciones |
+| `widget/*.html`, `widget/puente.js` | El widget y la app (heredados de BB Today) |
+| `src/*.js` | La capa de Moodle en JS (la usa la app de Android) |
 | `tools/moodle-falso.mjs` | Moodle de prueba |
 
 ### Actualizaciones automáticas
 
 La app busca versiones nuevas en los releases del repositorio **público**
-`ZERO949/Insti-Today` (`package.json → build.publish`). Cuando hay una, aparece un aviso con «Descargar e instalar»: la app se
-cierra, el instalador reemplaza la versión anterior y se vuelve a abrir.
-
-Para publicar una versión nueva:
-
-1. Sube `version` en `package.json` (p. ej. 0.1.3 → 0.1.4).
-2. Haz commit y sube la etiqueta antes de publicar (sin ella GitHub rechaza el release):
-   `git tag v0.1.4; git push; git push --tags`
-3. Con la sesión de `gh` (cuenta ZERO949) en PowerShell:
-   `$env:GH_TOKEN = gh auth token; npm run publicar`
-
-Eso sube `Insti-Today-Setup.exe` (instalador web de ~1 MB), el paquete
-`insti-today-X.Y.Z-x64.nsis.7z` y `latest.yml` al release; las
-apps instaladas lo verán en menos de 4 horas o al abrirse.
+`ZERO949/Insti-Today` (`latest.json`, firmado). Cuando hay una, aparece un aviso con
+«Descargar e instalar»: la app se cierra, el instalador reemplaza la versión anterior y
+se vuelve a abrir. Cómo publicar: ver [AGENTS.md](AGENTS.md#repositorio-y-versiones).
 
 ## Privacidad
 
