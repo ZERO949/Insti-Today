@@ -487,6 +487,9 @@ pub async fn url_autologin(destino: &str) -> Option<String> {
         .await
         .ok()?;
     let d: Value = r.json().await.ok()?;
+    if !d["key"].is_string() {
+        datos::registrar("inicio automático", d["errorcode"].as_str().unwrap_or("sin llave"));
+    }
     let mut u = url::Url::parse(d["autologinurl"].as_str()?).ok()?;
     u.query_pairs_mut().append_pair("userid", &s["userid"].to_string()).append_pair("key", d["key"].as_str()?).append_pair("urltogo", destino);
     Some(u.to_string())

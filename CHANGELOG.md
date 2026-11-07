@@ -1,5 +1,11 @@
 # Cambios
 
+## 0.3.2 · 2026-11-06
+
+- «Abrir en Moodle» y «Entregar en Moodle» ya no piden tu contraseña: si tu sesión
+  venció, la app entra sola antes de abrir la página, como en la versión anterior. En
+  la 0.3.1 seguía pasando.
+
 ## 0.3.1 · 2026-11-06
 
 - Al abrir una tarea ya no te pide iniciar sesión otra vez en Moodle cuando tu sesión

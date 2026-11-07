@@ -388,7 +388,8 @@ static PARTICION_ABIERTA: Mutex<Option<String>> = Mutex::new(None);
 
 fn constructor_moodle(etiqueta: &str, url: url::Url) -> WebviewWindowBuilder<'static, tauri::Wry, tauri::AppHandle> {
     let particion = datos::particion();
-    let origen = url.origin();
+    // De la escuela, no de la primera página: puede ser about:blank.
+    let origen = url::Url::parse(&moodle::escuela()).map(|u| u.origin()).unwrap_or_else(|_| url.origin());
     WebviewWindowBuilder::new(app(), etiqueta, WebviewUrl::External(url))
         .data_directory(datos::dir_navegador(&particion))
         .on_new_window(move |nueva, _| {
@@ -437,11 +438,23 @@ pub fn cerrar_navegador_ajeno() {
     }
 }
 
+// ¿Moodle reconoce la sesión del navegador de la app? Como hacía la versión de
+// Electron: se pide /my/ aparte, con sus cookies, y se ve si acaba en el inicio
+// de sesión. Que la cookie exista no basta: sigue ahí aunque la sesión venciera.
+async fn con_sesion(w: &WebviewWindow, base: &url::Url) -> bool {
+    let cookies = w.cookies_for_url(base.clone()).unwrap_or_default();
+    let cabecera = cookies.iter().map(|c| format!("{}={}", c.name(), c.value())).collect::<Vec<_>>().join("; ");
+    if cabecera.is_empty() {
+        return false;
+    }
+    let r = moodle::http().get(format!("{}/my/", moodle::escuela())).header("Cookie", cabecera).timeout(Duration::from_secs(15)).send().await;
+    r.is_ok_and(|r| r.status().is_success() && !r.url().path().contains("/login/"))
+}
+
 // Abre una página de Moodle en el navegador de la app (las de fuera, en el
-// navegador normal), siempre con el inicio automático: la cookie MoodleSession
-// sigue ahí aunque Moodle ya haya cerrado la sesión por tiempo, así que no
-// sirve para saber si hay sesión. Si Moodle no da llave (una cada 6 minutos),
-// la sesión de la última llave sigue fresca y se abre la página tal cual.
+// navegador normal). Si la sesión venció, la primera página que carga la
+// ventana es la del inicio automático: cualquier página de Moodle cargando a
+// la vez crea otra sesión vacía cuya cookie puede pisar la buena.
 pub async fn abrir_en_moodle(url: &str) -> Option<WebviewWindow> {
     let destino = url::Url::parse(url).ok()?;
     let base = url::Url::parse(&moodle::escuela()).ok()?;
@@ -450,16 +463,22 @@ pub async fn abrir_en_moodle(url: &str) -> Option<WebviewWindow> {
         return None;
     }
     cerrar_navegador_ajeno();
+    let en_blanco = url::Url::parse("about:blank").ok()?;
     let w = match ventana(MOODLE) {
         Some(w) => w,
         None => {
-            let w = constructor_moodle(MOODLE, base.clone()).title("Moodle · Insti Today").inner_size(1180.0, 860.0).build().ok()?;
+            let w = constructor_moodle(MOODLE, en_blanco.clone()).title("Moodle · Insti Today").inner_size(1180.0, 860.0).build().ok()?;
             *PARTICION_ABIERTA.lock().unwrap() = Some(datos::particion());
             w
         }
     };
     al_frente(&w);
-    let cargar = moodle::url_autologin(destino.as_str()).await.unwrap_or_else(|| destino.to_string());
+    let mut cargar = destino.to_string();
+    if !con_sesion(&w, &base).await {
+        // La página de Moodle que estuviera abierta deja de hacer peticiones.
+        let _ = w.navigate(en_blanco);
+        cargar = moodle::url_autologin(destino.as_str()).await.unwrap_or(cargar);
+    }
     let _ = w.navigate(url::Url::parse(&cargar).ok()?);
     Some(w)
 }
