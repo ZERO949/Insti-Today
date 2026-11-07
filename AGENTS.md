@@ -18,7 +18,7 @@ escriben en español.
   - `app_logica.rs`: lo que hacía `main.js` de Electron: revisar Moodle cada hora,
     avisos, vista previa, cuentas, inicio de sesión y el puente `llamar`.
   - `ventanas.rs`: las ventanas, el anclado al escritorio (Win32), el navegador de
-    Moodle de cada cuenta (carpeta de WebView2 propia) y el CDP para soltar archivos.
+    Moodle (el mismo WebView2 de la app) y el CDP para soltar archivos.
   - `entrega.rs`: tus archivos por tarea y «Entregar en Moodle».
   - `sistema.rs`: bandeja, avisos de Windows, diálogos, abrir con Windows, actualizaciones.
 - `widget/` — las páginas (HTML/CSS/JS). `widget/puente.js` se inyecta en cada ventana
@@ -38,7 +38,8 @@ tarea son el `cmid` de Moodle (string); los de curso, el id del curso (string).
 La carpeta de datos es la misma que en la versión de Electron
 (`%APPDATA%\insti-today`, o `INSTI_DATOS`): al actualizar no hay que volver a entrar.
 Sólo las cookies del navegador interno de Moodle empiezan de cero (se recuperan con el
-inicio automático de la app móvil de Moodle). Rust escribe los JSON compactos y con
+inicio automático de la app móvil de Moodle; también al pasar a la 0.3.5, que borra la
+carpeta `navegador/` de antes). Rust escribe los JSON compactos y con
 las claves en orden alfabético.
 
 ## Dónde vive la app instalada
@@ -46,8 +47,8 @@ las claves en orden alfabético.
 - Programa: `%LOCALAPPDATA%\Insti Today\insti-today.exe` (instalador por usuario).
   Acceso directo: `Menú Inicio\Programs\Insti Today.lnk`; abrir con Windows: valor
   «Insti Today» en `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`.
-- WebView2 de las ventanas propias: `%LOCALAPPDATA%\mx.institoday.app`. El navegador de
-  Moodle de cada cuenta: `%APPDATA%\insti-today\navegador\<partición>`.
+- WebView2 de las ventanas propias y de Moodle: `%LOCALAPPDATA%\mx.institoday.app`. De
+  qué cuenta son las cookies de cada Moodle: `navegador.json` en la carpeta de datos.
 - Archivos de cada tarea: `Documentos\Insti Today\<materia>\<tarea>\tuyos`
   (`BB_CARPETA_TAREAS` cambia la base). Lo que se descarga de Moodle:
   `Descargas\Insti Today\<materia>`. Son de la persona, no son restos de la app.
@@ -59,7 +60,7 @@ las claves en orden alfabético.
   de archivos no salgan en Alt+Tab ni en Win+Tab, `ventanas.rs` las subclasifica y
   fuerza `WS_EX_TOOLWINDOW` en `WM_STYLECHANGING` (`sin_alt_tab`). La subclase se pone
   desde el hilo principal (`run_on_main_thread`).
-- Todas las ventanas propias crean WebView2 con los mismos argumentos (`ARGUMENTOS`:
+- Todas las ventanas, también las de Moodle, crean WebView2 con los mismos argumentos (`ARGUMENTOS`:
   sin GPU, sin oclusión ni frenado de temporizadores, porque el widget vive tapado). Si
   dos WebView2 con argumentos distintos comparten carpeta, la segunda falla con
   «The requested resource is in use» (0x800700AA); `main.rs` reintenta 10 s y, si no,
@@ -75,6 +76,72 @@ las claves en orden alfabético.
 - Tauri no entiende `-webkit-app-region: drag`; `puente.js` lo traduce a
   `start_dragging`. Los archivos soltados llegan por `tauri://drag-drop` y `puente.js`
   los pasa como el evento `insti:soltar`.
+
+## Iniciar sesión en Moodle: cómo funciona
+
+Hay dos sesiones distintas y no se mezclan:
+
+1. **La de la app** (servicios web REST): `acceso.html` manda usuario y contraseña a
+   `/login/token.php`; se guardan sólo `token` y `privatetoken` en `sesion.json`. Todo
+   lo que revisa la app en segundo plano usa el token. Si Moodle lo rechaza
+   (`invalidtoken`…), el estado pasa a `caducada` y hay que volver a entrar.
+2. **La del navegador de Moodle** (la ventana «Moodle · Insti Today», para «Abrir en
+   Moodle» y «Entregar en Moodle»): cookies en el WebView2 de la app, que ya está
+   corriendo por el widget (hasta la 0.3.4 cada cuenta tenía su carpeta y la ventana
+   tardaba ~0.45 s en abrir y ocupaba ~150 MB; ahora ~0.13 s y ~25 MB). Las cookies son
+   de una cuenta a la vez: `navegador.json` dice de cuál, y `cookies_de_la_cuenta` las
+   borra antes de abrir Moodle o de entrar si son de otra (con dos cuentas en la misma
+   escuela, cambiar de cuenta pide el inicio automático). `borrar_navegador` borra sólo
+   las cookies de Moodle de esa cuenta: `clear_all_browsing_data` borraría también lo
+   de las páginas propias. Al entrar, `entrar_en_navegador` llena el formulario
+   normal de Moodle en una ventana invisible.
+
+Al abrir una página (`abrir_en_moodle` en `ventanas.rs`):
+
+- La página se carga en seguida, sin revisar antes la sesión (hasta la 0.3.3 se pedía
+  `/my/` aparte y eso hacía lenta cada apertura). Cerrar la ventana de Moodle sólo la
+  esconde (y la deja en `about:blank`): la siguiente apertura no espera a WebView2.
+  Por eso «Moodle se cerró» es `!is_visible()`, no que la ventana no exista.
+- Si la página pedida termina de cargar en `/login/` (`PENDIENTE` en `on_page_load`),
+  la sesión venció: `entrar_solo` pide una llave con `tool_mobile_get_autologin_key`
+  (User-Agent `MoodleMobile`, con el `privatetoken`) y navega a
+  `admin/tool/mobile/autologin.php?userid&key&urltogo`. Sólo cuando el inicio de sesión
+  ya terminó de cargar: ninguna otra página de Moodle puede cargar a la vez, crea una
+  sesión vacía cuya cookie pisa la buena (por eso falló la 0.3.1). Sólo se intenta una
+  vez por apertura; sin llave se queda en el inicio de sesión.
+- Al terminar de cargar cada página, `conservar_sesion` vuelve a guardar las cookies
+  de sesión de Moodle con fecha (30 días). No en la página de inicio de sesión que
+  dispara `entrar_solo`: guardaría la cookie vacía encima de la nueva.
+
+Lo que ya rompió el inicio de sesión (0.3.1 a 0.3.3):
+
+- **WebView2 guarda las cookies de sesión sólo en memoria.** `MoodleSession` no tiene
+  fecha; al salir de la app (o al destruir la ventana de Moodle) termina su proceso de
+  WebView2 y se borra.
+  Electron sí las conservaba. Sin `conservar_sesion`, cada vez que se abre la ventana
+  hace falta el inicio automático.
+- **Moodle da una sola llave de inicio automático cada 6 minutos** por usuario
+  (`autologinkeygenerationlockout`; el límite es el mismo para la app oficial de
+  Moodle). La llave dura 60 s, es de un solo uso y va ligada a la IP; no funciona sin
+  https ni con administradores. Es el respaldo para cuando la sesión venció en el
+  servidor, no algo que se pueda pedir en cada apertura: si falla, la ventana acaba
+  en el inicio de sesión de Moodle.
+- **La ruta de la cookie:** Moodle pone `MoodleSession` en la ruta de la plataforma
+  con «/» al final (`/moodle/`), y esa ruta no coincide con `/moodle`. Las cookies se
+  leen en `escuela()` + «/» (`raiz_de_cookies`). La UII las pone en `/`.
+- `cookies_for_url` y `set_cookie` bloquean WebView2 si se llaman dentro de un evento
+  (`on_page_load`) o de un comando síncrono: llamarlas desde una tarea async.
+
+Para investigar un caso real:
+
+- `registro.log` de la carpeta de datos anota `inicio automático: <errorcode>` cuando
+  Moodle no da la llave.
+- Los nombres, rutas y si son persistentes las cookies del navegador de Moodle se
+  leen en `%LOCALAPPDATA%\mx.institoday.app\EBWebView\Default\Network\Cookies` (SQLite; copiarlo
+  antes porque está abierto). Los valores van cifrados: no leerlos.
+- El Moodle falso imita la ruta `/moodle/` y el límite de 6 minutos. La prueba que
+  importa: abrir una tarea, cerrar la ventana de Moodle, esperar a que salga su
+  `msedgewebview2.exe` y abrir otra. La segunda vez no debe pedir llave.
 
 ## Se quitó (0.3)
 
@@ -145,8 +212,8 @@ han probado en otro sistema.
 - Con `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333` las páginas
   propias se revisan y fotografían con playwright (`chromium.connectOverCDP`) y se
   llama `window.agenda.*` como lo haría la página. playwright-core ya no es dependencia
-  del proyecto: instalarlo en una carpeta aparte. Las ventanas de Moodle no salen ahí
-  (usan otra carpeta de WebView2).
+  del proyecto: instalarlo en una carpeta aparte. Las ventanas de Moodle también salen
+  ahí (comparten el WebView2 de la app).
 - Paridad con la capa JS: correr `agenda()` y `mensajes()` de `src/` con el mismo
   `INSTI_DATOS` y comparar con `agenda.json`/`mensajes.json` que escribió Rust (sin
   `generado`/`completa`; `null` = ausente). El 2026-11-05 dieron iguales con el Moodle
@@ -155,7 +222,9 @@ han probado en otro sistema.
   instalada abierta, una compilación de prueba sólo le muestra el widget y se cierra.
   Cerrar antes la instalada (bandeja → Salir). Si se mata un proceso con `taskkill /F`,
   matar también sus `msedgewebview2.exe` (los que llevan `mx.institoday.app` en la línea
-  de comandos), o la siguiente copia no puede crear su WebView2.
+  de comandos), o la siguiente copia no puede crear su WebView2. Para probar sin cerrar
+  la instalada: `npx tauri dev --config '{"identifier":"mx.institoday.prueba"}'` con
+  `INSTI_DATOS` temporal.
 - Una compilación `--release` con una carpeta de datos sin `inicio-instalado` se
   registra para abrir con Windows (como la instalada): crear antes ese archivo en la
   carpeta de prueba, o borrar luego el valor «Insti Today» de `Run`.

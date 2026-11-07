@@ -227,10 +227,6 @@ const ARCHIVOS: [&str; 6] = ["sesion.json", "agenda.json", "mensajes.json", "men
 // De ajustes.json, lo que es de cada cuenta: la escuela, el usuario, las tareas quitadas y las materias ocultas.
 const AJUSTES_CUENTA: [&str; 4] = ["url", "cuenta", "descartadas", "ocultar"];
 
-pub fn dir_navegador(particion: &str) -> PathBuf {
-    ruta("navegador").join(particion.trim_start_matches("persist:"))
-}
-
 fn clave(url: &str, usuario: &str) -> String {
     format!("{}|{}", crate::moodle::normalizar_url(url).unwrap_or_default(), usuario.to_lowercase())
 }

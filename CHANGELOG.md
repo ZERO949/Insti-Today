@@ -1,5 +1,18 @@
 # Cambios
 
+## 0.3.5 · 2026-11-07
+
+- La ventana de Moodle aparece unas 3 veces más rápido también la primera vez después
+  de abrir la app, y ocupa unos 125 MB menos de memoria: usa el navegador que la app ya
+  tiene abierto en vez de arrancar otro. La primera vez después de actualizar, Moodle
+  entra solo una vez.
+
+## 0.3.4 · 2026-11-06
+
+- «Abrir en Moodle» abre la tarea casi al instante: la app ya no revisa tu sesión antes
+  de cargar la página (sólo entra sola si Moodle te manda al inicio de sesión), y
+  cerrar la ventana de Moodle sólo la esconde, así la siguiente se abre sin esperar.
+
 ## 0.3.3 · 2026-11-06
 
 - «Abrir en Moodle» y «Entregar en Moodle» ya no piden iniciar sesión después de cerrar

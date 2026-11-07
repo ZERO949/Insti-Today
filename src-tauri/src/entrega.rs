@@ -344,8 +344,8 @@ async fn intentar(w: &WebviewWindow, rutas: &[String], d: &Value, cancelado: &At
         if cancelado.load(Ordering::SeqCst) {
             return Fin::Cancelada("");
         }
-        // La ventana se cerró.
-        let Ok(url) = w.url() else { return Fin::Cancelada("Cerraste Moodle. Tus archivos y tu texto siguen guardados.") };
+        // La ventana se cerró (cerrarla la esconde).
+        let (Ok(url), Ok(true)) = (w.url(), w.is_visible()) else { return Fin::Cancelada("Cerraste Moodle. Tus archivos y tu texto siguen guardados.") };
         if Instant::now() >= limite {
             return Fin::Manual("No apareció el selector de archivos de Moodle. Arrastra los archivos desde la ventana de Insti Today.".into());
         }
@@ -508,7 +508,7 @@ pub async fn llamar(w: &WebviewWindow, canal: &str, args: &[Value]) -> Result<Va
                 Some(i) => todos.get(i as usize).into_iter().map(|p| p.to_string_lossy().to_string()).collect(),
                 None => todos.iter().map(|p| p.to_string_lossy().to_string()).collect(),
             };
-            if let (Some(m), Some(d)) = (ventana(v::MOODLE), destino) {
+            if let (Some(m), Some(d)) = (ventana(v::MOODLE).filter(|m| m.is_visible().unwrap_or(false)), destino) {
                 if !elegidos.is_empty() {
                     colocar(m.clone(), elegidos, d);
                     let _ = m.set_focus();

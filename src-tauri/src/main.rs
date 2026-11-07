@@ -86,6 +86,8 @@ async fn abrir_widget() {
 }
 
 fn arrancar() {
+    // Hasta la 0.3.4 Moodle tenía una carpeta de WebView2 por cuenta; ya usa la de la app.
+    std::thread::spawn(|| std::fs::remove_dir_all(datos::ruta("navegador")));
     // Lo último que se vio, al instante, mientras llega lo nuevo.
     let leer_lista = |n: &str| datos::leer(&datos::ruta(n)).and_then(|v| v.as_array().cloned()).unwrap_or_default().into_iter().filter_map(|x| x.as_str().map(String::from)).collect::<HashSet<_>>();
     app::con(|r| {

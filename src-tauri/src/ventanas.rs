@@ -385,18 +385,31 @@ pub fn al_frente(w: &WebviewWindow) {
 // WebView2. No tiene acceso al puente: es una página de internet.
 
 static PARTICION_ABIERTA: Mutex<Option<String>> = Mutex::new(None);
+// La página que se pidió abrir, hasta que la ventana de Moodle termina de cargar.
+static PENDIENTE: Mutex<Option<String>> = Mutex::new(None);
 
+// Moodle usa el navegador de la app (misma carpeta y ARGUMENTOS), que ya está
+// corriendo: la ventana abre en ~0.13 s en vez de ~0.45 s y ocupa ~25 MB en vez
+// de ~150 MB. Las cuentas se separan con navegador.json (cookies_de_la_cuenta).
 fn constructor_moodle(etiqueta: &str, url: url::Url) -> WebviewWindowBuilder<'static, tauri::Wry, tauri::AppHandle> {
-    let particion = datos::particion();
     // De la escuela, no de la primera página: puede ser about:blank.
     let origen = url::Url::parse(&moodle::escuela()).map(|u| u.origin()).unwrap_or_else(|_| url.origin());
     WebviewWindowBuilder::new(app(), etiqueta, WebviewUrl::External(url))
-        .data_directory(datos::dir_navegador(&particion))
+        .additional_browser_args(ARGUMENTOS)
         .on_page_load(|w, carga| {
-            if carga.event() == tauri::webview::PageLoadEvent::Finished {
-                // Leer cookies dentro del evento bloquea WebView2: va aparte.
-                tauri::async_runtime::spawn(async move { conservar_sesion(&w) });
+            if carga.event() != tauri::webview::PageLoadEvent::Finished || !carga.url().scheme().starts_with("http") {
+                return;
             }
+            let pedida = if w.label() == MOODLE { PENDIENTE.lock().unwrap().take() } else { None };
+            let vencida = carga.url().path().contains("/login/");
+            // Leer cookies dentro del evento bloquea WebView2: va aparte.
+            tauri::async_runtime::spawn(async move {
+                match pedida {
+                    // Sin conservar_sesion aquí: guardaría la cookie vacía encima de la del inicio automático.
+                    Some(destino) if vencida => entrar_solo(&w, &destino).await,
+                    _ => conservar_sesion(&w),
+                }
+            });
         })
         .on_new_window(move |nueva, _| {
             if nueva.origin() == origen {
@@ -444,22 +457,52 @@ pub fn cerrar_navegador_ajeno() {
     }
 }
 
-// ¿Moodle reconoce la sesión del navegador de la app? Como hacía la versión de
-// Electron: se pide /my/ aparte, con sus cookies, y se ve si acaba en el inicio
-// de sesión. Que la cookie exista no basta: sigue ahí aunque la sesión venciera.
-async fn con_sesion(w: &WebviewWindow) -> bool {
-    let cookies = w.cookies_for_url(raiz_de_cookies()).unwrap_or_default();
-    let cabecera = cookies.iter().map(|c| format!("{}={}", c.name(), c.value())).collect::<Vec<_>>().join("; ");
-    if cabecera.is_empty() {
-        return false;
+// La página pedida acabó en el inicio de sesión: la sesión de la ventana venció.
+// Ya terminó de cargar, así que el inicio automático no choca con otra página
+// de Moodle. Sin llave (una cada 6 minutos) se queda en el inicio de sesión.
+async fn entrar_solo(w: &WebviewWindow, destino: &str) {
+    if let Some(u) = moodle::url_autologin(destino).await.and_then(|u| url::Url::parse(&u).ok()) {
+        let _ = w.navigate(u);
     }
-    let r = moodle::http().get(format!("{}/my/", moodle::escuela())).header("Cookie", cabecera).timeout(Duration::from_secs(15)).send().await;
-    r.is_ok_and(|r| r.status().is_success() && !r.url().path().contains("/login/"))
 }
 
 // Con «/» al final: Moodle guarda MoodleSession en «/moodle/», que no coincide con «/moodle».
 fn raiz_de_cookies() -> url::Url {
     url::Url::parse(&format!("{}/", moodle::escuela())).expect("escuela() es una URL válida")
+}
+
+// Todas las cuentas comparten el navegador: navegador.json dice de qué cuenta
+// (partición) son las cookies de cada Moodle (su raíz). El candado evita que
+// salir de una cuenta y entrar con otra a la vez se pisen el archivo.
+static DUENOS: Mutex<()> = Mutex::new(());
+
+fn ruta_duenos() -> std::path::PathBuf {
+    datos::ruta("navegador.json")
+}
+
+// Cualquier ventana propia sirve para las cookies; la de Moodle puede ir cerrándose.
+fn alguna_ventana() -> Option<WebviewWindow> {
+    app().webview_windows().into_iter().find(|(l, _)| !l.starts_with(MOODLE)).map(|(_, w)| w)
+}
+
+fn borrar_cookies(w: &WebviewWindow, raiz: &str) -> bool {
+    let Some(cookies) = url::Url::parse(raiz).ok().and_then(|u| w.cookies_for_url(u).ok()) else { return false };
+    for c in cookies {
+        let _ = w.delete_cookie(c);
+    }
+    true
+}
+
+// Antes de cargar Moodle: si sus cookies son de otra cuenta, se borran (entrará solo).
+fn cookies_de_la_cuenta() {
+    let _candado = DUENOS.lock().unwrap();
+    let (raiz, particion) = (raiz_de_cookies().to_string(), json!(datos::particion()));
+    let mut d = datos::leer(&ruta_duenos()).unwrap_or(json!({}));
+    if d[raiz.as_str()] == particion || !alguna_ventana().is_some_and(|w| borrar_cookies(&w, &raiz)) {
+        return;
+    }
+    d[raiz.as_str()] = particion;
+    datos::escribir(&ruta_duenos(), &d);
 }
 
 // WebView2 borra las cookies de sesión (MoodleSession) al cerrar la ventana de
@@ -476,9 +519,8 @@ fn conservar_sesion(w: &WebviewWindow) {
 }
 
 // Abre una página de Moodle en el navegador de la app (las de fuera, en el
-// navegador normal). Si la sesión venció, la primera página que carga la
-// ventana es la del inicio automático: cualquier página de Moodle cargando a
-// la vez crea otra sesión vacía cuya cookie puede pisar la buena.
+// navegador normal), sin esperar nada: si Moodle la manda al inicio de sesión,
+// on_page_load entra solo (entrar_solo).
 pub async fn abrir_en_moodle(url: &str) -> Option<WebviewWindow> {
     let destino = url::Url::parse(url).ok()?;
     let base = url::Url::parse(&moodle::escuela()).ok()?;
@@ -487,23 +529,32 @@ pub async fn abrir_en_moodle(url: &str) -> Option<WebviewWindow> {
         return None;
     }
     cerrar_navegador_ajeno();
-    let en_blanco = url::Url::parse("about:blank").ok()?;
+    cookies_de_la_cuenta();
+    *PENDIENTE.lock().unwrap() = Some(destino.to_string());
     let w = match ventana(MOODLE) {
-        Some(w) => w,
+        Some(w) => {
+            let _ = w.navigate(destino);
+            w
+        }
         None => {
-            let w = constructor_moodle(MOODLE, en_blanco.clone()).title("Moodle · Insti Today").inner_size(1180.0, 860.0).build().ok()?;
+            let w = constructor_moodle(MOODLE, destino).title("Moodle · Insti Today").inner_size(1180.0, 860.0).build().ok()?;
             *PARTICION_ABIERTA.lock().unwrap() = Some(datos::particion());
+            // Cerrarla sólo la esconde: la siguiente página no espera a que arranque WebView2.
+            let w2 = w.clone();
+            w.on_window_event(move |e| {
+                if let tauri::WindowEvent::CloseRequested { api, .. } = e {
+                    if !app::con(|r| r.salir) {
+                        api.prevent_close();
+                        let _ = w2.hide();
+                        // La página deja de hacer peticiones y de ocupar memoria.
+                        let _ = w2.navigate(url::Url::parse("about:blank").expect("about:blank es una URL válida"));
+                    }
+                }
+            });
             w
         }
     };
     al_frente(&w);
-    let mut cargar = destino.to_string();
-    if !con_sesion(&w).await {
-        // La página de Moodle que estuviera abierta deja de hacer peticiones.
-        let _ = w.navigate(en_blanco);
-        cargar = moodle::url_autologin(destino.as_str()).await.unwrap_or(cargar);
-    }
-    let _ = w.navigate(url::Url::parse(&cargar).ok()?);
     Some(w)
 }
 
@@ -530,6 +581,7 @@ pub async fn ejecutar(w: &WebviewWindow, js: &str) -> Option<Value> {
 // Moodle la pedirá.
 pub async fn entrar_en_navegador(usuario: String, contrasena: String) {
     let Ok(login) = url::Url::parse(&format!("{}/login/index.php", moodle::escuela())) else { return };
+    cookies_de_la_cuenta();
     let Ok(w) = constructor_moodle("moodle-entrar", login).visible(false).build() else { return };
     tokio::time::sleep(Duration::from_secs(3)).await;
     let script = format!(
@@ -556,23 +608,22 @@ pub async fn entrar_en_navegador(usuario: String, contrasena: String) {
     let _ = w.destroy();
 }
 
-// Vacía el navegador de una cuenta (sus cookies de Moodle).
+// Quita del navegador las cookies de Moodle de una cuenta (al salir de ella o quitarla).
 pub fn borrar_navegador(particion: &str) {
     if PARTICION_ABIERTA.lock().unwrap().as_deref() == Some(particion) {
         if let Some(w) = ventana(MOODLE) {
-            let _ = w.clear_all_browsing_data();
             let _ = w.destroy();
         }
     }
-    let dir = datos::dir_navegador(particion);
-    // WebView2 suelta sus archivos un momento después de cerrar la ventana.
+    let particion = json!(particion);
+    // Leer cookies desde un comando o un evento bloquea WebView2: va aparte.
     tauri::async_runtime::spawn(async move {
-        for _ in 0..10 {
-            if std::fs::remove_dir_all(&dir).is_ok() || !dir.exists() {
-                break;
-            }
-            tokio::time::sleep(Duration::from_millis(500)).await;
-        }
+        let _candado = DUENOS.lock().unwrap();
+        let Some(w) = alguna_ventana() else { return };
+        let mut d = datos::leer(&ruta_duenos()).unwrap_or(json!({}));
+        let Some(raices) = d.as_object_mut() else { return };
+        raices.retain(|raiz, dueno| *dueno != particion || !borrar_cookies(&w, raiz));
+        datos::escribir(&ruta_duenos(), &d);
     });
 }
 
