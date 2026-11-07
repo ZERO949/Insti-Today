@@ -21,6 +21,7 @@ const TOKEN = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6';
 const PRIVADO = 'privado-123';
 const COOKIE = 'MoodleSession=sesion-de-prueba';
 const YO = 501;
+let ultimaLlave = 0;
 
 const s = (ms) => Math.floor(ms / 1000);
 const ahora = Date.now();
@@ -252,6 +253,9 @@ function funcion(nombre, a, base) {
       ] }], warnings: [] };
     case 'tool_mobile_get_autologin_key':
       if (a.privatetoken !== PRIVADO) return { exception: 'moodle_exception', errorcode: 'invalidprivatetoken', message: 'Token privado inválido' };
+      // Como Moodle real: una llave cada 6 minutos.
+      if (Date.now() - ultimaLlave < 6 * 60e3) return { exception: 'moodle_exception', errorcode: 'autologinkeygenerationlockout', message: 'Espera 6 minutos' };
+      ultimaLlave = Date.now();
       return { key: 'llave-de-un-uso', autologinurl: `${base}${RAIZ}/admin/tool/mobile/autologin.php`, warnings: [] };
     default:
       return { exception: 'dml_missing_record_exception', errorcode: 'invalidrecord', message: `Función no disponible en el Moodle falso: ${nombre}` };
@@ -304,14 +308,14 @@ export function iniciar(puerto = 8765) {
     }
     if (ruta === `${RAIZ}/login/index.php`) {
       if (req.method === 'POST') {
-        if (params.get('username') === USUARIO && params.get('password') === CONTRASENA) return ir(`${RAIZ}/my/`, { 'Set-Cookie': `${COOKIE}; Path=${RAIZ}; HttpOnly` });
+        if (params.get('username') === USUARIO && params.get('password') === CONTRASENA) return ir(`${RAIZ}/my/`, { 'Set-Cookie': `${COOKIE}; Path=${RAIZ}/; HttpOnly` });
         return html(pagina('Acceso', '<p>Datos inválidos</p>'), 200);
       }
       return html(pagina('Acceso', `<form id="login" method="post" action="${RAIZ}/login/index.php"><p><input name="username" id="username" placeholder="Usuario"></p><p><input name="password" id="password" type="password" placeholder="Contraseña"></p><button id="loginbtn">Acceder</button></form>`));
     }
     if (ruta === `${RAIZ}/admin/tool/mobile/autologin.php`) {
       if (u.searchParams.get('key') !== 'llave-de-un-uso') return html('Llave inválida', 403);
-      return ir(u.searchParams.get('urltogo') || `${RAIZ}/my/`, { 'Set-Cookie': `${COOKIE}; Path=${RAIZ}; HttpOnly` });
+      return ir(u.searchParams.get('urltogo') || `${RAIZ}/my/`, { 'Set-Cookie': `${COOKIE}; Path=${RAIZ}/; HttpOnly` });
     }
     if (ruta === `${RAIZ}/_subido`) {
       llamadas.push({ nombre: '_subido', args: JSON.parse(cuerpo || '[]') });

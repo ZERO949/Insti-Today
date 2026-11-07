@@ -392,6 +392,12 @@ fn constructor_moodle(etiqueta: &str, url: url::Url) -> WebviewWindowBuilder<'st
     let origen = url::Url::parse(&moodle::escuela()).map(|u| u.origin()).unwrap_or_else(|_| url.origin());
     WebviewWindowBuilder::new(app(), etiqueta, WebviewUrl::External(url))
         .data_directory(datos::dir_navegador(&particion))
+        .on_page_load(|w, carga| {
+            if carga.event() == tauri::webview::PageLoadEvent::Finished {
+                // Leer cookies dentro del evento bloquea WebView2: va aparte.
+                tauri::async_runtime::spawn(async move { conservar_sesion(&w) });
+            }
+        })
         .on_new_window(move |nueva, _| {
             if nueva.origin() == origen {
                 return tauri::webview::NewWindowResponse::Allow;
@@ -441,14 +447,32 @@ pub fn cerrar_navegador_ajeno() {
 // ¿Moodle reconoce la sesión del navegador de la app? Como hacía la versión de
 // Electron: se pide /my/ aparte, con sus cookies, y se ve si acaba en el inicio
 // de sesión. Que la cookie exista no basta: sigue ahí aunque la sesión venciera.
-async fn con_sesion(w: &WebviewWindow, base: &url::Url) -> bool {
-    let cookies = w.cookies_for_url(base.clone()).unwrap_or_default();
+async fn con_sesion(w: &WebviewWindow) -> bool {
+    let cookies = w.cookies_for_url(raiz_de_cookies()).unwrap_or_default();
     let cabecera = cookies.iter().map(|c| format!("{}={}", c.name(), c.value())).collect::<Vec<_>>().join("; ");
     if cabecera.is_empty() {
         return false;
     }
     let r = moodle::http().get(format!("{}/my/", moodle::escuela())).header("Cookie", cabecera).timeout(Duration::from_secs(15)).send().await;
     r.is_ok_and(|r| r.status().is_success() && !r.url().path().contains("/login/"))
+}
+
+// Con «/» al final: Moodle guarda MoodleSession en «/moodle/», que no coincide con «/moodle».
+fn raiz_de_cookies() -> url::Url {
+    url::Url::parse(&format!("{}/", moodle::escuela())).expect("escuela() es una URL válida")
+}
+
+// WebView2 borra las cookies de sesión (MoodleSession) al cerrar la ventana de
+// Moodle; Electron las conservaba. Se guardan con fecha para no tener que
+// entrar otra vez (Moodle sólo da una llave de inicio automático cada 6 minutos).
+fn conservar_sesion(w: &WebviewWindow) {
+    use tauri::webview::cookie::{time, Expiration};
+    for mut c in w.cookies_for_url(raiz_de_cookies()).unwrap_or_default() {
+        if matches!(c.expires(), None | Some(Expiration::Session)) {
+            c.set_expires(time::OffsetDateTime::now_utc() + time::Duration::days(30));
+            let _ = w.set_cookie(c);
+        }
+    }
 }
 
 // Abre una página de Moodle en el navegador de la app (las de fuera, en el
@@ -474,7 +498,7 @@ pub async fn abrir_en_moodle(url: &str) -> Option<WebviewWindow> {
     };
     al_frente(&w);
     let mut cargar = destino.to_string();
-    if !con_sesion(&w, &base).await {
+    if !con_sesion(&w).await {
         // La página de Moodle que estuviera abierta deja de hacer peticiones.
         let _ = w.navigate(en_blanco);
         cargar = moodle::url_autologin(destino.as_str()).await.unwrap_or(cargar);

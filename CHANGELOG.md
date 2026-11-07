@@ -1,5 +1,11 @@
 # Cambios
 
+## 0.3.3 · 2026-11-06
+
+- «Abrir en Moodle» y «Entregar en Moodle» ya no piden iniciar sesión después de cerrar
+  la ventana de Moodle: la app guarda tu sesión del navegador como hacía la versión
+  anterior, y abre la página más rápido.
+
 ## 0.3.2 · 2026-11-06
 
 - «Abrir en Moodle» y «Entregar en Moodle» ya no piden tu contraseña: si tu sesión
