@@ -437,13 +437,11 @@ pub fn cerrar_navegador_ajeno() {
     }
 }
 
-// ¿El navegador de la app tiene sesión abierta en Moodle?
-fn con_sesion(w: &WebviewWindow) -> bool {
-    url::Url::parse(&moodle::escuela()).ok().and_then(|u| w.cookies_for_url(u).ok()).is_some_and(|c| c.iter().any(|c| c.name().starts_with("MoodleSession")))
-}
-
 // Abre una página de Moodle en el navegador de la app (las de fuera, en el
-// navegador normal). Si no hay sesión, se intenta el inicio automático.
+// navegador normal), siempre con el inicio automático: la cookie MoodleSession
+// sigue ahí aunque Moodle ya haya cerrado la sesión por tiempo, así que no
+// sirve para saber si hay sesión. Si Moodle no da llave (una cada 6 minutos),
+// la sesión de la última llave sigue fresca y se abre la página tal cual.
 pub async fn abrir_en_moodle(url: &str) -> Option<WebviewWindow> {
     let destino = url::Url::parse(url).ok()?;
     let base = url::Url::parse(&moodle::escuela()).ok()?;
@@ -461,10 +459,7 @@ pub async fn abrir_en_moodle(url: &str) -> Option<WebviewWindow> {
         }
     };
     al_frente(&w);
-    let mut cargar = destino.to_string();
-    if !con_sesion(&w) {
-        cargar = moodle::url_autologin(destino.as_str()).await.unwrap_or(cargar);
-    }
+    let cargar = moodle::url_autologin(destino.as_str()).await.unwrap_or_else(|| destino.to_string());
     let _ = w.navigate(url::Url::parse(&cargar).ok()?);
     Some(w)
 }

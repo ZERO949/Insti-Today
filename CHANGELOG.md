@@ -1,5 +1,10 @@
 # Cambios
 
+## 0.3.1 · 2026-11-06
+
+- Al abrir una tarea ya no te pide iniciar sesión otra vez en Moodle cuando tu sesión
+  se venció mientras la app estaba abierta: la app vuelve a entrar sola cada vez.
+
 ## 0.3.0 · 2026-11-05
 
 - Insti Today se reescribió en Rust (Tauri): el instalador pesa ~4 MB en vez de 110 MB
