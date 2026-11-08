@@ -31,10 +31,10 @@
   .barra-plegada .nav-item .num .hoy-txt { display: none; }
   .nav-sep { height: 14px; }
   .nav-pie { margin-top: auto; padding: 12px 8px 0; }
-  .nav-pie .estado { font-size: 11.5px; color: var(--tenue); margin-bottom: 8px; }
+  .nav-pie .estado { font-size: 11px; color: var(--tenue); margin-bottom: 8px; }
   .nav-pie .estado b { color: var(--suave); font-weight: 600; }
   .nav-item, .marca div, .nav-pie .estado { white-space: nowrap; }
-  .plegar { margin-left: auto; flex: none; width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 7px; background: none; color: var(--tenue); cursor: pointer; transition: background .15s var(--curva), color .15s var(--curva); }
+  .plegar { margin-left: auto; flex: none; width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 8px; background: none; color: var(--tenue); cursor: pointer; transition: background .15s var(--curva), color .15s var(--curva); }
   .plegar:hover { background: var(--hover); color: var(--texto); }
   .plegar svg { width: 16px; height: 16px; }
   /* Barra plegada: sólo iconos; los números pasan a ser una burbuja sobre el icono */
@@ -46,7 +46,7 @@
   .barra-plegada .plegar svg { transform: scaleX(-1); }
   .barra-plegada .nav-item { position: relative; justify-content: center; padding: 8px 0; }
   .barra-plegada .nav-item .num.urge { background: var(--mal); color: #fff; }
-  .barra-plegada .nav-item .num { position: absolute; top: 1px; right: 4px; min-width: 17px; height: 17px; padding: 0 4px; margin: 0; border-radius: 9px; background: var(--pieza-hover); color: var(--texto); font-size: 11px; line-height: 17px; text-align: center; }
+  .barra-plegada .nav-item .num { position: absolute; top: 1px; right: 4px; min-width: 17px; height: 17px; padding: 0 4px; margin: 0; border-radius: 999px; background: var(--pieza-hover); color: var(--texto); font-size: 11px; line-height: 17px; text-align: center; }
   .barra-plegada .nav-pie { padding: 12px 0 0; display: flex; justify-content: center; }
   .barra-plegada #actualizar { width: 32px; height: 32px; padding: 0; justify-content: center; }
 
@@ -66,7 +66,6 @@
     flex: 1 1 100%; color: var(--texto); background: var(--pieza); border: 0; border-radius: 10px; padding: 7px 10px 7px 30px; outline: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238e8e93' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='4.6'/%3E%3Cpath d='M10.5 10.5 14 14'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: 10px 50%; background-size: 13px;
-    transition: box-shadow .15s var(--curva);
   }
   .filtros input[type=search]::placeholder { color: var(--tenue); }
   .filtros select { flex: 1; min-width: 0; }
@@ -135,7 +134,7 @@
   .archivo .tipo { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; font-size: 11px; letter-spacing: -.02em; font-weight: 700; color: #fff; flex: none; }
   .archivo .nombre { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .archivo .peso { color: var(--tenue); font-size: 12px; }
-  .nota { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--pieza); color: var(--suave); font-size: 12.5px; }
+  .nota { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--pieza); color: var(--suave); font-size: 12px; }
 
   /* Ajustes: listas agrupadas con separadores con sangría, como en Ajustes del Sistema */
   h2.titulo-grupo { font-size: 13px; font-weight: 600; color: var(--suave); margin: 30px 0 8px 4px; }
@@ -151,7 +150,7 @@
     padding: 6px 30px 6px 11px; min-width: 170px; appearance: none; cursor: pointer; outline: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 14' fill='none' stroke='%238e8e93' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 5l3-3 3 3M2 9l3 3 3-3'/%3E%3C/svg%3E");
     background-position: calc(100% - 10px) 50%; background-size: 8px 12px; background-repeat: no-repeat;
-    transition: background-color .15s var(--curva), box-shadow .15s var(--curva);
+    transition: background-color .15s var(--curva);
   }
   select:hover { background-color: var(--pieza-hover); }
   select option { background: var(--elevado, var(--fondo-a)); color: var(--texto); }
@@ -167,11 +166,11 @@
   .fila:focus-visible, .archivo:focus-visible, .entregable .vista:focus-visible { outline: 2px solid var(--acento); outline-offset: -2px; }
   .boton.chico { padding: 4px 11px; font-size: 12px; }
   .boton svg { width: 13px; height: 13px; }
-  .boton:disabled { opacity: .45; cursor: default; }
+  .boton:disabled, .boton:disabled:hover { background: var(--pieza); color: var(--tenue); filter: none; cursor: default; }
   /* Interruptor de iOS */
   .interruptor { position: relative; width: 42px; height: 25px; flex: none; }
   .interruptor input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; z-index: 1; }
-  .interruptor i { position: absolute; inset: 0; border-radius: 13px; background: var(--pieza-hover); transition: background .25s var(--curva); pointer-events: none; }
+  .interruptor i { position: absolute; inset: 0; border-radius: 999px; background: var(--pieza-hover); transition: background .25s var(--curva); pointer-events: none; }
   .interruptor i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 21px; height: 21px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgb(0 0 0 / .2), 0 0 0 .5px rgb(0 0 0 / .04); transition: transform .25s var(--curva); }
   .interruptor input:checked + i { background: var(--interruptor, var(--bien)); }
   .interruptor input:checked + i::after { transform: translateX(17px); }
@@ -182,8 +181,9 @@
   .tema.activo .mini { box-shadow: 0 0 0 2px var(--anillo), 0 0 0 4px var(--acento); }
   .tema.activo .nombre { font-weight: 600; }
   .mini { height: 74px; border-radius: 10px; padding: 9px 10px; display: flex; flex-direction: column; gap: 5px; text-align: left; background: color-mix(in srgb, var(--fondo-a) calc(var(--alfa-tema) * 100%), transparent); border: 1px solid var(--borde); color: var(--texto); }
-  .mini.vidrio-fondo { background-color: transparent; background-image: linear-gradient(180deg, rgb(27 29 36 / .5), rgb(17 18 24 / .5)), linear-gradient(135deg, #3a7bd5, #b06ab3 60%, #e4a663); }
-  .mini b { font-size: 10.5px; font-weight: 600; text-shadow: var(--sombra-texto); }
+  /* Vidrio: el tema es translúcido, así que la muestra deja ver un patrón neutro detrás. */
+  .mini.vidrio-fondo { background: repeating-linear-gradient(135deg, var(--pieza) 0 6px, transparent 6px 12px), color-mix(in srgb, var(--fondo-a) 50%, transparent); }
+  .mini b { font-size: 11px; font-weight: 600; text-shadow: var(--sombra-texto); }
   .mini .renglon { display: flex; align-items: center; gap: 5px; }
   .mini .renglon i { width: 6px; height: 6px; border-radius: 50%; }
   .mini .renglon span { height: 5px; border-radius: 3px; background: var(--suave); opacity: .45; flex: 1; }
@@ -192,7 +192,7 @@
   input[type=range] { width: 170px; accent-color: var(--acento); }
   /* Control segmentado */
   .segmentos { display: inline-flex; background: var(--pieza); border-radius: 9px; padding: 2px; }
-  .segmentos button { white-space: nowrap; border: 0; background: none; color: var(--texto); padding: 4px 12px; border-radius: 7px; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .2s var(--curva), box-shadow .2s var(--curva); }
+  .segmentos button { white-space: nowrap; border: 0; background: none; color: var(--texto); padding: 4px 12px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; transition: background .2s var(--curva), box-shadow .2s var(--curva); }
   .segmentos button.activo { background: var(--elevado, var(--fondo-a)); box-shadow: 0 1px 3px rgb(0 0 0 / .12), 0 0 0 .5px rgb(0 0 0 / .04); font-weight: 600; }
   .materias, .quitadas { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
   .quitada { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--linea); }
@@ -204,11 +204,11 @@
   .materia { display: flex; align-items: center; gap: 10px; padding: 6px 2px; cursor: pointer; }
   .materia input { width: 16px; height: 16px; accent-color: var(--acento); cursor: pointer; }
   .cuenta { display: flex; align-items: center; gap: 14px; }
-  .avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 600; font-size: 15px; color: #fff; background: linear-gradient(180deg, #a1a1a6, #7c7c80); flex: none; }
-  textarea, input[type=text] { color: var(--texto); background: var(--pieza); border: 0; border-radius: 10px; padding: 8px 10px; font-size: 13px; transition: box-shadow .15s var(--curva); }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 600; font-size: 15px; color: var(--texto); background: var(--pieza-hover); flex: none; }
+  textarea, input[type=text] { color: var(--texto); background: var(--pieza); border: 0; border-radius: 10px; padding: 8px 10px; font-size: 13px; }
   textarea { width: 100%; resize: vertical; margin-top: 8px; line-height: 1.45; }
   input[type=text] { width: 150px; }
-  textarea:focus, input:focus, select:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--acento) 40%, transparent); }
+  textarea:focus-visible, input:focus-visible, select:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--acento) 45%, transparent); }
   .botones-campo { display: flex; justify-content: flex-end; margin-top: 8px; }
   .pie { color: var(--tenue); font-size: 12px; text-align: center; margin-top: 28px; }
   /* Espacio de entrega de una tarea */
@@ -218,9 +218,8 @@
   .acciones-paso { margin-left: auto; display: flex; gap: 6px; font: 400 13px/1.45 var(--fuente); letter-spacing: 0; }
   .sub-titulo { font-size: 12px; font-weight: 600; color: var(--tenue); margin: 16px 0 8px; }
   .entregables { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-bottom: 12px; }
-  .entregable { border: 1px solid var(--linea); border-radius: 14px; overflow: hidden; background: var(--fondo-a); display: flex; flex-direction: column; transition: box-shadow .2s var(--curva); }
+  .entregable { border: 1px solid var(--linea); border-radius: 12px; overflow: hidden; background: var(--fondo-a); display: flex; flex-direction: column; transition: box-shadow .2s var(--curva); }
   .entregable:hover { box-shadow: var(--sombra); }
-  .entregable.adjuntado { border-color: var(--bien); box-shadow: 0 0 0 1px var(--bien) inset; }
   .entregable .vista { height: 100px; display: grid; place-items: center; background: var(--pieza); cursor: pointer; overflow: hidden; }
   .entregable .vista img { width: 100%; height: 100%; object-fit: cover; object-position: top; background: #fff; }
   .entregable .vista .tipo { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 12px; }
@@ -228,9 +227,7 @@
   .pie-entregable .nombre { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pie-entregable .meta { font-size: 12px; color: var(--tenue); }
   .pie-entregable .botones { display: flex; gap: 5px; margin-top: 6px; }
-  .pie-entregable .botones [data-adjuntar] { flex: 1; justify-content: center; }
-  .boton.listo { background: color-mix(in srgb, var(--bien) 16%, transparent); color: var(--bien); }
-  .soltar { border: 1.5px dashed var(--pieza-hover); border-radius: 14px; padding: 18px; text-align: center; color: var(--tenue); font-size: 12.5px; cursor: pointer; transition: border-color .15s var(--curva), background .15s var(--curva), color .15s var(--curva); }
+  .soltar { border: 1.5px dashed var(--pieza-hover); border-radius: 12px; padding: 18px; text-align: center; color: var(--tenue); font-size: 12px; cursor: pointer; transition: border-color .15s var(--curva), background .15s var(--curva), color .15s var(--curva); }
   .soltar:hover, .soltando .soltar { border-color: var(--acento); color: var(--texto); background: color-mix(in srgb, var(--acento) 7%, transparent); }
   .barra-entrega { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 0 4px; text-align: center; }
   .boton.grande { padding: 11px 30px; font-weight: 600; font-size: 14px; }
@@ -241,7 +238,7 @@
   .boton.entregar:is(:hover, :focus-visible) .etiqueta { opacity: 0; transform: translateY(-120%) scale(.9); filter: blur(3px); }
   .boton.entregar:is(:hover, :focus-visible) .flecha { opacity: 1; transform: none; filter: none; }
   @media (prefers-reduced-motion: reduce) { .boton.entregar :is(.etiqueta, .flecha), .boton.entregar:is(:hover, :focus-visible) :is(.etiqueta, .flecha) { transform: none; filter: none; } }
-  .estado-entrega { margin: 14px auto 0; max-width: 480px; padding: 10px 14px; border-radius: 12px; background: var(--pieza); font-size: 12.5px; color: var(--suave); text-align: center; }
+  .estado-entrega { margin: 14px auto 0; max-width: 480px; padding: 10px 14px; border-radius: 12px; background: var(--pieza); font-size: 12px; color: var(--suave); text-align: center; }
   /* Aparece con un pequeño rebote, como las notificaciones de Apple, y se va encogiéndose. */
   .estado-entrega.nuevo { animation: estallar .5s cubic-bezier(.34, 1.56, .64, 1); }
   .estado-entrega.saliendo { animation: encoger .3s var(--curva) forwards; }
@@ -260,7 +257,7 @@
   @keyframes subir { from { opacity: 0; transform: translateY(8px) scale(.98); } }
   .modal h3 { margin: 0 0 6px; font: 700 17px/1.3 var(--fuente-titulo); letter-spacing: -.018em; }
   .modal ul { margin: 4px 0 10px; padding-left: 18px; color: var(--suave); }
-  .no-mostrar { display: flex; align-items: center; gap: 8px; margin-top: 14px; color: var(--suave); font-size: 12.5px; cursor: pointer; }
+  .no-mostrar { display: flex; align-items: center; gap: 8px; margin-top: 14px; color: var(--suave); font-size: 12px; cursor: pointer; }
   .no-mostrar input { width: 15px; height: 15px; accent-color: var(--acento); }
   .modal .acciones { display: flex; gap: 8px; }
   .modal .acciones.derecha { justify-content: flex-end; margin-top: 18px; }
@@ -288,7 +285,7 @@
      (un paso por gesto, sin menú). */
   .fila-buscar { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; }
   .fila-buscar input[type=search] { flex: 1 1 auto; min-width: 0; }
-  .yo { flex: none; width: 32px; height: 32px; border: 0; padding: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: #fff; font: 600 12.5px/1 var(--fuente); letter-spacing: 0; background: var(--color-cuenta, #8e8e93); box-shadow: 0 0 0 2px var(--fondo-a), 0 0 0 3.5px color-mix(in srgb, var(--color-cuenta, #8e8e93) 55%, transparent); touch-action: none; user-select: none; overflow: hidden; transform: translateY(var(--arrastre, 0px)) scale(var(--escala, 1)); transition: transform .18s var(--curva), background .18s var(--curva), box-shadow .18s var(--curva); }
+  .yo { flex: none; width: 32px; height: 32px; border: 0; padding: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: #fff; font: 600 12px/1 var(--fuente); letter-spacing: 0; background: var(--color-cuenta, #8e8e93); box-shadow: 0 0 0 2px var(--fondo-a), 0 0 0 3.5px color-mix(in srgb, var(--color-cuenta, #8e8e93) 55%, transparent); touch-action: none; user-select: none; overflow: hidden; transform: translateY(var(--arrastre, 0px)) scale(var(--escala, 1)); transition: transform .18s var(--curva), background .18s var(--curva), box-shadow .18s var(--curva); }
   .yo:hover { box-shadow: 0 0 0 2px var(--fondo-a), 0 0 0 3.5px var(--color-cuenta, #8e8e93); }
   .yo:active, .yo.pulsado { --escala: .92; }
   .yo.arrastrando { transition: background .18s var(--curva), box-shadow .18s var(--curva); }
@@ -302,15 +299,15 @@
   @keyframes desde-abajo { from { transform: translateY(140%); opacity: 0; } }
   .yo svg { width: 16px; height: 16px; }
   .deslizando, .deslizando * { cursor: grabbing !important; user-select: none !important; }
-  .selector-cuentas { position: absolute; top: calc(100% + 8px); right: 0; width: 260px; z-index: 20; display: flex; flex-direction: column; padding: 6px; border-radius: 14px; background: var(--elevado, var(--fondo-a)); border: 1px solid var(--borde); box-shadow: var(--sombra); transform-origin: top right; animation: desplegar .14s var(--curva); }
+  .selector-cuentas { position: absolute; top: calc(100% + 8px); right: 0; width: 260px; z-index: 20; display: flex; flex-direction: column; padding: 6px; border-radius: 12px; background: var(--elevado, var(--fondo-a)); border: 1px solid var(--borde); box-shadow: var(--sombra); transform-origin: top right; animation: desplegar .14s var(--curva); }
   @keyframes desplegar { from { opacity: 0; transform: scale(.96) translateY(-4px); } }
-  .selector-cuentas .cuenta-op { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; background: none; color: var(--texto); text-align: left; padding: 7px 8px; border-radius: 9px; cursor: pointer; transition: background .1s var(--curva); }
+  .selector-cuentas .cuenta-op { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; background: none; color: var(--texto); text-align: left; padding: 7px 8px; border-radius: 7px; cursor: pointer; transition: background .1s var(--curva); }
   .selector-cuentas .cuenta-op:hover, .selector-cuentas .cuenta-op.sel { background: var(--hover); }
-  .cuenta-op .bolita { width: 28px; height: 28px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #fff; font-size: 11.5px; font-weight: 600; background: var(--color-op); transition: transform .15s var(--curva); }
+  .cuenta-op .bolita { width: 28px; height: 28px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: 600; background: var(--color-op); transition: transform .15s var(--curva); }
   .cuenta-op .bolita svg { width: 14px; height: 14px; }
   .cuenta-op .quien { min-width: 0; flex: 1; }
   .cuenta-op .quien b { display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .cuenta-op .quien span { display: block; color: var(--tenue); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cuenta-op .quien span { display: block; color: var(--tenue); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cuenta-op .marca-activa { color: var(--acento-texto, var(--acento)); font-size: 13px; }
   .selector-cuentas hr { border: 0; height: 1px; background: var(--linea); margin: 5px 6px; }
   .selector-cuentas .pista { color: var(--tenue); font-size: 11px; padding: 4px 8px 2px; }
@@ -397,14 +394,14 @@
 </head>
 <body>
 <nav>
-  <div class="marca"><img src="icono/icono.png" alt=""><div><b>Insti Today</b><span id="version"></span></div><button class="plegar" id="plegar" title="Plegar barra lateral"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2.2"/><path d="M6 2.5v11M10.5 6.5 9 8l1.5 1.5"/></svg></button></div>
-  <button class="nav-item" data-ir="pendientes" title="Pendientes"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"/><circle cx="2.5" cy="4" r=".8" fill="currentColor"/><circle cx="2.5" cy="8" r=".8" fill="currentColor"/><circle cx="2.5" cy="12" r=".8" fill="currentColor"/></svg><span class="etiqueta">Pendientes</span><svg class="anillo" id="anillo" viewBox="0 0 16 16" hidden><circle class="pista" cx="8" cy="8" r="6.2"/><circle class="avance" id="avance" cx="8" cy="8" r="6.2" stroke-dasharray="38.96" stroke-dashoffset="38.96"/></svg><span class="num" id="num-pendientes"></span></button>
+  <div class="marca"><img src="icono/icono.png" alt=""><div><b>Insti Today</b><span id="version"></span></div><button class="plegar" id="plegar" title="Plegar barra lateral"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2.2"/><path d="M6 2.5v11M10.5 6.5 9 8l1.5 1.5"/></svg></button></div>
+  <button class="nav-item" data-ir="pendientes" title="Pendientes"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"/><circle cx="2.5" cy="4" r=".8" fill="currentColor"/><circle cx="2.5" cy="8" r=".8" fill="currentColor"/><circle cx="2.5" cy="12" r=".8" fill="currentColor"/></svg><span class="etiqueta">Pendientes</span><svg aria-hidden="true" class="anillo" id="anillo" viewBox="0 0 16 16" hidden><circle class="pista" cx="8" cy="8" r="6.2"/><circle class="avance" id="avance" cx="8" cy="8" r="6.2" stroke-dasharray="38.96" stroke-dashoffset="38.96"/></svg><span class="num" id="num-pendientes"></span></button>
   <div class="nav-sep"></div>
-  <button class="nav-item" data-ir="ajustes" title="Ajustes"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4h6M12 4h1M3 8h1M7 8h6M3 12h7M13 12h0"/><circle cx="10.5" cy="4" r="1.5"/><circle cx="5.5" cy="8" r="1.5"/><circle cx="11.5" cy="12" r="1.5"/></svg><span class="etiqueta">Ajustes</span></button>
-  <button class="nav-item" data-ir="cuenta" title="Cuenta"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="5.5" r="2.8"/><path d="M2.8 14c.8-2.6 2.8-4 5.2-4s4.4 1.4 5.2 4"/></svg><span class="etiqueta">Cuenta</span></button>
+  <button class="nav-item" data-ir="ajustes" title="Ajustes"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4h6M12 4h1M3 8h1M7 8h6M3 12h7M13 12h0"/><circle cx="10.5" cy="4" r="1.5"/><circle cx="5.5" cy="8" r="1.5"/><circle cx="11.5" cy="12" r="1.5"/></svg><span class="etiqueta">Ajustes</span></button>
+  <button class="nav-item" data-ir="cuenta" title="Cuenta"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="5.5" r="2.8"/><path d="M2.8 14c.8-2.6 2.8-4 5.2-4s4.4 1.4 5.2 4"/></svg><span class="etiqueta">Cuenta</span></button>
   <div class="nav-pie">
     <div class="estado" id="estado-revision"></div>
-    <button class="boton chico" id="actualizar" title="Revisar Moodle"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2.5v3h-3"/></svg><span class="etiqueta">Revisar Moodle</span></button>
+    <button class="boton chico" id="actualizar" title="Revisar Moodle"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2.5v3h-3"/></svg><span class="etiqueta">Revisar Moodle</span></button>
   </div>
 </nav>
 
@@ -696,7 +693,7 @@ async function cerrarGuia() {
 }
 function pintarGuia() {
   if (!guia || !datos) return;
-  guia.fondo.innerHTML = '<div class="modal guia"><h3>Todo lo de tus cursos, a la vista</h3><p>Consulta tareas y mensajes, encuentra tus materiales y prepara la entrega de tus propios archivos.</p><ol><li>Entra en el Moodle de tu escuela desde Cuenta.</li><li>Pulsa una tarea del widget para leer sus instrucciones. La burbuja reúne mensajes y anuncios.</li><li>Abre «Mis archivos y entrega», añade tus archivos y elige qué adjuntar.</li><li>Comprueba la carga y pulsa tú el envío final en Moodle.</li></ol><div class="acciones"><button class="boton primario" data-g="fin">Entendido</button></div></div>';
+  guia.fondo.innerHTML = '<div class="modal guia"><h3>Todo lo de tus cursos, a la vista</h3><p>Consulta tareas y mensajes, encuentra tus materiales y prepara la entrega de tus propios archivos.</p><ol><li>Entra en el Moodle de tu escuela desde Cuenta.</li><li>Pulsa una tarea del widget para leer sus instrucciones. La burbuja reúne mensajes y anuncios.</li><li>Abre «Mis archivos y entrega», añade tus archivos.</li><li>Comprueba la carga y pulsa tú el envío final en Moodle.</li></ol><div class="acciones"><button class="boton primario" data-g="fin">Entendido</button></div></div>';
 }
 // Abre una tarea aunque el filtro no la enseñe.
 function abrirTarea(id) {
@@ -890,11 +887,10 @@ function pintarPendientes() {
 }
 
 // ---------- La tarea: archivos y entrega ----------
-// Pasos: la tarea (instrucciones y archivos) → tus archivos (cada uno se
-// adjunta o no) → tu entrega (adjuntos y texto) → «Entregar», que abre la
+// Pasos: la tarea (instrucciones y archivos) → tus archivos (todos van en
+// la entrega) → «Entregar», que abre la
 // página oficial de Moodle.
 let entregaActual = null;
-let guardandoAdjunto = false;
 let notaTarea = '';
 let estadoVisto, relojEstado; // aviso de la entrega: cuál ya rebotó y cuándo se va
 
@@ -940,15 +936,14 @@ function pintarDetalleTarea(d) {
   const en = entregaActual || { entregables: [], texto: '' };
   const lista = en.entregables || [];
   const adjuntos = lista.filter((x) => x.adjuntado);
-  const tarjetas = lista.map((x) => `<div class="entregable ${x.adjuntado ? 'adjuntado' : ''}" data-ruta="${esc(x.ruta)}">
+  const tarjetas = lista.map((x) => `<div class="entregable" data-ruta="${esc(x.ruta)}">
       <div class="vista" data-abrir-entregable tabindex="0" role="button" aria-label="Abrir ${esc(x.nombre)}">${x.imagen ? `<img src="${esc(x.url)}" alt="">` : iconoArchivo(x.nombre)}</div>
       <div class="pie-entregable">
         <div class="nombre" title="${esc(x.nombre)}">${esc(x.nombre)}</div>
         <div class="meta">${pesoLegible(x.peso)}</div>
         <div class="botones">
-          <button type="button" class="boton chico ${x.adjuntado ? 'listo' : 'primario'}" data-adjuntar aria-pressed="${!!x.adjuntado}" title="${x.adjuntado ? 'Quitar de la entrega; el archivo se conserva' : 'Seleccionar para la entrega'}" ${guardandoAdjunto ? 'disabled' : ''}>${x.adjuntado ? 'Quitar adjunto' : 'Adjuntar'}</button>
-          <button class="boton chico" data-mostrar-entregable title="Mostrar en la carpeta">📁</button>
-          ${x.origen === 'Tuyo' ? '<button class="boton chico peligro" data-quitar-tuyo title="Quitar">✕</button>' : ''}
+          <button class="boton chico" data-mostrar-entregable title="Mostrar en la carpeta" aria-label="Mostrar en la carpeta"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M2 4.5c0-.8.7-1.5 1.5-1.5h3l1.5 1.5h4.5c.8 0 1.5.7 1.5 1.5v5.5c0 .8-.7 1.5-1.5 1.5h-9c-.8 0-1.5-.7-1.5-1.5z"/></svg></button>
+          ${x.origen === 'Tuyo' ? '<button class="boton chico peligro" data-quitar-tuyo title="Quitar de Mis archivos" aria-label="Quitar de Mis archivos"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4.5h11M6.5 4.5V3h3v1.5M4 4.5l.7 8.6c.1.8.7 1.4 1.5 1.4h3.6c.8 0 1.4-.6 1.5-1.4L12 4.5M6.8 7.5v4M9.2 7.5v4"/></svg></button>' : ''}
         </div>
       </div>
     </div>`).join('');
@@ -979,12 +974,10 @@ function pintarDetalleTarea(d) {
     <section class="paso" id="zona-entregables">
       <div class="paso-titulo"><span class="num">2</span>Mis archivos
         <span class="acciones-paso">
-          ${lista.length > 1 && adjuntos.length < lista.length ? '<button class="boton chico" data-adjuntar-todo>Adjuntar todo</button>' : ''}
           <button class="boton chico" data-subir>＋ Subir tus archivos</button>
         </span>
       </div>
       ${lista.length ? `<div class="entregables">${tarjetas}</div>` : ''}
-      <p class="sub">Adjuntar selecciona el archivo para tu entrega. Otro clic lo quita de la selección y conserva el archivo.</p>
       <div class="soltar" data-subir>${lista.length ? 'Arrastra aquí más fotos o archivos tuyos' : 'Arrastra aquí tus archivos o pulsa «Subir tus archivos».'}</div>
     </section>
 
@@ -1034,14 +1027,20 @@ function confirmarEntrega(t, en) {
 }
 
 // Cerrar sesión o quitar una cuenta no se deshace (el token se borra): se pregunta antes.
-function confirmarQuitarCuenta(c) {
+const confirmarQuitarCuenta = (c) => confirmar(
+  `${c.activa ? '¿Cerrar sesión de' : '¿Quitar'} «${esc(c.nombre)}»?`,
+  c.activa ? 'Para volver a entrar tendrás que escribir tu contraseña.' : 'Se borra de esta computadora; para usarla otra vez tendrás que iniciar sesión.',
+  c.activa ? 'Cerrar sesión' : 'Quitar');
+
+// Hoja de sí/no para lo que no se deshace; el foco empieza en Cancelar.
+function confirmar(titulo, texto, si) {
   return new Promise((ok) => {
     const fondo = document.createElement('div');
     fondo.className = 'modal-fondo';
     fondo.innerHTML = `<div class="modal">
-      <h3>${c.activa ? '¿Cerrar sesión de' : '¿Quitar'} «${esc(c.nombre)}»?</h3>
-      <p class="sub">${c.activa ? 'Para volver a entrar tendrás que escribir tu contraseña.' : 'Se borra de esta computadora; para usarla otra vez tendrás que iniciar sesión.'}</p>
-      <div class="acciones derecha"><button class="boton" data-no>Cancelar</button><button class="boton destructivo" data-si>${c.activa ? 'Cerrar sesión' : 'Quitar'}</button></div>
+      <h3>${titulo}</h3>
+      <p class="sub">${texto}</p>
+      <div class="acciones derecha"><button class="boton" data-no>Cancelar</button><button class="boton destructivo" data-si>${si}</button></div>
     </div>`;
     document.body.appendChild(fondo);
     const cerrar = (si) => { irse(fondo); document.removeEventListener('keydown', tecla); ok(si); };
@@ -1084,30 +1083,12 @@ $('detalle-pendiente').addEventListener('click', async (e) => {
   // Tus archivos.
   const tarjeta = e.target.closest('.entregable');
   const rutaArchivo = tarjeta?.dataset.ruta;
-  if (rutaArchivo && e.target.closest('[data-adjuntar]')) {
-    if (guardandoAdjunto) return;
-    const actual = (entregaActual?.entregables || []).find((x) => x.ruta === rutaArchivo);
-    if (!actual) return;
-    guardandoAdjunto = true;
-    e.target.closest('button').disabled = true;
-    try {
-      const en = await window.agenda.entrega.adjuntar(t.id, rutaArchivo, !actual.adjuntado);
-      if (tareaSel?.id === t.id) { entregaActual = en; notaTarea = actual.adjuntado ? 'Se quitó de la entrega. El archivo se conserva.' : 'Archivo adjuntado a tu entrega.'; }
-    } catch (error) {
-      if (tareaSel?.id === t.id) notaTarea = esc('No se pudo cambiar el adjunto: ' + error.message);
-    } finally { guardandoAdjunto = false; pintarDetalleTarea(detalleActual); }
-    return;
-  }
   if (rutaArchivo && e.target.closest('[data-mostrar-entregable]')) return window.agenda.entrega.mostrarArchivo(t.id, rutaArchivo);
   if (rutaArchivo && e.target.closest('[data-quitar-tuyo]')) {
     entregaActual = await window.agenda.entrega.quitarTuyo(t.id, rutaArchivo);
     return pintarDetalleTarea(detalleActual);
   }
   if (rutaArchivo && e.target.closest('[data-abrir-entregable]')) return window.agenda.entrega.abrirArchivo(t.id, rutaArchivo);
-  if (e.target.closest('[data-adjuntar-todo]')) {
-    entregaActual = await window.agenda.entrega.adjuntarTodo(t.id);
-    return pintarDetalleTarea(detalleActual);
-  }
   if (e.target.closest('[data-subir]')) {
     entregaActual = await window.agenda.entrega.subir(t.id);
     return pintarDetalleTarea(detalleActual);

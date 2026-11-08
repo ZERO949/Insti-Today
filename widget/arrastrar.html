@@ -3,17 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' ipc: http://ipc.localhost; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
-<title>Archivos para ChatGPT</title>
+<title>Tu entrega</title>
 <link rel="stylesheet" href="temas.css">
 <style>
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--fondo-b); color: var(--texto); font: 13px/1.4 var(--fuente); -webkit-font-smoothing: antialiased; user-select: none; }
-  body { display: flex; flex-direction: column; border: 1px solid var(--borde); border-radius: 10px; }
+  /* La ventana es transparente: sólo se ve la tarjeta redonda del body. */
+  html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; color: var(--texto); font: 13px/1.4 var(--fuente); -webkit-font-smoothing: antialiased; user-select: none; }
+  /* Con el html sin fondo, CSS pasa el fondo del body a toda la ventana y llena las esquinas: un degradado invisible lo impide. */
+  html { background-image: linear-gradient(transparent, transparent); }
+  body { display: flex; flex-direction: column; background: var(--fondo-b); border: 1px solid var(--borde); border-radius: 10px; }
   header { display: flex; align-items: flex-start; gap: 8px; padding: 11px 12px 8px; -webkit-app-region: drag; }
   header .texto { flex: 1; min-width: 0; }
   header b { display: block; font-weight: 600; }
-  header span { color: var(--tenue); font-size: 11.5px; }
-  .tecla { display: inline-block; font-size: 11px; font-weight: 700; color: var(--texto); border: 1px solid var(--borde); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; }
+  header span { color: var(--tenue); font-size: 11px; }
   #cerrar { -webkit-app-region: no-drag; width: 22px; height: 22px; border: 0; border-radius: 6px; background: transparent; color: var(--tenue); cursor: pointer; display: grid; place-items: center; padding: 0; }
   #cerrar:hover { background: var(--hover); color: var(--texto); }
   #lista { flex: 1; overflow-y: auto; padding: 0 8px 8px; display: flex; flex-direction: column; gap: 4px; }
@@ -21,36 +23,68 @@
   .archivo:hover { background: var(--pieza-hover); }
   .archivo:active { cursor: grabbing; }
   .archivo.todos { background: color-mix(in srgb, var(--acento) 22%, var(--pieza)); }
-  .archivo .tipo { flex: none; width: 32px; height: 32px; border-radius: 7px; display: grid; place-items: center; font-size: 11px; letter-spacing: -.02em; font-weight: 800; color: #fff; background: #5d6b82; }
+  .archivo .tipo { flex: none; width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; font-size: 11px; letter-spacing: -.02em; font-weight: 800; color: #fff; background: #5d6b82; }
   .archivo .nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .archivo .asa { margin-left: auto; color: var(--tenue); flex: none; }
+  /* Vidrio líquido: se ve lo que hay detrás (sin desenfoque: la ventana casi
+     nunca está activa y el acrílico de Windows sólo se ve en la activa). El tinte
+     deja el texto legible aun sobre una página blanca de Moodle. */
+  [data-liquido] body {
+    position: relative; border: 0; background-color: rgb(21 23 31 / .78); border-radius: 14px;
+    /* Luz que entra por arriba a la izquierda y un rebote frío abajo: el vidrio sin nada detrás que desenfocar. */
+    background-image:
+      radial-gradient(120% 90% at 0% 0%, rgb(140 175 255 / .16), transparent 60%),
+      radial-gradient(90% 80% at 100% 100%, rgb(190 150 255 / .1), transparent 65%),
+      linear-gradient(170deg, rgb(255 255 255 / .09), rgb(255 255 255 / .02) 40%, rgb(0 0 0 / .12));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .22), inset 0 -1px 0 rgb(255 255 255 / .05), inset 0 0 28px rgb(255 255 255 / .04);
+  }
+  /* Canto de luz: más fuerte arriba a la izquierda, se apaga y vuelve abajo a la derecha. */
+  [data-liquido] body::before {
+    content: ''; position: absolute; inset: 0; z-index: 2; padding: 1px; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(140deg, rgb(255 255 255 / .42), rgb(255 255 255 / .1) 30%, rgb(255 255 255 / .03) 60%, rgb(255 255 255 / .16));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  }
+  [data-liquido] #cerrar { border-radius: 50%; }
+  [data-liquido] #cerrar:hover { background: rgb(255 255 255 / .12); box-shadow: inset 0 1px 0 rgb(255 255 255 / .3); }
+  [data-liquido] .archivo {
+    border-radius: 11px; padding: 8px 9px;
+    background: linear-gradient(180deg, rgb(255 255 255 / .1), rgb(255 255 255 / .035) 60%, rgb(255 255 255 / .05));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .26), inset 0 -1px 1px rgb(255 255 255 / .06), inset 0 0 0 .5px rgb(255 255 255 / .12), 0 4px 12px rgb(0 0 0 / .2);
+    transition: background .15s, scale .4s cubic-bezier(.3, 1.6, .5, 1);
+  }
+  [data-liquido] .archivo:hover { background: linear-gradient(180deg, rgb(255 255 255 / .15), rgb(255 255 255 / .06) 60%, rgb(255 255 255 / .08)); }
+  [data-liquido] .archivo:active { scale: .985; transition-duration: .15s, .12s; }
+  [data-liquido] .archivo.todos { background: linear-gradient(180deg, color-mix(in srgb, var(--acento) 38%, rgb(255 255 255 / .1)), color-mix(in srgb, var(--acento) 22%, transparent)); }
+  /* La insignia del tipo también es una gota: brillo arriba, sombra abajo. */
+  [data-liquido] .archivo .tipo { box-shadow: inset 0 1px 0 rgb(255 255 255 / .35), inset 0 10px 10px -6px rgb(255 255 255 / .16), inset 0 -2px 4px rgb(0 0 0 / .18), 0 2px 6px rgb(0 0 0 / .25); }
+  @media (prefers-reduced-motion: reduce) { [data-liquido] .archivo { transition: background .15s; scale: none; } }
 </style>
 </head>
 <body>
 <header>
-  <div class="texto"><b id="titulo">Arrástralos a ChatGPT</b><span id="pista">Suéltalos en el chat y pulsa <span class="tecla">Enter</span></span></div>
-  <button id="cerrar" title="Cerrar"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+  <div class="texto"><b>Tu entrega para Moodle</b><span id="pista">Si no se pusieron solos, toca un archivo (o arrástralo) para ponerlo en Moodle. Luego pulsa «Guardar cambios».</span></div>
+  <button id="cerrar" title="Cerrar"><svg aria-hidden="true" viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
 </header>
 <div id="lista"></div>
 
 <script>
-// Ventanita flotante con los archivos de la tarea: chatgpt.com no recibe
-// archivos por el enlace, así que se arrastran (el arrastre lo hace el sistema
-// con los archivos reales, como desde el Explorador).
+// Ventanita flotante con los archivos de la entrega, por si no se pusieron
+// solos en Moodle: tocarlos los suelta allí y arrastrarlos es un arrastre del
+// sistema con los archivos reales, como desde el Explorador.
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const COLORES = { pdf: '#e5534b', docx: '#2f6fd8', doc: '#2f6fd8', pptx: '#d2692b', xlsx: '#2e9a5a', zip: '#8a6cd4', png: '#3aa0a8', jpg: '#3aa0a8', jpeg: '#3aa0a8' };
-const ASA = '<svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><circle cx="6" cy="4" r="1.2"/><circle cx="10" cy="4" r="1.2"/><circle cx="6" cy="8" r="1.2"/><circle cx="10" cy="8" r="1.2"/><circle cx="6" cy="12" r="1.2"/><circle cx="10" cy="12" r="1.2"/></svg>';
+const ASA = '<svg aria-hidden="true" viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><circle cx="6" cy="4" r="1.2"/><circle cx="10" cy="4" r="1.2"/><circle cx="6" cy="8" r="1.2"/><circle cx="10" cy="8" r="1.2"/><circle cx="6" cy="12" r="1.2"/><circle cx="10" cy="12" r="1.2"/></svg>';
 
-// Para ChatGPT o para la entrega en Moodle.
-const paraMoodle = new URLSearchParams(location.search).get('destino') === 'Moodle';
-if (paraMoodle) {
-  $('titulo').textContent = 'Tu entrega para Moodle';
-  $('pista').textContent = 'Si no se pusieron solos, toca un archivo (o arrástralo) para ponerlo en Moodle. Luego pulsa «Guardar cambios».';
-  document.title = 'Tu entrega';
-}
-const oscuro = matchMedia('(prefers-color-scheme: dark)');
+const vidrio = (si) => document.documentElement.toggleAttribute('data-liquido', si && !matchMedia('(prefers-reduced-transparency: reduce)').matches);
+vidrio(new URLSearchParams(location.search).get('liquido') === '1');
 window.agenda.tema().then((t) => (document.documentElement.dataset.tema = t));
+// Cambiar el tema en Ajustes la repinta sin cerrarla (con vidrio las filas miden distinto).
+window.agenda.alTema(({ tema, liquido }) => {
+  document.documentElement.dataset.tema = tema;
+  vidrio(liquido);
+  ajustar();
+});
 
 // La ventana toma el alto de lo que muestra (el aviso de Moodle ocupa varias líneas).
 const ajustar = () => window.agenda.arrastre.ajustar(document.querySelector('header').offsetHeight + $('lista').scrollHeight + 2);
@@ -70,7 +104,7 @@ $('lista').addEventListener('dragstart', (e) => {
   e.preventDefault();
   window.agenda.arrastre.iniciar(el.dataset.i === 'todos' ? null : Number(el.dataset.i));
 });
-if (paraMoodle) $('lista').addEventListener('click', (e) => {
+$('lista').addEventListener('click', (e) => {
   const el = e.target.closest('[data-i]');
   if (el) window.agenda.arrastre.colocar(el.dataset.i === 'todos' ? null : Number(el.dataset.i));
 });

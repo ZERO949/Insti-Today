@@ -26,7 +26,7 @@
   .marca h1 { font: 700 24px/1.15 var(--fuente-titulo); margin: 0; letter-spacing: -.025em; }
   .marca p { margin: 4px 0 0; color: var(--suave); font-size: 13px; }
   form { display: grid; gap: 14px; }
-  label { display: grid; gap: 6px; font-size: 12.5px; font-weight: 500; color: var(--suave); padding-left: 2px; }
+  label { display: grid; gap: 6px; font-size: 12px; font-weight: 500; color: var(--suave); padding-left: 2px; }
   input {
     font: inherit;
     font-size: 15px;
@@ -36,10 +36,9 @@
     border-radius: 11px;
     padding: 11px 13px;
     outline: none;
-    transition: box-shadow .15s var(--curva);
   }
   input::placeholder { color: var(--tenue); }
-  input:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--acento) 45%, transparent); }
+  input:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--acento) 45%, transparent); }
   button {
     font: inherit;
     font-size: 15px;
@@ -54,14 +53,15 @@
     transition: filter .15s var(--curva), opacity .15s var(--curva);
   }
   button:hover:not(:disabled) { filter: brightness(1.08); }
-  button:disabled { opacity: .5; cursor: default; }
-  .fila { display: flex; justify-content: center; gap: 16px; align-items: center; font-size: 12.5px; }
+  button:disabled { background: var(--pieza); color: var(--tenue); filter: none; cursor: default; }
+  button:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+  .fila { display: flex; justify-content: center; gap: 16px; align-items: center; font-size: 12px; }
   .fila a { color: var(--acento-texto, var(--acento)); text-decoration: none; cursor: pointer; }
   .fila a:hover { text-decoration: underline; text-underline-offset: 2px; }
-  .mensaje { min-height: 18px; font-size: 12.5px; text-align: center; }
+  .mensaje { min-height: 18px; font-size: 12px; text-align: center; }
   .mensaje.mal { color: var(--mal); }
   .mensaje.bien { color: var(--bien); }
-  .nota { margin-top: 18px; font-size: 11.5px; color: var(--tenue); text-align: center; }
+  .nota { margin-top: 18px; font-size: 11px; color: var(--tenue); text-align: center; }
   .escuela { font-size: 12px; color: var(--tenue); margin-top: -6px; text-align: center; word-break: break-all; }
 </style>
 </head>
@@ -95,6 +95,7 @@
   const $ = (id) => document.getElementById(id);
   let escuela = '';
   window.agenda.tema().then((t) => (document.documentElement.dataset.tema = t));
+  window.agenda.alTema(({ tema }) => (document.documentElement.dataset.tema = tema));
   (async () => {
     const info = await window.agenda.acceso.info();
     if (!info) return;

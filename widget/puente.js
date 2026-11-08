@@ -65,6 +65,8 @@
       volver: (id) => llamar('tareas:volver', id),
     },
     tema: () => llamar('tema:actual'),
+    // Sólo en la ventanita de archivos y el inicio de sesión: { tema, liquido } al cambiar Ajustes.
+    alTema: (fn) => al('tema:cambio', fn),
     app: {
       abrir: (seccion, tareaId) => llamar('app:abrir', seccion, tareaId),
       detalle: (cursoId, tareaId) => llamar('app:detalle', cursoId, tareaId),
@@ -76,8 +78,6 @@
     },
     entrega: {
       obtener: (tareaId) => llamar('entrega:obtener', tareaId),
-      adjuntar: (tareaId, ruta, si) => llamar('entrega:adjuntar', tareaId, ruta, si),
-      adjuntarTodo: (tareaId) => llamar('entrega:adjuntarTodo', tareaId),
       subir: (tareaId, rutas) => llamar('entrega:subir', tareaId, rutas),
       quitarTuyo: (tareaId, ruta) => llamar('entrega:quitarTuyo', tareaId, ruta),
       texto: (tareaId, texto) => llamar('entrega:texto', tareaId, texto),

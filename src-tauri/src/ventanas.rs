@@ -104,6 +104,39 @@ mod nativo {
         }
     }
 
+    // Los archivos como los da el Explorador (CF_HDROP y demás formatos del Shell).
+    pub fn objeto_de_archivos(rutas: &[String]) -> Option<windows::Win32::System::Com::IDataObject> {
+        use windows::{
+            core::HSTRING,
+            Win32::{
+                System::Com::{IBindCtx, IDataObject},
+                UI::Shell::{BHID_DataObject, Common::ITEMIDLIST, ILCreateFromPathW, ILFree, SHCreateShellItemArrayFromIDLists},
+            },
+        };
+        unsafe {
+            let pidls: Vec<*const ITEMIDLIST> = rutas.iter().map(|r| ILCreateFromPathW(&HSTRING::from(r.as_str())) as *const ITEMIDLIST).filter(|p| !p.is_null()).collect();
+            // El arreglo copia las rutas: se pueden liberar en seguida.
+            let datos = if pidls.is_empty() { None } else { SHCreateShellItemArrayFromIDLists(&pidls).and_then(|a| a.BindToHandler::<_, IDataObject>(None::<&IBindCtx>, &BHID_DataObject)).ok() };
+            for p in pidls {
+                ILFree(Some(p));
+            }
+            datos
+        }
+    }
+
+    // Arrastre de archivos del sistema, como desde el Explorador (startDrag en
+    // Electron): el icono sigue al puntero y se suelta en cualquier programa.
+    // Bloquea hasta soltar (bucle modal de OLE); tao ya hizo OleInitialize.
+    pub fn arrastrar(h: HWND, rutas: &[String]) {
+        use windows::Win32::{
+            System::Ole::{IDropSource, DROPEFFECT_COPY},
+            UI::Shell::SHDoDragDrop,
+        };
+        if let Some(datos) = objeto_de_archivos(rutas) {
+            let _ = unsafe { SHDoDragDrop(Some(h), &datos, None::<&IDropSource>, DROPEFFECT_COPY) };
+        }
+    }
+
     pub fn alto_contraste() -> bool {
         use windows::Win32::UI::Accessibility::{HCF_HIGHCONTRASTON, HIGHCONTRASTW};
         let mut hc = HIGHCONTRASTW { cbSize: std::mem::size_of::<HIGHCONTRASTW>() as u32, ..Default::default() };
@@ -135,6 +168,17 @@ fn sin_alt_tab(w: &WebviewWindow) {
     }
     #[cfg(not(windows))]
     let _ = w;
+}
+
+// Desde el hilo dueño de la ventana, mientras el botón sigue apretado.
+pub fn arrastrar(w: &WebviewWindow, rutas: Vec<String>) {
+    #[cfg(windows)]
+    if let Ok(h) = w.hwnd() {
+        let h = h.0 as isize;
+        let _ = w.run_on_main_thread(move || nativo::arrastrar(windows::Win32::Foundation::HWND(h as *mut _), &rutas));
+    }
+    #[cfg(not(windows))]
+    let _ = (w, rutas);
 }
 
 pub fn alto_contraste() -> bool {
@@ -311,10 +355,13 @@ pub fn crear_app(seccion: &str, tarea: Option<&str>, guia: bool) -> tauri::Resul
 // Vidrio líquido en la ventana de Insti Today (Windows): el acrílico del sistema
 // desenfoca lo que hay detrás y la página lo deja ver (data-liquido en app.html).
 // Oscuro a la fuerza: el tema Vidrio es oscuro y el acrílico sigue al sistema.
-pub fn material_app(w: &WebviewWindow) {
+pub fn liquida() -> bool {
     let p = app::con(|r| r.estado["prefs"].clone());
-    let liquida = cfg!(windows) && p["experimental"] == true && p["tema"] == "vidrio" && p["vidrioLiquido"] == true;
-    if liquida {
+    cfg!(windows) && p["experimental"] == true && p["tema"] == "vidrio" && p["vidrioLiquido"] == true
+}
+
+pub fn material_app(w: &WebviewWindow) {
+    if liquida() {
         use tauri::window::{Effect, EffectsBuilder};
         let _ = w.set_effects(EffectsBuilder::new().effect(Effect::Acrylic).build());
         let _ = w.set_theme(Some(tauri::Theme::Dark));
@@ -349,11 +396,16 @@ pub fn crear_arrastre(n: usize) -> tauri::Result<WebviewWindow> {
             ((a.x + a.w) / f - ancho - 18.0, (a.y + a.h) / f - alto - 18.0)
         })
         .unwrap_or((40.0, 40.0));
-    local(ARRASTRE, "arrastrar.html?destino=Moodle")
+    // Transparente y sin sombra, como el widget: con la sombra de Tauri (o el
+    // acrílico) Windows le dibujaba un marco claro. El vidrio lo pinta la página.
+    let pagina = if liquida() { "arrastrar.html?liquido=1" } else { "arrastrar.html" };
+    local(ARRASTRE, pagina)
         .title("Tu entrega")
         .position(x, y)
         .inner_size(ancho, alto)
         .decorations(false)
+        .transparent(true)
+        .shadow(false)
         .resizable(false)
         .minimizable(false)
         .maximizable(false)
@@ -388,6 +440,15 @@ static PARTICION_ABIERTA: Mutex<Option<String>> = Mutex::new(None);
 // La página que se pidió abrir, hasta que la ventana de Moodle termina de cargar.
 static PENDIENTE: Mutex<Option<String>> = Mutex::new(None);
 
+// En cada página de Moodle, antes que su código:
+// - Sin «¿Salir del sitio?»: cerrar la ventana la lleva a about:blank y el aviso
+//   salía solo, encima de todo, al dejar la entrega con archivos.
+// - Un archivo soltado fuera del recuadro de Moodle no abre el archivo en la
+//   ventana (y no pierde la página): sólo lo reciben las zonas de Moodle.
+const SIN_AVISOS: &str = "addEventListener('beforeunload', (e) => e.stopImmediatePropagation(), true);
+addEventListener('dragover', (e) => { if (!e.defaultPrevented) { e.preventDefault(); e.dataTransfer.dropEffect = 'none'; } });
+addEventListener('drop', (e) => { if (!e.defaultPrevented) e.preventDefault(); });";
+
 // Moodle usa el navegador de la app (misma carpeta y ARGUMENTOS), que ya está
 // corriendo: la ventana abre en ~0.13 s en vez de ~0.45 s y ocupa ~25 MB en vez
 // de ~150 MB. Las cuentas se separan con navegador.json (cookies_de_la_cuenta).
@@ -396,6 +457,9 @@ fn constructor_moodle(etiqueta: &str, url: url::Url) -> WebviewWindowBuilder<'st
     let origen = url::Url::parse(&moodle::escuela()).map(|u| u.origin()).unwrap_or_else(|_| url.origin());
     WebviewWindowBuilder::new(app(), etiqueta, WebviewUrl::External(url))
         .additional_browser_args(ARGUMENTOS)
+        // Con el manejador de Tauri los archivos soltados no llegan a la página: Moodle no los recibía.
+        .disable_drag_drop_handler()
+        .initialization_script(SIN_AVISOS)
         .on_page_load(|w, carga| {
             if carga.event() != tauri::webview::PageLoadEvent::Finished || !carga.url().scheme().starts_with("http") {
                 return;
@@ -658,4 +722,23 @@ pub async fn cdp(w: &WebviewWindow, metodo: &str, parametros: Value) -> Result<(
 #[cfg(not(windows))]
 pub async fn cdp(_: &WebviewWindow, _: &str, _: Value) -> Result<(), String> {
     Err("Soltar archivos sólo funciona en Windows por ahora.".into())
+}
+
+#[cfg(all(test, windows))]
+mod pruebas {
+    #[test]
+    fn arrastre_lleva_los_archivos() {
+        use windows::Win32::System::{
+            Com::{CoInitializeEx, COINIT_APARTMENTTHREADED, DVASPECT_CONTENT, FORMATETC, TYMED_HGLOBAL},
+            Ole::CF_HDROP,
+        };
+        let ruta = std::env::temp_dir().join("insti-arrastre-prueba.pdf");
+        std::fs::write(&ruta, b"%PDF").unwrap();
+        let _ = unsafe { CoInitializeEx(None, COINIT_APARTMENTTHREADED) };
+        let datos = super::nativo::objeto_de_archivos(&[ruta.to_string_lossy().to_string()]).expect("objeto de datos");
+        let hdrop = FORMATETC { cfFormat: CF_HDROP.0, ptd: std::ptr::null_mut(), dwAspect: DVASPECT_CONTENT.0, lindex: -1, tymed: TYMED_HGLOBAL.0 as u32 };
+        assert!(unsafe { datos.QueryGetData(&hdrop) }.is_ok(), "sin CF_HDROP: Moodle no recibiría el archivo");
+        assert!(super::nativo::objeto_de_archivos(&["C:/no/existe.pdf".into()]).is_none());
+        let _ = std::fs::remove_file(ruta);
+    }
 }

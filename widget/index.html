@@ -33,12 +33,12 @@
   .cabeza { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
   .titular { display: flex; align-items: center; gap: 8px; }
   h1 { margin: 0; font: 700 17px/1 var(--fuente-titulo); letter-spacing: -.022em; }
-  .cuenta { font-size: 11px; font-weight: 600; line-height: 18px; height: 18px; min-width: 18px; padding: 0 6px; border-radius: 9px; text-align: center; background: var(--neutro); color: var(--suave); font-variant-numeric: tabular-nums; }
+  .cuenta { font-size: 11px; font-weight: 600; line-height: 18px; height: 18px; min-width: 18px; padding: 0 6px; border-radius: 999px; text-align: center; background: var(--neutro); color: var(--suave); font-variant-numeric: tabular-nums; }
   .cuenta { white-space: nowrap; }
   .cuenta.hay { background: color-mix(in srgb, var(--pronto) 16%, transparent); color: var(--pronto); }
   .cuenta.urge { background: var(--mal); color: #fff; }
   .cuenta[hidden] { display: none; }
-  .hoy { color: var(--tenue); font-size: 11.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hoy { color: var(--tenue); font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hoy::first-letter { text-transform: uppercase; }
   .botones { display: flex; gap: 2px; margin-left: auto; margin-bottom: -3px; }
   /* Experimental: los botones suben a la línea de la fecha y el título, el anillo
@@ -58,7 +58,7 @@
   .boton svg { width: 14px; height: 14px; }
   /* Mensajes: la bolita y su lista, que sólo se ve al pasar o hacer clic. */
   #mensajes { position: relative; }
-  .bolita { position: absolute; top: -1px; right: -2px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--mal); color: #fff; font-size: 11px; font-weight: 700; line-height: 17px; text-align: center; box-shadow: 0 0 0 2px var(--fondo-a); }
+  .bolita { position: absolute; top: -1px; right: -2px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px; background: var(--mal); color: #fff; font-size: 11px; font-weight: 700; line-height: 17px; text-align: center; box-shadow: 0 0 0 2px var(--fondo-a); }
   .panel-mensajes { margin: 0 10px 8px; border-radius: 12px; background: var(--pieza); max-height: 230px; overflow-y: auto; }
   .panel-mensajes[hidden] { display: none; }
   .panel-mensajes::-webkit-scrollbar { width: 6px; }
@@ -79,12 +79,13 @@
 
   .marco > :not(.lista) { flex-shrink: 0; }
   .lista { min-height: 0; overflow-y: auto; padding: 0 6px 8px; scrollbar-width: none; }
-  .item { position: relative; display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 8px 10px; border-radius: 11px; cursor: pointer; transition: background .15s var(--curva); }
+  .item { position: relative; display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 8px 10px; border-radius: 10px; cursor: pointer; transition: background .15s var(--curva); }
   .item:hover, .item.activa { background: var(--hover); }
-  .item:focus-visible { outline: 2px solid color-mix(in srgb, var(--acento) 60%, transparent); outline-offset: -2px; }
+  button:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+  .item:focus-visible { outline: 2px solid var(--acento); outline-offset: -2px; }
   .punto { width: 8px; height: 8px; border-radius: 50%; }
   .titulo { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .meta { font-size: 11.5px; color: var(--tenue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+  .meta { font-size: 11px; color: var(--tenue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
   .meta .clip { display: inline-block; vertical-align: -1px; margin-left: 4px; opacity: .7; }
   .pastilla { font-size: 12px; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--tenue); }
   .pastilla.mal { color: var(--mal); font-weight: 600; }
@@ -132,7 +133,7 @@
   .dia-s.hoy-s i { background: var(--texto); opacity: 1; }
   .dia-s i.libre { background: transparent; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tenue) 55%, transparent); opacity: 1; }
   .dia-s i.listo { background: var(--bien); opacity: 1; }
-  .racha { margin-left: auto; font-size: 11.5px; font-weight: 600; color: var(--suave); white-space: nowrap; }
+  .racha { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--suave); white-space: nowrap; }
   .saludo { margin: 0 10px 8px; padding: 8px 10px; border-radius: 10px; background: var(--pieza); font-size: 12px; color: var(--suave); cursor: pointer; transition: opacity .4s var(--curva); }
   .saludo b { color: var(--texto); font-weight: 600; }
   .saludo.yendo { opacity: 0; }
@@ -156,9 +157,9 @@
   [data-experimental] .separador.vencidas { color: var(--pronto); }
   .nada-hoy { font-size: 12px; color: var(--tenue); padding: 2px 10px 6px; }
   /* Los días que vienen, plegados: se ven al pedirlos. */
-  .plegado { -webkit-app-region: no-drag; display: flex; align-items: center; gap: 6px; width: 100%; margin-top: 4px; padding: 9px 10px; border: 0; border-radius: 11px; background: transparent; font: inherit; font-size: 12px; font-weight: 600; color: var(--suave); cursor: pointer; text-align: left; transition: background .15s var(--curva); }
+  .plegado { -webkit-app-region: no-drag; display: flex; align-items: center; gap: 6px; width: 100%; margin-top: 4px; padding: 9px 10px; border: 0; border-radius: 10px; background: transparent; font: inherit; font-size: 12px; font-weight: 600; color: var(--suave); cursor: pointer; text-align: left; transition: background .15s var(--curva); }
   .plegado:hover { background: var(--hover); }
-  .plegado:focus-visible { outline: 2px solid color-mix(in srgb, var(--acento) 60%, transparent); outline-offset: -2px; }
+  .plegado:focus-visible { outline: 2px solid var(--acento); outline-offset: -2px; }
   .plegado .n { color: var(--tenue); font-weight: 500; font-variant-numeric: tabular-nums; }
   .plegado svg { margin-left: auto; width: 10px; height: 10px; color: var(--tenue); transition: transform .2s var(--curva); }
   .plegado[aria-expanded="true"] svg { transform: rotate(90deg); }
@@ -174,18 +175,18 @@
   .acceso .marca { display: flex; align-items: center; gap: 12px; }
   .acceso img { width: 38px; height: 38px; border-radius: 10px; flex: none; }
   .acceso b { display: block; font: 600 15px/1.25 var(--fuente-titulo); letter-spacing: -.015em; }
-  .acceso p { margin: 0; color: var(--suave); font-size: 12.5px; line-height: 1.45; }
+  .acceso p { margin: 0; color: var(--suave); font-size: 12px; line-height: 1.45; }
   .primario { -webkit-app-region: no-drag; font: inherit; font-weight: 600; font-size: 13px; color: #fff; background: var(--acento); border: 0; border-radius: 999px; padding: 7px 16px; cursor: pointer; transition: filter .15s var(--curva); }
   .primario:hover { filter: brightness(1.08); }
-  .primario:disabled { opacity: .5; cursor: default; }
-  .secundario { -webkit-app-region: no-drag; font: inherit; font-size: 12.5px; font-weight: 500; color: var(--texto); background: var(--pieza); border: 0; border-radius: 999px; padding: 6px 14px; cursor: pointer; transition: background .15s var(--curva); }
+  .primario:disabled, .primario:disabled:hover { background: var(--pieza); color: var(--tenue); filter: none; cursor: default; }
+  .secundario { -webkit-app-region: no-drag; font: inherit; font-size: 12px; font-weight: 500; color: var(--texto); background: var(--pieza); border: 0; border-radius: 999px; padding: 6px 14px; cursor: pointer; transition: background .15s var(--curva); }
   .secundario:hover { background: var(--pieza-hover); }
-  .escuela { font-size: 11.5px; color: var(--tenue); display: flex; gap: 6px; align-items: center; }
+  .escuela { font-size: 11px; color: var(--tenue); display: flex; gap: 6px; align-items: center; }
   .escuela a { color: var(--acento-texto, var(--acento)); cursor: pointer; text-decoration: none; }
   .escuela a:hover { text-decoration: underline; text-underline-offset: 2px; }
   .escuela-form { display: flex; gap: 6px; }
-  .escuela-form input { -webkit-app-region: no-drag; flex: 1; min-width: 0; font: inherit; font-size: 12.5px; color: var(--texto); background: var(--pieza); border: 0; border-radius: 9px; padding: 6px 10px; outline: none; transition: box-shadow .15s var(--curva); }
-  .escuela-form input:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--acento) 40%, transparent); }
+  .escuela-form input { -webkit-app-region: no-drag; flex: 1; min-width: 0; font: inherit; font-size: 12px; color: var(--texto); background: var(--pieza); border: 0; border-radius: 10px; padding: 6px 10px; outline: none; }
+  .escuela-form input:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--acento) 45%, transparent); }
   .error-escuela { color: var(--mal); font-size: 12px; }
   .girador { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--pieza); border-top-color: var(--suave); animation: giro .9s linear infinite; flex: none; }
   .aviso button { -webkit-app-region: no-drag; font: inherit; font-weight: 600; color: var(--texto); background: var(--pieza); border: 0; border-radius: 999px; padding: 2px 10px; margin-left: 6px; cursor: pointer; }
@@ -254,21 +255,21 @@
   <header>
     <div class="cabeza">
       <span class="hoy" id="hoy"></span>
-      <div class="titular"><h1>Pendientes</h1><svg class="anillo" id="anillo" viewBox="0 0 16 16" hidden><circle class="pista" cx="8" cy="8" r="6.2"/><circle class="avance" id="avance" cx="8" cy="8" r="6.2" stroke-dasharray="38.96" stroke-dashoffset="38.96"/></svg><span class="cuenta" id="cuenta" hidden></span></div>
+      <div class="titular"><h1>Pendientes</h1><svg aria-hidden="true" class="anillo" id="anillo" viewBox="0 0 16 16" hidden><circle class="pista" cx="8" cy="8" r="6.2"/><circle class="avance" id="avance" cx="8" cy="8" r="6.2" stroke-dasharray="38.96" stroke-dashoffset="38.96"/></svg><span class="cuenta" id="cuenta" hidden></span></div>
     </div>
     <div class="botones" id="botones">
       <button class="boton" id="mensajes" title="Mensajes y anuncios" hidden>
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2" y="3.5" width="12" height="9" rx="1.8"/><path d="M2.5 4.5 8 9l5.5-4.5"/></svg>
+        <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2" y="3.5" width="12" height="9" rx="1.8"/><path d="M2.5 4.5 8 9l5.5-4.5"/></svg>
         <span class="bolita" id="bolita" hidden></span>
       </button>
       <button class="boton" id="abrir-app" title="Tus archivos, entrega y ajustes">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M6.5 2.5v11"/></svg>
+        <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M6.5 2.5v11"/></svg>
       </button>
       <button class="boton" id="refrescar" title="Actualizar ahora">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2.5v3h-3"/></svg>
+        <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2.5v3h-3"/></svg>
       </button>
       <button class="boton" id="ocultar" title="Ocultar (sigue en la bandeja)">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+        <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
       </button>
     </div>
   </header>

@@ -1,5 +1,18 @@
 # Cambios
 
+## 0.3.6 · 2026-11-08
+
+- Retoques de diseño: los menús y las ventanas emergentes se distinguen del fondo en
+  todos los temas, el anillo de foco con teclado es igual en el widget y en la app,
+  los botones desactivados se ven grises, y «Mostrar en la carpeta» y «Quitar» usan
+  iconos como el resto. Tamaños de letra y esquinas más parejos.
+- «Tu entrega para Moodle»: con vidrio líquido se ve lo que hay detrás y ya no tiene
+  bordes claros. Arrastrar un archivo lo lleva con el puntero y se suelta en el
+  recuadro de Moodle (también los que arrastras desde el Explorador). Moodle ya no
+  pregunta «¿Salir del sitio?» al cerrar su ventana.
+- Esa ventanita y la de iniciar sesión cambian de tema en cuanto lo cambias en
+  Ajustes, sin cerrarlas.
+
 ## 0.3.5 · 2026-11-07
 
 - La ventana de Moodle aparece unas 3 veces más rápido también la primera vez después

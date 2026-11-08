@@ -5,7 +5,7 @@ use crate::{
     agenda, app,
     app::con,
     datos, entrega, moodle, sistema,
-    ventanas::{self as v, emitir, ventana, Rect, ACCESO, APP, VISTA, WIDGET},
+    ventanas::{self as v, emitir, ventana, Rect, ACCESO, APP, ARRASTRE, VISTA, WIDGET},
 };
 use serde_json::{json, Value};
 use std::{
@@ -650,6 +650,11 @@ fn aplicar_prefs(antes: &Value) {
     }
     if let Some(w) = ventana(APP) {
         v::material_app(&w);
+    }
+    // Estas dos no reciben el estado: el tema (y el vidrio) les llega aparte para cambiar en vivo.
+    let tema = json!({ "tema": tema_actual(), "liquido": v::liquida() });
+    for w in [ARRASTRE, ACCESO] {
+        emitir(w, "tema:cambio", tema.clone());
     }
     if antes["avisos"] != true || antes["avisoHoras"] != p["avisoHoras"] {
         revisar_avisos();

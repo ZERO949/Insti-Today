@@ -1,6 +1,6 @@
 [package]
 name = "insti-today"
-version = "0.3.5"
+version = "0.3.6"
 edition = "2021"
 
 [build-dependencies]
@@ -30,7 +30,7 @@ uuid = { version = "1", features = ["v4"] }
 [target.'cfg(windows)'.dependencies]
 tauri-winrt-notification = "0.7"
 webview2-com = "0.39"
-windows = { version = "0.62", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_UI_Accessibility", "Win32_UI_Shell"] }
+windows = { version = "0.62", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_UI_Accessibility", "Win32_UI_Shell", "Win32_UI_Shell_Common", "Win32_System_Com", "Win32_System_Ole"] }
 
 [profile.release]
 codegen-units = 1

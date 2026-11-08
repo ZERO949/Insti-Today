@@ -76,6 +76,14 @@ las claves en orden alfabético.
 - Tauri no entiende `-webkit-app-region: drag`; `puente.js` lo traduce a
   `start_dragging`. Los archivos soltados llegan por `tauri://drag-drop` y `puente.js`
   los pasa como el evento `insti:soltar`.
+- Las ventanas de Moodle llevan `disable_drag_drop_handler`: con el manejador de Tauri
+  los archivos soltados no llegan a la página y Moodle no los recibe. `SIN_AVISOS`
+  quita su «¿Salir del sitio?» (salía al cerrar la ventana, que navega a about:blank)
+  y no deja que un archivo soltado fuera del recuadro se abra en la ventana.
+- La ventanita «Tu entrega» es transparente y sin sombra, como el widget: con la
+  sombra de Tauri o el acrílico, Windows le dibuja un marco claro. Arrastrar un
+  archivo de ella es un arrastre del sistema (`SHDoDragDrop`, como `startDrag` de
+  Electron); tocarlo lo suelta en Moodle por CDP.
 
 ## Iniciar sesión en Moodle: cómo funciona
 

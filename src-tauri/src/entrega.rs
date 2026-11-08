@@ -76,7 +76,6 @@ fn guardar() {
 
 fn entregables(tarea_id: &str) -> Vec<Value> {
     let Some(c) = carpeta(tarea_id) else { return vec![] };
-    let adjuntos = con(|r| r.entregas[tarea_id]["adjuntos"].clone());
     let mut nombres: Vec<PathBuf> = std::fs::read_dir(c.join("tuyos")).into_iter().flatten().flatten().map(|e| e.path()).filter(|p| p.is_file()).collect();
     nombres.sort();
     nombres
@@ -89,7 +88,7 @@ fn entregables(tarea_id: &str) -> Vec<Value> {
             json!({
                 "ruta": r, "origen": "Tuyo", "nombre": ruta.file_name().map(|n| n.to_string_lossy()).unwrap_or_default(),
                 "imagen": imagen, "revisable": false, "url": if imagen { json!(format!("{}?v={marca}", v::url_local(&ruta))) } else { Value::Null },
-                "peso": m.map(|m| m.len()).unwrap_or(0), "adjuntado": adjuntos.as_array().is_some_and(|a| a.iter().any(|x| s(x) == r)),
+                "peso": m.map(|m| m.len()).unwrap_or(0), "adjuntado": true,
             })
         })
         .collect()
@@ -105,39 +104,17 @@ fn es_entregable(tarea_id: &str, ruta: &str) -> bool {
     entregables(tarea_id).iter().any(|x| s(&x["ruta"]) == ruta)
 }
 
-fn adjuntar(tarea_id: &str, rutas: &[String], si: bool) {
-    con(|r| {
-        if !r.entregas.is_object() {
-            r.entregas = json!({});
-        }
-        let e = &mut r.entregas[tarea_id];
-        let mut actual: Vec<String> = e["adjuntos"].as_array().into_iter().flatten().filter_map(|x| x.as_str().map(String::from)).collect();
-        for ruta in rutas {
-            actual.retain(|x| x != ruta);
-            if si {
-                actual.push(ruta.clone());
-            }
-        }
-        e["adjuntos"] = json!(actual);
-    });
-    guardar();
-}
-
 fn subir(tarea_id: &str, rutas: Vec<String>) {
     let Some(c) = carpeta(tarea_id) else { return };
     let tuyos = c.join("tuyos");
     let _ = std::fs::create_dir_all(&tuyos);
-    let mut nuevas = vec![];
     for origen in rutas.iter().map(Path::new).filter(|p| p.is_file()) {
         let raiz = moodle::nombre_seguro(&origen.file_stem().map(|x| x.to_string_lossy()).unwrap_or_default());
         let raiz = if raiz.is_empty() { "archivo".to_string() } else { raiz };
         let ext = origen.extension().map(|e| format!(".{}", e.to_string_lossy())).unwrap_or_default();
         let destino = moodle::ruta_libre(&tuyos, &format!("{raiz}{ext}"));
-        if std::fs::copy(origen, &destino).is_ok() {
-            nuevas.push(destino.to_string_lossy().to_string());
-        }
+        let _ = std::fs::copy(origen, &destino);
     }
-    adjuntar(tarea_id, &nuevas, true);
 }
 
 // Estado de la entrega de cada tarea: abierta → preparando → colocados | manual | cancelada | error.
@@ -421,19 +398,6 @@ pub async fn llamar(w: &WebviewWindow, canal: &str, args: &[Value]) -> Result<Va
     let rutas = |v: Value| -> Vec<String> { v.as_array().into_iter().flatten().filter_map(|x| x.as_str().map(String::from)).collect() };
     Ok(match canal {
         "entrega:obtener" => datos_entrega(&id),
-        "entrega:adjuntar" => {
-            let ruta = s(&a(1)).to_string();
-            if !es_entregable(&id, &ruta) {
-                return Err("No encontré ese archivo. Actualiza la tarea y vuelve a intentarlo.".into());
-            }
-            adjuntar(&id, &[ruta], a(2) == true);
-            datos_entrega(&id)
-        }
-        "entrega:adjuntarTodo" => {
-            let todas: Vec<String> = entregables(&id).iter().map(|x| s(&x["ruta"]).to_string()).collect();
-            adjuntar(&id, &todas, true);
-            datos_entrega(&id)
-        }
         "entrega:subir" => {
             let mut lista = rutas(a(1));
             if lista.is_empty() {
@@ -450,7 +414,6 @@ pub async fn llamar(w: &WebviewWindow, canal: &str, args: &[Value]) -> Result<Va
             let es_tuyo = carpeta(&id).is_some_and(|c| Path::new(&ruta).parent() == Some(&c.join("tuyos")));
             if es_tuyo && es_entregable(&id, &ruta) {
                 let _ = std::fs::remove_file(&ruta);
-                adjuntar(&id, &[ruta], false);
             }
             datos_entrega(&id)
         }
@@ -501,14 +464,17 @@ pub async fn llamar(w: &WebviewWindow, canal: &str, args: &[Value]) -> Result<Va
             }
             Value::Null
         }
-        // Tocar (o arrastrar) un archivo de la ventanita lo suelta en Moodle como al abrir la entrega.
+        // Tocar un archivo de la ventanita lo suelta en Moodle como al abrir la
+        // entrega; arrastrarlo es un arrastre de verdad, como desde el Explorador.
         "arrastre:colocar" | "arrastre:iniciar" => {
             let (todos, destino) = con(|r| (r.archivos_arrastre.clone(), r.destino_arrastre.clone()));
             let elegidos: Vec<String> = match a(0).as_u64() {
                 Some(i) => todos.get(i as usize).into_iter().map(|p| p.to_string_lossy().to_string()).collect(),
                 None => todos.iter().map(|p| p.to_string_lossy().to_string()).collect(),
             };
-            if let (Some(m), Some(d)) = (ventana(v::MOODLE).filter(|m| m.is_visible().unwrap_or(false)), destino) {
+            if canal == "arrastre:iniciar" {
+                v::arrastrar(w, elegidos);
+            } else if let (Some(m), Some(d)) = (ventana(v::MOODLE).filter(|m| m.is_visible().unwrap_or(false)), destino) {
                 if !elegidos.is_empty() {
                     colocar(m.clone(), elegidos, d);
                     let _ = m.set_focus();
