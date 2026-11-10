@@ -31,8 +31,10 @@ pub fn emitir(etiqueta: &str, canal: &str, datos: Value) {
 // El widget vive al fondo, casi siempre tapado: sin esto WebView2 lo trata como
 // oculto, deja de dibujarlo y frena sus temporizadores (la vista previa no
 // aparecía). Sin GPU: el widget casi no se mueve y ese proceso era el que más
-// memoria ocupaba. Todas las ventanas propias comparten estos argumentos.
-const ARGUMENTOS: &str = "--disable-gpu --disable-background-timer-throttling --disable-renderer-backgrounding --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,CalculateNativeWinOcclusion";
+// memoria ocupaba. --process-per-site: las páginas propias (todas de
+// tauri.localhost) comparten un solo proceso de WebView2 en vez de uno de ~25 MB
+// por ventana; Moodle va en el suyo. Todas las ventanas comparten estos argumentos.
+const ARGUMENTOS: &str = "--disable-gpu --process-per-site --disable-background-timer-throttling --disable-renderer-backgrounding --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,CalculateNativeWinOcclusion";
 
 fn local(etiqueta: &str, pagina: &str) -> WebviewWindowBuilder<'static, tauri::Wry, tauri::AppHandle> {
     WebviewWindowBuilder::new(app(), etiqueta, WebviewUrl::App(pagina.into())).additional_browser_args(ARGUMENTOS).initialization_script(PUENTE).on_new_window(|url, _| {
@@ -441,13 +443,26 @@ static PARTICION_ABIERTA: Mutex<Option<String>> = Mutex::new(None);
 static PENDIENTE: Mutex<Option<String>> = Mutex::new(None);
 
 // En cada página de Moodle, antes que su código:
-// - Sin «¿Salir del sitio?»: cerrar la ventana la lleva a about:blank y el aviso
-//   salía solo, encima de todo, al dejar la entrega con archivos.
+// - Sin «¿Salir del sitio?»: al llevar la ventana a otra página el aviso salía
+//   solo, encima de todo, al dejar la entrega con archivos.
 // - Un archivo soltado fuera del recuadro de Moodle no abre el archivo en la
 //   ventana (y no pierde la página): sólo lo reciben las zonas de Moodle.
 const SIN_AVISOS: &str = "addEventListener('beforeunload', (e) => e.stopImmediatePropagation(), true);
 addEventListener('dragover', (e) => { if (!e.defaultPrevented) { e.preventDefault(); e.dataTransfer.dropEffect = 'none'; } });
 addEventListener('drop', (e) => { if (!e.defaultPrevented) e.preventDefault(); });";
+
+// El inicio de sesión carga invisible hasta que on_page_load decide: si la sesión
+// venció, entrar_solo lo salta y nunca se ve (antes parpadeaba antes de la tarea);
+// si no, mostrar_inicio. A los 20 s se muestra solo, por si la carga no termina.
+const OCULTAR_INICIO: &str = "if (location.pathname.includes('/login/')) {
+  const ocultar = () => document.documentElement && (document.documentElement.style.visibility = 'hidden');
+  if (!ocultar()) new MutationObserver((_, o) => ocultar() && o.disconnect()).observe(document, { childList: true });
+  setTimeout(() => (document.documentElement.style.visibility = ''), 20000);
+}";
+
+fn mostrar_inicio(w: &WebviewWindow) {
+    let _ = w.eval("document.documentElement.style.visibility = ''");
+}
 
 // Moodle usa el navegador de la app (misma carpeta y ARGUMENTOS), que ya está
 // corriendo: la ventana abre en ~0.13 s en vez de ~0.45 s y ocupa ~25 MB en vez
@@ -460,6 +475,7 @@ fn constructor_moodle(etiqueta: &str, url: url::Url) -> WebviewWindowBuilder<'st
         // Con el manejador de Tauri los archivos soltados no llegan a la página: Moodle no los recibía.
         .disable_drag_drop_handler()
         .initialization_script(SIN_AVISOS)
+        .initialization_script(OCULTAR_INICIO)
         .on_page_load(|w, carga| {
             if carga.event() != tauri::webview::PageLoadEvent::Finished || !carga.url().scheme().starts_with("http") {
                 return;
@@ -471,7 +487,12 @@ fn constructor_moodle(etiqueta: &str, url: url::Url) -> WebviewWindowBuilder<'st
                 match pedida {
                     // Sin conservar_sesion aquí: guardaría la cookie vacía encima de la del inicio automático.
                     Some(destino) if vencida => entrar_solo(&w, &destino).await,
-                    _ => conservar_sesion(&w),
+                    _ => {
+                        if vencida {
+                            mostrar_inicio(&w);
+                        }
+                        conservar_sesion(&w)
+                    }
                 }
             });
         })
@@ -525,8 +546,11 @@ pub fn cerrar_navegador_ajeno() {
 // Ya terminó de cargar, así que el inicio automático no choca con otra página
 // de Moodle. Sin llave (una cada 6 minutos) se queda en el inicio de sesión.
 async fn entrar_solo(w: &WebviewWindow, destino: &str) {
-    if let Some(u) = moodle::url_autologin(destino).await.and_then(|u| url::Url::parse(&u).ok()) {
-        let _ = w.navigate(u);
+    match moodle::url_autologin(destino).await.and_then(|u| url::Url::parse(&u).ok()) {
+        Some(u) => {
+            let _ = w.navigate(u);
+        }
+        None => mostrar_inicio(w),
     }
 }
 
@@ -601,20 +625,10 @@ pub async fn abrir_en_moodle(url: &str) -> Option<WebviewWindow> {
             w
         }
         None => {
+            // Cerrarla la destruye: escondida seguía ocupando ~50 MB. La sesión vive
+            // en el navegador de la app (que sigue abierto por el widget) y en conservar_sesion.
             let w = constructor_moodle(MOODLE, destino).title("Moodle · Insti Today").inner_size(1180.0, 860.0).build().ok()?;
             *PARTICION_ABIERTA.lock().unwrap() = Some(datos::particion());
-            // Cerrarla sólo la esconde: la siguiente página no espera a que arranque WebView2.
-            let w2 = w.clone();
-            w.on_window_event(move |e| {
-                if let tauri::WindowEvent::CloseRequested { api, .. } = e {
-                    if !app::con(|r| r.salir) {
-                        api.prevent_close();
-                        let _ = w2.hide();
-                        // La página deja de hacer peticiones y de ocupar memoria.
-                        let _ = w2.navigate(url::Url::parse("about:blank").expect("about:blank es una URL válida"));
-                    }
-                }
-            });
             w
         }
     };
@@ -722,6 +736,19 @@ pub async fn cdp(w: &WebviewWindow, metodo: &str, parametros: Value) -> Result<(
 #[cfg(not(windows))]
 pub async fn cdp(_: &WebviewWindow, _: &str, _: Value) -> Result<(), String> {
     Err("Soltar archivos sólo funciona en Windows por ahora.".into())
+}
+
+// Las páginas propias comparten un proceso (--process-per-site): lo que deja una
+// ventana cerrada (~10 MB la ventana completa) es basura que V8 recogía mucho
+// después. Se pide en seguida; cualquier página del proceso sirve, el widget siempre está.
+pub fn recoger_basura() {
+    tauri::async_runtime::spawn(async {
+        // Que la página cerrada termine de soltarse antes.
+        tokio::time::sleep(Duration::from_secs(2)).await;
+        if let Some(w) = ventana(WIDGET) {
+            let _ = cdp(&w, "HeapProfiler.collectGarbage", json!({})).await;
+        }
+    });
 }
 
 #[cfg(all(test, windows))]

@@ -36,7 +36,7 @@
   .cuenta { font-size: 11px; font-weight: 600; line-height: 18px; height: 18px; min-width: 18px; padding: 0 6px; border-radius: 999px; text-align: center; background: var(--neutro); color: var(--suave); font-variant-numeric: tabular-nums; }
   .cuenta { white-space: nowrap; }
   .cuenta.hay { background: color-mix(in srgb, var(--pronto) 16%, transparent); color: var(--pronto); }
-  .cuenta.urge { background: var(--mal); color: #fff; }
+  .cuenta.urge { background: var(--mal); color: var(--sobre-estado, #fff); }
   .cuenta[hidden] { display: none; }
   .hoy { color: var(--tenue); font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hoy::first-letter { text-transform: uppercase; }
@@ -58,7 +58,7 @@
   .boton svg { width: 14px; height: 14px; }
   /* Mensajes: la bolita y su lista, que sólo se ve al pasar o hacer clic. */
   #mensajes { position: relative; }
-  .bolita { position: absolute; top: -1px; right: -2px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px; background: var(--mal); color: #fff; font-size: 11px; font-weight: 700; line-height: 17px; text-align: center; box-shadow: 0 0 0 2px var(--fondo-a); }
+  .bolita { position: absolute; top: -1px; right: -2px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px; background: var(--mal); color: var(--sobre-estado, #fff); font-size: 11px; font-weight: 700; line-height: 17px; text-align: center; box-shadow: 0 0 0 2px var(--fondo-a); }
   .panel-mensajes { margin: 0 10px 8px; border-radius: 12px; background: var(--pieza); max-height: 230px; overflow-y: auto; }
   .panel-mensajes[hidden] { display: none; }
   .panel-mensajes::-webkit-scrollbar { width: 6px; }
@@ -94,8 +94,8 @@
   .lado > * { grid-area: 1 / 1; transition: opacity .15s var(--curva); }
   .acciones { display: flex; gap: 4px; opacity: 0; pointer-events: none; }
   .quitar, .posponer { -webkit-app-region: no-drag; width: 22px; height: 22px; border: 0; border-radius: 50%; padding: 0; display: grid; place-items: center; background: var(--pieza); color: var(--suave); cursor: pointer; }
-  .quitar:hover { background: var(--mal); color: #fff; }
-  .posponer:hover { background: var(--acento); color: #fff; }
+  .quitar:hover { background: var(--mal); color: var(--sobre-estado, #fff); }
+  .posponer:hover { background: var(--acento); color: var(--sobre-acento, #fff); }
   .quitar svg, .posponer svg { width: 10px; height: 10px; pointer-events: none; }
   .posponer svg { width: 11px; height: 11px; }
   .item:focus-within .pastilla { opacity: 0; pointer-events: none; }
@@ -144,7 +144,7 @@
   /* Franjas de abajo (deshacer, versión nueva): una línea fina y botones de cápsula. */
   .deshacer, .novedad { display: flex; align-items: center; gap: 9px; padding: 9px 12px 10px 16px; border-top: 1px solid var(--linea); font-size: 12px; color: var(--suave); }
   .deshacer[hidden], .novedad[hidden] { display: none; }
-  .novedad button { -webkit-app-region: no-drag; flex: none; font: inherit; font-size: 12px; font-weight: 600; color: #fff; background: var(--acento); border: 0; border-radius: 999px; padding: 4px 12px; cursor: pointer; transition: filter .15s var(--curva); }
+  .novedad button { -webkit-app-region: no-drag; flex: none; font: inherit; font-size: 12px; font-weight: 600; color: var(--sobre-acento, #fff); background: var(--acento); border: 0; border-radius: 999px; padding: 4px 12px; cursor: pointer; transition: filter .15s var(--curva); }
   .novedad button:hover { filter: brightness(1.08); }
   .novedad button { margin-left: auto; }
   .deshacer span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
@@ -164,7 +164,7 @@
   .plegado svg { margin-left: auto; width: 10px; height: 10px; color: var(--tenue); transition: transform .2s var(--curva); }
   .plegado[aria-expanded="true"] svg { transform: rotate(90deg); }
   .vacio { display: flex; align-items: center; gap: 12px; padding: 6px 16px 16px; }
-  .vacio .ok { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--bien); color: #fff; flex: none; }
+  .vacio .ok { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--bien); color: var(--sobre-estado, #fff); flex: none; }
   .vacio .ok svg { width: 15px; height: 15px; }
   .vacio b { display: block; font-weight: 600; }
   .vacio span { color: var(--tenue); font-size: 12px; }
@@ -176,7 +176,7 @@
   .acceso img { width: 38px; height: 38px; border-radius: 10px; flex: none; }
   .acceso b { display: block; font: 600 15px/1.25 var(--fuente-titulo); letter-spacing: -.015em; }
   .acceso p { margin: 0; color: var(--suave); font-size: 12px; line-height: 1.45; }
-  .primario { -webkit-app-region: no-drag; font: inherit; font-weight: 600; font-size: 13px; color: #fff; background: var(--acento); border: 0; border-radius: 999px; padding: 7px 16px; cursor: pointer; transition: filter .15s var(--curva); }
+  .primario { -webkit-app-region: no-drag; font: inherit; font-weight: 600; font-size: 13px; color: var(--sobre-acento, #fff); background: var(--acento); border: 0; border-radius: 999px; padding: 7px 16px; cursor: pointer; transition: filter .15s var(--curva); }
   .primario:hover { filter: brightness(1.08); }
   .primario:disabled, .primario:disabled:hover { background: var(--pieza); color: var(--tenue); filter: none; cursor: default; }
   .secundario { -webkit-app-region: no-drag; font: inherit; font-size: 12px; font-weight: 500; color: var(--texto); background: var(--pieza); border: 0; border-radius: 999px; padding: 6px 14px; cursor: pointer; transition: background .15s var(--curva); }

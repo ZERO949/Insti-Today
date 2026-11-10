@@ -1,5 +1,19 @@
 # Cambios
 
+## 0.3.8 · 2026-11-09
+
+- «Abrir en Moodle» ya no muestra un instante el inicio de sesión antes de la tarea
+  (pasaba al abrir la app o al cambiar de cuenta).
+- Tema nuevo, «Wine»: rojo cereza con rosa pálido.
+
+## 0.3.7 · 2026-11-08
+
+- Insti Today ocupa mucha menos memoria: unos 90 MB con el widget (antes 140 MB al
+  abrir y más de 300 MB tras unas horas) y unos 110 MB con la ventana completa
+  abierta. Ya no guarda las respuestas de Moodle de cada revisión, sus ventanas
+  comparten un solo proceso y cerrar una ventana, también la de Moodle, libera su
+  memoria (sigues con la sesión iniciada).
+
 ## 0.3.6 · 2026-11-08
 
 - Retoques de diseño: los menús y las ventanas emergentes se distinguen del fondo en

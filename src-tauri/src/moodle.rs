@@ -169,21 +169,24 @@ async fn llamar_crudo(funcion: &str, args: &Value) -> R<Value> {
 // Las lecturas iguales en menos de 30 s salen de la caché (la agenda y el
 // detalle piden lo mismo).
 static CACHE: LazyLock<Mutex<HashMap<String, (Instant, Value)>>> = LazyLock::new(Default::default);
+const VIDA_CACHE: Duration = Duration::from_secs(30);
+
+// Lo vencido se suelta (también cada minuto, desde el reloj): si no, las
+// respuestas de cada revisión se quedaban en memoria (decenas de MB).
+pub fn podar_cache() {
+    CACHE.lock().unwrap().retain(|_, (cuando, _)| cuando.elapsed() < VIDA_CACHE);
+}
 
 pub async fn ws(funcion: &str, args: Value) -> R<Value> {
     let clave = format!("{}|{funcion}|{args}", escuela());
     if let Some((cuando, v)) = CACHE.lock().unwrap().get(&clave) {
-        if cuando.elapsed() < Duration::from_secs(30) {
+        if cuando.elapsed() < VIDA_CACHE {
             return Ok(v.clone());
         }
     }
     let v = llamar_crudo(funcion, &args).await?;
-    let mut c = CACHE.lock().unwrap();
-    // shortcut: al pasar de 300 entradas se vacía entera; un LRU si alguna vez molesta.
-    if c.len() > 300 {
-        c.clear();
-    }
-    c.insert(clave, (Instant::now(), v.clone()));
+    podar_cache();
+    CACHE.lock().unwrap().insert(clave, (Instant::now(), v.clone()));
     Ok(v)
 }
 

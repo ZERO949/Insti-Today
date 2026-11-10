@@ -42,6 +42,12 @@ fn main() {
         .build(tauri::generate_context!())
         .expect("no se pudo abrir Insti Today")
         .run(|_, e| {
+            if let RunEvent::WindowEvent { label, event: tauri::WindowEvent::Destroyed, .. } = &e {
+                // Moodle va en su propio proceso, que se cierra con la ventana.
+                if !label.starts_with(ventanas::MOODLE) {
+                    ventanas::recoger_basura();
+                }
+            }
             // Sin ventanas la app sigue en la bandeja; para salir está «Salir».
             if let RunEvent::ExitRequested { api, code: None, .. } = e {
                 if !app::con(|r| r.salir) {

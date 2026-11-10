@@ -94,7 +94,7 @@ fn permitidos(clave: &str) -> Option<Value> {
     Some(match clave {
         "diasAdelante" => json!([0, 1, 2, 6, 13]),
         "diasAtras" => json!([0, 1, 3, 7, 14]),
-        "tema" => json!(["medianoche", "marca", "claro", "papel", "vidrio", "bosque", "oceano", "lavanda", "cereza", "contraste", "sistema"]),
+        "tema" => json!(["medianoche", "marca", "claro", "papel", "vidrio", "bosque", "oceano", "lavanda", "cereza", "guinda", "contraste", "sistema"]),
         "tamano" => json!([0.9, 1, 1.15]),
         "avisoHoras" => json!([1, 2, 3, 6, 12]),
         "intervaloMin" => json!([30, 60, 120]),

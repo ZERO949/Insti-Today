@@ -177,6 +177,7 @@ pub fn iniciar_relojes() {
             if vuelta % 5 == 0 {
                 revisar_avisos();
             }
+            moodle::podar_cache();
             let libre = con(|r| !r.vista_abierta && r.vista_usada.elapsed() > Duration::from_secs(300));
             if libre {
                 if let Some(w) = ventana(VISTA) {

@@ -61,7 +61,8 @@ las claves en orden alfabético.
   fuerza `WS_EX_TOOLWINDOW` en `WM_STYLECHANGING` (`sin_alt_tab`). La subclase se pone
   desde el hilo principal (`run_on_main_thread`).
 - Todas las ventanas, también las de Moodle, crean WebView2 con los mismos argumentos (`ARGUMENTOS`:
-  sin GPU, sin oclusión ni frenado de temporizadores, porque el widget vive tapado). Si
+  sin GPU, sin oclusión ni frenado de temporizadores, porque el widget vive tapado;
+  `--process-per-site`: las páginas propias comparten un proceso y Moodle va en otro). Si
   dos WebView2 con argumentos distintos comparten carpeta, la segunda falla con
   «The requested resource is in use» (0x800700AA); `main.rs` reintenta 10 s y, si no,
   avisa y sale.
@@ -85,6 +86,31 @@ las claves en orden alfabético.
   archivo de ella es un arrastre del sistema (`SHDoDragDrop`, como `startDrag` de
   Electron); tocarlo lo suelta en Moodle por CDP.
 
+## Memoria
+
+Medido el 2026-11-08 con la cuenta real, recién abierta (working set privado, como el
+Administrador de tareas; `insti-today.exe` + sus `msedgewebview2.exe`):
+
+| | 0.3.6 | 0.3.7 |
+|---|---|---|
+| Sólo el widget | 140 MB | 90 MB |
+| Widget + Insti Today | 175 MB | 108 MB |
+
+La 0.3.6 instalada llegó a 322 MB tras 5 horas: 167 MB eran del exe. Lo que lo bajó:
+
+- `ws()` guardaba cada respuesta de Moodle hasta juntar 300; ahora la caché dura 30 s
+  y el reloj de cada minuto la poda (`podar_cache`). Sin red el exe ocupa ~6 MB: lo
+  demás son datos de Moodle.
+- `build.rs` pide el «segment heap» de Windows en el manifiesto: con el montón
+  clásico el exe se quedaba con ~10 MB ya liberados tras cada revisión.
+- `--process-per-site` (ver Ventanas) y la ventana de Moodle destruida al cerrarla.
+- Como las páginas propias comparten proceso, cerrar una ventana no lo termina: V8
+  se quedaba con ~10 MB de basura de la ventana completa. Al destruirse una ventana
+  propia, `recoger_basura` pide `HeapProfiler.collectGarbage` por CDP en el widget
+  (`Memory.simulatePressureNotification` no libera nada).
+- Probado y descartado: `--in-process-gpu` (−4 MB) y el servicio de red en el proceso
+  del navegador (−3 MB más, y ahí viven las cookies de Moodle).
+
 ## Iniciar sesión en Moodle: cómo funciona
 
 Hay dos sesiones distintas y no se mezclan:
@@ -107,16 +133,20 @@ Hay dos sesiones distintas y no se mezclan:
 Al abrir una página (`abrir_en_moodle` en `ventanas.rs`):
 
 - La página se carga en seguida, sin revisar antes la sesión (hasta la 0.3.3 se pedía
-  `/my/` aparte y eso hacía lenta cada apertura). Cerrar la ventana de Moodle sólo la
-  esconde (y la deja en `about:blank`): la siguiente apertura no espera a WebView2.
-  Por eso «Moodle se cerró» es `!is_visible()`, no que la ventana no exista.
+  `/my/` aparte y eso hacía lenta cada apertura). Cerrar la ventana de Moodle la
+  destruye (de la 0.3.4 a la 0.3.6 sólo se escondía en `about:blank` y seguía
+  ocupando ~50 MB). La sesión no se pierde: sus cookies viven en el navegador de la
+  app, que sigue abierto por el widget.
 - Si la página pedida termina de cargar en `/login/` (`PENDIENTE` en `on_page_load`),
   la sesión venció: `entrar_solo` pide una llave con `tool_mobile_get_autologin_key`
   (User-Agent `MoodleMobile`, con el `privatetoken`) y navega a
   `admin/tool/mobile/autologin.php?userid&key&urltogo`. Sólo cuando el inicio de sesión
   ya terminó de cargar: ninguna otra página de Moodle puede cargar a la vez, crea una
   sesión vacía cuya cookie pisa la buena (por eso falló la 0.3.1). Sólo se intenta una
-  vez por apertura; sin llave se queda en el inicio de sesión.
+  vez por apertura; sin llave se queda en el inicio de sesión. Mientras tanto el
+  inicio de sesión no se ve: `OCULTAR_INICIO` carga invisible toda página `/login/` y
+  `mostrar_inicio` la muestra sólo si no hay inicio automático (antes parpadeaba un
+  instante antes de la tarea, sobre todo al abrir la app o cambiar de cuenta).
 - Al terminar de cargar cada página, `conservar_sesion` vuelve a guardar las cookies
   de sesión de Moodle con fecha (30 días). No en la página de inicio de sesión que
   dispara `entrar_solo`: guardaría la cookie vacía encima de la nueva.
@@ -124,8 +154,8 @@ Al abrir una página (`abrir_en_moodle` en `ventanas.rs`):
 Lo que ya rompió el inicio de sesión (0.3.1 a 0.3.3):
 
 - **WebView2 guarda las cookies de sesión sólo en memoria.** `MoodleSession` no tiene
-  fecha; al salir de la app (o al destruir la ventana de Moodle) termina su proceso de
-  WebView2 y se borra.
+  fecha; al salir de la app termina el proceso de WebView2 y se borra (hasta la 0.3.4,
+  también al destruir la ventana de Moodle, que tenía su propia carpeta).
   Electron sí las conservaba. Sin `conservar_sesion`, cada vez que se abre la ventana
   hace falta el inicio automático.
 - **Moodle da una sola llave de inicio automático cada 6 minutos** por usuario

@@ -257,6 +257,36 @@
   color-scheme: dark;
 }
 
+/* Rojo cereza con rosa pálido: el acento es claro, así que su letra es oscura. */
+:root[data-tema="guinda"],
+[data-muestra="guinda"] {
+  --fondo-a: #3f0a19;
+  --fondo-b: #2a0610;
+  --alfa-tema: 1;
+  --elevado: #521226;
+  --borde: rgb(244 205 214 / .22);
+  --linea: rgb(244 205 214 / .16);
+  --brillo: rgb(255 255 255 / .07);
+  --texto: #fff4f6;
+  --suave: #fcdfe6;
+  --tenue: #e8b6c2;
+  --hover: rgb(244 205 214 / .12);
+  --pieza: rgb(244 205 214 / .14);
+  --pieza-hover: rgb(244 205 214 / .22);
+  --codigo: rgb(0 0 0 / .25);
+  --mal: #ffa890;
+  --pronto: #f9cd7c;
+  --bien: #8fe3b1;
+  --interruptor: #f4cdd6;
+  --neutro: rgb(244 205 214 / .18);
+  --acento: #f4cdd6;
+  --sobre-acento: #3f0a19;
+  --sobre-estado: #3f0a19;
+  --sombra: 0 10px 28px rgb(30 0 10 / .55), 0 2px 6px rgb(30 0 10 / .32);
+  --sombra-texto: none;
+  color-scheme: dark;
+}
+
 /* Negro puro y letras blancas: lo más legible. */
 :root[data-tema="contraste"],
 [data-muestra="contraste"] {

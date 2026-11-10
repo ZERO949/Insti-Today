@@ -92,7 +92,7 @@ window.agenda.arrastre.obtener().then((archivos) => {
   const fila = (a, i) =>
     `<div class="archivo" draggable="true" data-i="${i}" title="${esc(a.nombre)}"><span class="tipo" style="background:${COLORES[a.ext.toLowerCase()] || '#5d6b82'}">${esc(a.ext.toUpperCase().slice(0, 4))}</span><span class="nombre">${esc(a.nombre)}</span><span class="asa">${ASA}</span></div>`;
   const todos = archivos.length > 1
-    ? `<div class="archivo todos" draggable="true" data-i="todos"><span class="tipo" style="background:var(--acento)">${archivos.length}</span><span class="nombre"><b>Todos a la vez</b></span><span class="asa">${ASA}</span></div>`
+    ? `<div class="archivo todos" draggable="true" data-i="todos"><span class="tipo" style="background:var(--acento);color:var(--sobre-acento,#fff)">${archivos.length}</span><span class="nombre"><b>Todos a la vez</b></span><span class="asa">${ASA}</span></div>`
     : '';
   $('lista').innerHTML = todos + archivos.map(fila).join('');
   ajustar();

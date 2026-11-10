@@ -321,7 +321,7 @@ async fn intentar(w: &WebviewWindow, rutas: &[String], d: &Value, cancelado: &At
         if cancelado.load(Ordering::SeqCst) {
             return Fin::Cancelada("");
         }
-        // La ventana se cerró (cerrarla la esconde).
+        // La ventana se cerró (ya no existe: url() e is_visible() fallan).
         let (Ok(url), Ok(true)) = (w.url(), w.is_visible()) else { return Fin::Cancelada("Cerraste Moodle. Tus archivos y tu texto siguen guardados.") };
         if Instant::now() >= limite {
             return Fin::Manual("No apareció el selector de archivos de Moodle. Arrastra los archivos desde la ventana de Insti Today.".into());
