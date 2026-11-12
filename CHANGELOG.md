@@ -1,5 +1,13 @@
 # Cambios
 
+## 0.3.9 · 2026-11-11
+
+- Al guardar o enviar una entrega en la ventana de Moodle de la app, la tarea sale
+  como entregada al instante, sin esperar a la siguiente revisión. Si quitas el envío,
+  vuelve a pendientes igual de rápido.
+- La caja de «Mis archivos» ahora guarda los archivos que subes y crece con ellos, con
+  una animación al añadir o quitar.
+
 ## 0.3.8 · 2026-11-09
 
 - «Abrir en Moodle» ya no muestra un instante el inicio de sesión antes de la tarea

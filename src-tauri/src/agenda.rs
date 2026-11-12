@@ -195,6 +195,13 @@ async fn estado_tarea(asig: &Value, entregadas: &Option<HashSet<String>>) -> R<(
     Ok((estado.into(), entrega["status"] == "draft", prorroga, intento["locked"] == true))
 }
 
+// Una sola tarea ya leída (al volver de su entrega en Moodle): estado y borrador.
+pub async fn estado_de(t: &Value) -> R<(String, bool)> {
+    let asig = json!({ "id": t["instancia"], "nosubmissions": i64::from(t["sinEntregaEnLinea"] == true) });
+    let (estado, borrador, _, _) = estado_tarea(&asig, &None).await?;
+    Ok((estado, borrador))
+}
+
 async fn tareas_assign(asignaciones: Vec<Value>, secciones: &HashMap<i64, Lugar>, ahora: f64, entregadas: &Option<HashSet<String>>) -> R<Vec<Value>> {
     let base = escuela();
     try_join_all(asignaciones.into_iter().map(|a| {

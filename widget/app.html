@@ -228,7 +228,16 @@
   .pie-entregable .meta { font-size: 12px; color: var(--tenue); }
   .pie-entregable .botones { display: flex; gap: 5px; margin-top: 6px; }
   .soltar { border: 1.5px dashed var(--pieza-hover); border-radius: 12px; padding: 18px; text-align: center; color: var(--tenue); font-size: 12px; cursor: pointer; transition: border-color .15s var(--curva), background .15s var(--curva), color .15s var(--curva); }
-  .soltar:hover, .soltando .soltar { border-color: var(--acento); color: var(--texto); background: color-mix(in srgb, var(--acento) 7%, transparent); }
+  .soltar:not(.con-archivos):hover, .soltando .soltar { border-color: var(--acento); color: var(--texto); background: color-mix(in srgb, var(--acento) 7%, transparent); }
+  /* La caja guarda tus archivos y crece con ellos. */
+  .soltar { overflow: hidden; }
+  .soltar.con-archivos { padding: 12px; cursor: default; }
+  .soltar .entregables { margin-bottom: 12px; text-align: left; color: var(--texto); font-size: 13px; }
+  .soltar .pista { cursor: pointer; }
+  .soltar.con-archivos .pista:hover { color: var(--texto); }
+  .entregable.nuevo { animation: estallar .38s var(--curva) both; animation-delay: calc(var(--i, 0) * 50ms); }
+  .entregable.saliendo { animation: encoger .2s var(--curva) forwards; pointer-events: none; }
+  @media (prefers-reduced-motion: reduce) { .entregable.nuevo { animation-name: aparecer; } .entregable.saliendo { animation-name: desvanecer; } }
   .barra-entrega { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 0 4px; text-align: center; }
   .boton.grande { padding: 11px 30px; font-weight: 600; font-size: 14px; }
   /* Al pasar el ratón el texto sube y se va, y entra una flecha de subir con un pequeño rebote. */
@@ -936,7 +945,13 @@ function pintarDetalleTarea(d) {
   const en = entregaActual || { entregables: [], texto: '' };
   const lista = en.entregables || [];
   const adjuntos = lista.filter((x) => x.adjuntado);
-  const tarjetas = lista.map((x) => `<div class="entregable" data-ruta="${esc(x.ruta)}">
+  // Lo que ya estaba en la caja de esta tarea, para animar sólo lo nuevo y el cambio de alto.
+  const cajaAntes = document.querySelector('#zona-entregables .soltar');
+  const mismaTarea = cajaAntes?.dataset.tarea === String(t.id);
+  const altoAntes = mismaTarea ? cajaAntes.offsetHeight : 0;
+  const vistos = mismaTarea ? new Set([...cajaAntes.querySelectorAll('.entregable')].map((x) => x.dataset.ruta)) : null;
+  let nuevos = 0;
+  const tarjetas = lista.map((x) => `<div class="entregable${vistos && !vistos.has(x.ruta) ? ` nuevo" style="--i:${nuevos++}` : ''}" data-ruta="${esc(x.ruta)}">
       <div class="vista" data-abrir-entregable tabindex="0" role="button" aria-label="Abrir ${esc(x.nombre)}">${x.imagen ? `<img src="${esc(x.url)}" alt="">` : iconoArchivo(x.nombre)}</div>
       <div class="pie-entregable">
         <div class="nombre" title="${esc(x.nombre)}">${esc(x.nombre)}</div>
@@ -977,8 +992,10 @@ function pintarDetalleTarea(d) {
           <button class="boton chico" data-subir>＋ Subir tus archivos</button>
         </span>
       </div>
-      ${lista.length ? `<div class="entregables">${tarjetas}</div>` : ''}
-      <div class="soltar" data-subir>${lista.length ? 'Arrastra aquí más fotos o archivos tuyos' : 'Arrastra aquí tus archivos o pulsa «Subir tus archivos».'}</div>
+      <div class="soltar${lista.length ? ' con-archivos' : ''}" data-tarea="${esc(String(t.id))}"${lista.length ? '' : ' data-subir'}>
+        ${lista.length ? `<div class="entregables">${tarjetas}</div>` : ''}
+        <div class="pista" data-subir>${lista.length ? 'Arrastra aquí más fotos o archivos tuyos' : 'Arrastra aquí tus archivos o pulsa «Subir tus archivos».'}</div>
+      </div>
     </section>
 
     <section class="paso entrega-paso">
@@ -992,6 +1009,11 @@ function pintarDetalleTarea(d) {
       ${restaEstado > 0 ? `<div class="estado-entrega ${esc(en.estado.fase)}${en.estado.cuando !== estadoVisto ? ' nuevo' : ''}"><b>${esc({ preparando: 'Preparando', colocados: 'Archivos colocados', manual: 'Hazlo a mano', cancelada: 'Cancelada', error: 'Error', abierta: 'Página abierta' }[en.estado.fase] || en.estado.fase)}</b> · ${esc(en.estado.texto || '')} <span class="sub">${esc(haceCuanto(en.estado.cuando))}</span>${en.estado.fase === 'preparando' ? ' <button class="boton chico" data-cancelar-entrega>Cancelar</button>' : ''}</div>` : ''}
     </section>
   </div>`;
+  const caja = document.querySelector('#zona-entregables .soltar');
+  const altoAhora = caja.offsetHeight;
+  if (altoAntes && altoAntes !== altoAhora && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    caja.animate([{ height: `${altoAntes}px` }, { height: `${altoAhora}px` }], { duration: 340, easing: 'cubic-bezier(.2, .8, .2, 1)' });
+  }
   clearTimeout(relojEstado);
   if (restaEstado > 0) {
     estadoVisto = en.estado.cuando; // al repintar no vuelve a rebotar
@@ -1085,7 +1107,9 @@ $('detalle-pendiente').addEventListener('click', async (e) => {
   const rutaArchivo = tarjeta?.dataset.ruta;
   if (rutaArchivo && e.target.closest('[data-mostrar-entregable]')) return window.agenda.entrega.mostrarArchivo(t.id, rutaArchivo);
   if (rutaArchivo && e.target.closest('[data-quitar-tuyo]')) {
-    entregaActual = await window.agenda.entrega.quitarTuyo(t.id, rutaArchivo);
+    const fuera = new Promise((ok) => tarjeta.addEventListener('animationend', ok, { once: true }));
+    tarjeta.classList.add('saliendo');
+    [entregaActual] = await Promise.all([window.agenda.entrega.quitarTuyo(t.id, rutaArchivo), fuera]);
     return pintarDetalleTarea(detalleActual);
   }
   if (rutaArchivo && e.target.closest('[data-abrir-entregable]')) return window.agenda.entrega.abrirArchivo(t.id, rutaArchivo);

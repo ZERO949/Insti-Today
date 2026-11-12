@@ -460,6 +460,25 @@ const OCULTAR_INICIO: &str = "if (location.pathname.includes('/login/')) {
   setTimeout(() => (document.documentElement.style.visibility = ''), 20000);
 }";
 
+static EDITANDO_TAREA: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+// Al guardar, enviar o quitar una entrega, Moodle vuelve a la vista de la tarea:
+// devuelve su id para preguntar por ella sin esperar a la hora.
+// (Cancelar la edición también vuelve ahí: sólo cuesta una pregunta de más.)
+fn tras_entregar(u: &url::Url) -> Option<String> {
+    use std::sync::atomic::Ordering;
+    if !u.path().ends_with("/mod/assign/view.php") {
+        return None;
+    }
+    let dato = |nombre: &str| u.query_pairs().find(|(k, _)| k == nombre).map(|(_, v)| v.into_owned());
+    let accion = dato("action").unwrap_or_default();
+    if !accion.is_empty() && accion != "view" {
+        EDITANDO_TAREA.store(true, Ordering::SeqCst);
+        return None;
+    }
+    if EDITANDO_TAREA.swap(false, Ordering::SeqCst) { dato("id") } else { None }
+}
+
 fn mostrar_inicio(w: &WebviewWindow) {
     let _ = w.eval("document.documentElement.style.visibility = ''");
 }
@@ -482,6 +501,10 @@ fn constructor_moodle(etiqueta: &str, url: url::Url) -> WebviewWindowBuilder<'st
             }
             let pedida = if w.label() == MOODLE { PENDIENTE.lock().unwrap().take() } else { None };
             let vencida = carga.url().path().contains("/login/");
+            if let Some(id) = tras_entregar(carga.url()) {
+                moodle::olvidar_respuestas();
+                tauri::async_runtime::spawn(crate::app_logica::revisar_tarea(id));
+            }
             // Leer cookies dentro del evento bloquea WebView2: va aparte.
             tauri::async_runtime::spawn(async move {
                 match pedida {
@@ -753,6 +776,18 @@ pub fn recoger_basura() {
 
 #[cfg(all(test, windows))]
 mod pruebas {
+    #[test]
+    fn revisa_al_volver_de_la_entrega() {
+        let u = |s: &str| url::Url::parse(s).unwrap();
+        let siete = Some("7".to_string());
+        assert_eq!(super::tras_entregar(&u("https://m.mx/mod/assign/view.php?id=7")), None);
+        assert_eq!(super::tras_entregar(&u("https://m.mx/mod/assign/view.php?id=7&action=editsubmission")), None);
+        assert_eq!(super::tras_entregar(&u("https://m.mx/mod/assign/view.php?id=7")), siete);
+        assert_eq!(super::tras_entregar(&u("https://m.mx/mod/assign/view.php?id=7")), None);
+        assert_eq!(super::tras_entregar(&u("https://m.mx/mod/assign/view.php?id=7&action=removesubmissionconfirm")), None);
+        assert_eq!(super::tras_entregar(&u("https://m.mx/mod/assign/view.php?id=7&action=view")), siete);
+    }
+
     #[test]
     fn arrastre_lleva_los_archivos() {
         use windows::Win32::System::{

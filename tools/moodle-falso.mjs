@@ -201,6 +201,8 @@ function desaplanar(params) {
 
 const intentos = new Map([[41, []], [42, []]]);
 const llamadas = [];
+// Las que se guardaron con «Guardar cambios» (cmid).
+const enviadas = new Set();
 
 function funcion(nombre, a, base) {
   const ids = (a.courseids || []).map(Number);
@@ -221,7 +223,7 @@ function funcion(nombre, a, base) {
     case 'mod_assign_get_submission_status': {
       const x = asignaciones(base).find((y) => y.id === Number(a.assignid));
       if (!x) return { exception: 'invalid_parameter_exception', errorcode: 'invalidparameter', message: 'No existe' };
-      return { lastattempt: { submission: { status: x.estado }, gradingstatus: x.id === 2 ? 'graded' : 'notgraded', locked: false, cansubmit: true, canedit: true }, warnings: [] };
+      return { lastattempt: { submission: { status: enviadas.has(x.cmid) ? 'submitted' : x.estado }, gradingstatus: x.id === 2 ? 'graded' : 'notgraded', locked: false, cansubmit: true, canedit: true }, warnings: [] };
     }
     case 'mod_quiz_get_quizzes_by_courses':
       return { quizzes: EXAMENES.filter((q) => ids.includes(q.course)), warnings: [] };
@@ -329,13 +331,22 @@ export function iniciar(puerto = 8765) {
       const cmid = u.searchParams.get('id');
       const x = asignaciones(base).find((y) => String(y.cmid) === cmid);
       if (!x) return html(pagina('No existe', '<p>No existe</p>'), 404);
+      // Como Moodle: guardar la entrega vuelve a la vista de la tarea.
+      if (req.method === 'POST') {
+        if (params.get('action') === 'removesubmission') enviadas.delete(x.cmid);
+        else enviadas.add(x.cmid);
+        return ir(`${RAIZ}/mod/assign/view.php?id=${cmid}`);
+      }
+      if (u.searchParams.get('action') === 'removesubmissionconfirm') {
+        return html(pagina(x.name, `<h2>${x.name}</h2><p>¿Quitar el envío?</p><form method="post"><input type="hidden" name="action" value="removesubmission"><button id="id_quitar">Continuar</button></form>`));
+      }
       if (u.searchParams.get('action') === 'editsubmission') {
         // Como en Moodle real, la página trae otros selectores (uno oculto y el de otro campo).
         return html(pagina(x.name, `<h2>${x.name}</h2><form method="post"><div class="filemanager" style="display:none"></div>
           <div id="fitem_id_files_filemanager"><label>Archivos enviados</label>
           <div class="filemanager"><div class="filemanager-container"><div class="fp-content"></div><div class="dndupload-message">Puede arrastrar y soltar archivos aquí para añadirlos</div><div class="dndupload-uploadinprogress" style="display:none"></div></div></div></div>
           <div id="fitem_id_otro"><label>Otro campo</label><div class="filemanager"><div class="fp-content"></div></div></div>
-          <p><button type="button">Guardar cambios</button></p></form>
+          <p><button id="id_submitbutton">Guardar cambios</button></p></form>
           <script>
             const c = document.querySelector('.filemanager-container');
             ['dragenter','dragover'].forEach((t) => c.addEventListener(t, (e) => e.preventDefault()));
@@ -352,7 +363,7 @@ export function iniciar(puerto = 8765) {
             });
           </script>`));
       }
-      return html(pagina(x.name, `<h2>${x.name}</h2>${x.intro}<p><a href="?id=${cmid}&action=editsubmission">Agregar entrega</a></p>`));
+      return html(pagina(x.name, `<h2>${x.name}</h2>${x.intro}<p><a href="?id=${cmid}&action=editsubmission">Agregar entrega</a>${enviadas.has(x.cmid) ? ` · <a id="quitar-envio" href="?id=${cmid}&action=removesubmissionconfirm">Quitar envío</a>` : ''}</p>`));
     }
     return html(pagina('Moodle', `<p>${ruta}</p>`));
   });

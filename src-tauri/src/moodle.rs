@@ -215,6 +215,11 @@ pub async fn usuario_actual() -> R<Value> {
 // Tras cerrar sesión o entrar con otra cuenta.
 pub fn olvidar_usuario() {
     *YO.lock().unwrap() = None;
+    olvidar_respuestas();
+}
+
+// Tras cambiar algo en Moodle (una entrega): lo guardado ya no vale.
+pub fn olvidar_respuestas() {
     CACHE.lock().unwrap().clear();
 }
 

@@ -160,6 +160,37 @@ pub async fn actualizar() {
     }
 }
 
+// Al volver de entregar (o quitar el envío) en Moodle: se pregunta sólo por esa
+// tarea y se cambia en la agenda, sin revisar todo (tarda segundos y se salta
+// las que ya estaban entregadas).
+pub async fn revisar_tarea(id: String) {
+    let Some((_, t)) = buscar_tarea(&id).filter(|(_, t)| t["modulo"] == "assign") else { return };
+    let gen = con(|r| r.generacion);
+    let (estado, borrador) = match agenda::estado_de(&t).await {
+        Ok(x) => x,
+        Err(e) => return datos::registrar("revisar tarea", &e),
+    };
+    if gen != con(|r| r.generacion) {
+        return;
+    }
+    let cambio = con(|r| {
+        let x = r.estado["datos"]["cursos"].as_array_mut()?.iter_mut().flat_map(|c| c["tareas"].as_array_mut().into_iter().flatten()).find(|x| x["id"] == id.as_str())?;
+        let antes = x.clone();
+        x["estado"] = json!(estado);
+        if borrador {
+            x["borrador"] = json!(true);
+        } else if let Some(m) = x.as_object_mut() {
+            m.remove("borrador");
+        }
+        (*x != antes).then(|| r.estado["datos"].clone())
+    });
+    if let Some(d) = cambio {
+        datos::escribir(&datos::ruta("agenda.json"), &d);
+        publicar(json!({}));
+        revisar_avisos();
+    }
+}
+
 // Un reloj por minuto: revisa Moodle cuando toca (también tras suspender o si
 // la red falló hace 2 minutos), avisa de lo que vence y libera la vista previa.
 pub fn iniciar_relojes() {
