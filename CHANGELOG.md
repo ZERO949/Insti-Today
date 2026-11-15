@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.4.0 · 2026-11-14
+
+- La lista de tareas de Insti Today es más sencilla: «Por entregar», «Vencidas», «Sin
+  fecha» y «Todas» y el filtro de materias ahora son dos menús en un solo renglón, y
+  la lista empieza más arriba.
+- Las materias se leen mejor: «ELECTRÓNICA ANALÓGICA (ING. SIST 5 A)» sale como
+  «Electrónica Analógica».
+- Los títulos largos ocupan hasta dos renglones en vez de cortarse.
+
 ## 0.3.9 · 2026-11-11
 
 - Al guardar o enviar una entrega en la ventana de Moodle de la app, la tarea sale

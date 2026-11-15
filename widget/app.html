@@ -68,33 +68,34 @@
     background-repeat: no-repeat; background-position: 10px 50%; background-size: 13px;
   }
   .filtros input[type=search]::placeholder { color: var(--tenue); }
-  .filtros select { flex: 1; min-width: 0; }
-  .chips { display: flex; gap: 6px; flex-wrap: wrap; width: 100%; }
-  .chip { border: 0; background: var(--pieza); color: var(--texto); border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 500; cursor: pointer; transition: background .15s var(--curva), color .15s var(--curva); }
-  .chip:hover { background: var(--pieza-hover); }
-  .chip.activo, .chip.activo:hover { background: var(--texto); color: var(--fondo-a); }
+  /* Qué ver y de qué materia: dos menús sin caja en un renglón. El primero hace de título de la lista. */
+  .vistas { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; width: 100%; padding: 2px 2px 0; }
+  .vistas select { field-sizing: content; min-width: 0; max-width: 58%; padding: 2px 16px 2px 0; border-radius: 6px; background-color: transparent; background-position: 100% 50%; background-size: 7px 11px; font-size: 12px; font-weight: 500; color: var(--tenue); text-overflow: ellipsis; transition: color .15s var(--curva); }
+  .vistas select:hover { background-color: transparent; color: var(--texto); }
+  .vistas select:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+  .vistas #filtro-cuando { font-size: 13px; font-weight: 600; color: var(--texto); }
   .filas { flex: 1; overflow-y: auto; padding: 0 8px 16px; }
   .grupo-titulo { font-size: 12px; font-weight: 600; color: var(--tenue); padding: 14px 10px 4px; }
   .grupo-titulo.mal { color: var(--mal); }
   .grupo-titulo.pronto { color: var(--pronto); }
-  .fila { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 10px; cursor: pointer; transition: background .12s var(--curva); }
+  .fila { display: flex; align-items: flex-start; gap: 11px; padding: 9px 10px; border-radius: 10px; cursor: pointer; transition: background .12s var(--curva); }
   .fila:hover { background: var(--hover); }
   .fila.sel { background: color-mix(in srgb, var(--acento) 14%, transparent); }
-  .fila .punto { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .fila .punto { width: 8px; height: 8px; border-radius: 50%; flex: none; margin-top: 5px; }
   .fila .info { min-width: 0; flex: 1; }
-  .fila .titulo { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fila .titulo { font-weight: 500; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .fila .meta { color: var(--tenue); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pastilla { flex: none; font-size: 12px; font-weight: 500; color: var(--tenue); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .pastilla.mal { color: var(--mal); font-weight: 600; }
   .pastilla.pronto { color: var(--pronto); font-weight: 600; }
   .vacio { color: var(--tenue); padding: 40px 20px; text-align: center; }
   /* Lo siguiente: la primera de hoy, un poco más grande (como en el widget). */
-  .fila.siguiente { align-items: flex-start; margin: 2px 0 4px; padding: 12px; background: var(--pieza); }
+  .fila.siguiente { margin: 2px 0 4px; padding: 12px; background: var(--pieza); }
   .fila.siguiente:hover { background: var(--pieza-hover); }
   .fila.siguiente.sel { background: color-mix(in srgb, var(--acento) 14%, transparent); }
   .fila.siguiente .punto { margin-top: 6px; }
   .fila.siguiente .rotulo { font-size: 11px; font-weight: 600; color: var(--tenue); margin-bottom: 2px; }
-  .fila.siguiente .titulo { font: 600 15px/1.3 var(--fuente-titulo); letter-spacing: -.012em; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .fila.siguiente .titulo { font: 600 15px/1.3 var(--fuente-titulo); letter-spacing: -.012em; }
   .fila.siguiente .pastilla { margin-top: 1px; }
   /* Entregada: palomita, se tacha y se va. */
   .fila.entregada { max-height: 90px; overflow: hidden; animation: irse .32s var(--curva) .45s forwards; }
@@ -331,8 +332,8 @@
 
   /* Al pulsar responde ya, no al soltar: los botones se hunden un poco y las
      filas se oscurecen. */
-  .boton, .chip, .plegar, .segmentos button, .tema .mini { transition-property: background, background-color, color, filter, box-shadow, transform; transition-duration: .15s, .15s, .15s, .15s, .15s, .1s; transition-timing-function: var(--curva); }
-  .boton:active:not(:disabled), .chip:active, .plegar:active, .segmentos button:active, .tema:active .mini { transform: scale(.96); }
+  .boton, .plegar, .segmentos button, .tema .mini { transition-property: background, background-color, color, filter, box-shadow, transform; transition-duration: .15s, .15s, .15s, .15s, .15s, .1s; transition-timing-function: var(--curva); }
+  .boton:active:not(:disabled), .plegar:active, .segmentos button:active, .tema:active .mini { transform: scale(.96); }
   .nav-item:active, .fila:active, .archivo:active, .cuenta-op:active { background: var(--pieza-hover); }
 
   /* Lo que se cierra se va por donde llegó, un poco más rápido, y ya no
@@ -424,12 +425,14 @@
             <input type="search" id="buscar" placeholder="Buscar tarea o materia…">
             <button class="yo" id="yo" aria-haspopup="menu"></button>
           </div>
-          <select id="filtro-materia"><option value="">Todas las materias</option></select>
-          <div class="chips" id="chips-cuando">
-            <button class="chip activo" data-cuando="activas">Por entregar</button>
-            <button class="chip" data-cuando="vencidas">Vencidas</button>
-            <button class="chip" data-cuando="sinfecha">Sin fecha</button>
-            <button class="chip" data-cuando="todas">Todas</button>
+          <div class="vistas">
+            <select id="filtro-cuando" aria-label="Qué tareas ver">
+              <option value="activas">Por entregar</option>
+              <option value="vencidas">Vencidas</option>
+              <option value="sinfecha">Sin fecha</option>
+              <option value="todas">Todas</option>
+            </select>
+            <select id="filtro-materia" aria-label="Materia"><option value="">Todas las materias</option></select>
           </div>
         </div>
         <div class="semana" id="semana" hidden></div>
@@ -611,6 +614,15 @@ const mayus = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 let datos = null;
 let seccion = new URLSearchParams(location.search).get('seccion') || 'pendientes';
 let filtroCuando = 'activas';
+// Sólo para mostrar: «ELECTRÓNICA ANALÓGICA (ING. SIST 5 A)» → «Electrónica Analógica».
+// El nombre completo sigue siendo el que filtra, busca y nombra las carpetas.
+const MENORES = new Set(['a', 'al', 'con', 'de', 'del', 'e', 'el', 'en', 'la', 'las', 'los', 'para', 'y']);
+const materiaCorta = (nombre) => {
+  const n = String(nombre ?? '');
+  const s = n.replace(/\s*\([^)]*\)\s*$/, '') || n;
+  if (/\p{Ll}/u.test(s)) return s;
+  return s.toLowerCase().replace(/\p{L}+/gu, (p, i) => (/^[ivx]+$/.test(p) ? p.toUpperCase() : i && MENORES.has(p) ? p : p[0].toUpperCase() + p.slice(1)));
+};
 let tareaSel = null;
 let menuAbierto = false;
 let detalleActual = null; // instrucciones y archivos de la tarea elegida
@@ -711,8 +723,7 @@ function abrirTarea(id) {
   const ahora = Date.now();
   const visible = filtroCuando === 'todas' || (filtroCuando === 'activas' && t.cuando && (t.cuando >= ahora || t.tardia));
   if (!visible) {
-    filtroCuando = 'todas';
-    for (const c of document.querySelectorAll('[data-cuando]')) c.classList.toggle('activo', c.dataset.cuando === 'todas');
+    $('filtro-cuando').value = filtroCuando = 'todas';
   }
   verTarea(id);
 }
@@ -889,7 +900,7 @@ function pintarPendientes() {
     }
     const [p, clase] = pastilla(t);
     const rotulo = t === siguiente ? '<div class="rotulo">Lo siguiente</div>' : '';
-    html += `<div class="fila ${t === siguiente ? 'siguiente' : ''} ${tareaSel?.id === t.id ? 'sel' : ''}" data-tarea="${esc(t.id)}"><i class="punto" style="background:${t.color}"></i><div class="info">${rotulo}<div class="titulo">${esc(t.titulo)}</div><div class="meta">${esc(t.curso)}</div></div><span class="pastilla ${clase}">${esc(p)}</span></div>`;
+    html += `<div class="fila ${t === siguiente ? 'siguiente' : ''} ${tareaSel?.id === t.id ? 'sel' : ''}" data-tarea="${esc(t.id)}"><i class="punto" style="background:${t.color}"></i><div class="info">${rotulo}<div class="titulo">${esc(t.titulo)}</div><div class="meta">${esc(materiaCorta(t.curso))}</div></div><span class="pastilla ${clase}">${esc(p)}</span></div>`;
   }
   pintarSemana();
   pintarFilas($('filas-pendientes'), html || `<div class="vacio">${datos.agenda ? 'Nada por aquí.' : 'Inicia sesión para ver tus tareas.'}</div>`);
@@ -969,7 +980,7 @@ function pintarDetalleTarea(d) {
   const restaEstado = en.estado ? Date.parse(en.estado.cuando) + (en.estado.fase === 'preparando' ? 120_000 : 6_000) - Date.now() : 0;
 
   $('detalle-pendiente').innerHTML = `<div class="detalle">
-    <div class="curso" style="color:${t.color}">${esc(t.curso)}</div>
+    <div class="curso" style="color:${t.color}">${esc(materiaCorta(t.curso))}</div>
     <h2>${esc(t.titulo)}</h2>
     ${t.ruta?.length ? `<div class="ruta">${esc(t.ruta.join(' › '))}</div>` : ''}
     <div class="sub">${esc(fecha)}</div>
@@ -1201,11 +1212,8 @@ document.addEventListener('keydown', (e) => {
 $('filas-pendientes').addEventListener('scroll', (e) => e.target.classList.toggle('desplazada', e.target.scrollTop > 0), { passive: true });
 $('buscar').addEventListener('input', pintarPendientes);
 $('filtro-materia').addEventListener('change', pintarPendientes);
-$('chips-cuando').addEventListener('click', (e) => {
-  const b = e.target.closest('[data-cuando]');
-  if (!b) return;
-  filtroCuando = b.dataset.cuando;
-  for (const c of document.querySelectorAll('[data-cuando]')) c.classList.toggle('activo', c === b);
+$('filtro-cuando').addEventListener('change', (e) => {
+  filtroCuando = e.target.value;
   pintarPendientes();
 });
 
@@ -1342,7 +1350,7 @@ function pintarBarra() {
   const sel = $('filtro-materia');
   const actual = sel.value;
   const materias = (datos.agenda?.cursos || []).map((c) => c.nombre);
-  sel.innerHTML = '<option value="">Todas las materias</option>' + materias.map((m) => `<option ${m === actual ? 'selected' : ''}>${esc(m)}</option>`).join('');
+  sel.innerHTML = '<option value="">Todas las materias</option>' + materias.map((m) => `<option value="${esc(m)}" ${m === actual ? 'selected' : ''}>${esc(materiaCorta(m))}</option>`).join('');
 }
 
 function pintar() {
