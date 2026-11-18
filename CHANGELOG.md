@@ -1,5 +1,10 @@
 # Cambios
 
+## 0.4.1 · 2026-11-18
+
+- Con la barra lateral plegada, el botón «Entregar en Moodle» ya no pierde su texto.
+- Al cerrar la ventana de Moodle también se cierra «Tu entrega para Moodle».
+
 ## 0.4.0 · 2026-11-14
 
 - La lista de tareas de Insti Today es más sencilla: «Por entregar», «Vencidas», «Sin

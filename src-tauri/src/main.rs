@@ -47,6 +47,12 @@ fn main() {
                 if !label.starts_with(ventanas::MOODLE) {
                     ventanas::recoger_basura();
                 }
+                // «Tu entrega» sólo sirve con la tarea abierta: se va con ella.
+                if label == ventanas::MOODLE {
+                    if let Some(w) = ventanas::ventana(ventanas::ARRASTRE) {
+                        let _ = w.destroy();
+                    }
+                }
             }
             // Sin ventanas la app sigue en la bandeja; para salir está «Salir».
             if let RunEvent::ExitRequested { api, code: None, .. } = e {
